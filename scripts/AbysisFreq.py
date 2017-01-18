@@ -1,4 +1,4 @@
-#!usr/bin/env python
+#!/usr/bin/env python
 
 import re
 import urllib2
@@ -164,6 +164,7 @@ def find_common_sequences_improved(seqs, aa_table,thresholds,tolerance=3):
             # initiate the tolerance value
             # the tolerance is the maximum value (inclusive) of unusual/rare amino acids in a sequence
             tolerance_i = 0
+            threshold_dict[str(threshold)] = list()
             
             # keep track if there is an unusual/rare amino acid
             found_rare_amino_acid = False
@@ -219,10 +220,7 @@ def find_common_sequences_improved(seqs, aa_table,thresholds,tolerance=3):
             # if found_rare_amino_acid is False the current sequence is below the tolerance
             # and we keep track of the number of sequence below the threshold in treshold_dict
             if found_rare_amino_acid == False:
-                if str(threshold) in threshold_dict:
-                    threshold_dict[str(threshold)].append(seq)
-                else:
-                    threshold_dict[str(threshold)] = list()
+                threshold_dict[str(threshold)].append(seq)
     
     # after iterating through each sequence and threshold the function returns the threshold_dict
     # containing all the number of sequences for each threshold
