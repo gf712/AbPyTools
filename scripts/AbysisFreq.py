@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+#!usr/bin/env python
 
+import re
 import urllib2
 import numpy as np
 import pandas as pd
@@ -219,9 +220,9 @@ def find_common_sequences_improved(seqs, aa_table,thresholds,tolerance=3):
             # and we keep track of the number of sequence below the threshold in treshold_dict
             if found_rare_amino_acid == False:
                 if str(threshold) in threshold_dict:
-                    threshold_dict[str(threshold)] += 1
+                    threshold_dict[str(threshold)].append(seq)
                 else:
-                    threshold_dict[str(threshold)] = 0
+                    threshold_dict[str(threshold)] = list()
     
     # after iterating through each sequence and threshold the function returns the threshold_dict
     # containing all the number of sequences for each threshold
