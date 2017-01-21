@@ -17,27 +17,50 @@ class Antibody:
     def apply_numbering(self, server='abysis', numbering_scheme='chothia'):
 
         assert numbering_scheme.lower() in ['chothia', 'chothia_ext', 'kabat']
+        assert server in ['abysis']
 
-        # check which server to use to get numbering
-        if server.lower() == 'abysis':
-            # find out which numbering scheme to use
-            if numbering_scheme.lower() == 'chothia':
-                scheme = '-c'
-            elif numbering_scheme.lower() == 'chotia_ext':
-                scheme = '-a'
-            else:
-                scheme = '-k'
+        self.numbering = get_Ab_numbering(self.sequence, server, numbering_scheme)
 
-            self.url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(self.sequence,
-                                                                                                      scheme)
 
-            numbering_table, error = download(self.url, verbose=False)
 
-            parsed_numbering_table = re.findall('[\S| ]+', numbering_table)
+class Antibodies:
+    """
+    Thoughts:
+    -   Same as Antibody, but this will hold
+        mutliple elements
+    -   Might remove the Antibody class depending
+        on how this will be used
+    TODO: description
+    """
 
-            self.numbering = [x[:-2] for x in parsed_numbering_table]
+    def __init__(self):
+        pass
 
-            # TODO: add more server options
+
+def get_Ab_numbering(sequence, server, numbering_scheme):
+
+    # check which server to use to get numbering
+    if server.lower() == 'abysis':
+        # find out which numbering scheme to use
+        if numbering_scheme.lower() == 'chothia':
+            scheme = '-c'
+        elif numbering_scheme.lower() == 'chotia_ext':
+            scheme = '-a'
+        else:
+            scheme = '-k'
+
+        url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
+                                                                                                  scheme)
+
+        numbering_table, error = download(url, verbose=False)
+
+        parsed_numbering_table = re.findall('[\S| ]+', numbering_table)
+
+        numbering = [x[:-2] for x in parsed_numbering_table]
+
+        # TODO: add more server options
+
+    return numbering
 
 
 def download(url, user_agent='wswp', num_retries=2, verbose=True):
