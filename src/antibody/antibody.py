@@ -1,4 +1,4 @@
-from downloads import Download
+from src.utils.downloads import Download
 import re
 import numpy as np
 import json
