@@ -1,6 +1,8 @@
-#from downloads import Download
+from downloads import Download
 import re
-import urllib2
+import numpy as np
+import json
+
 
 class Antibody:
     """
@@ -9,36 +11,69 @@ class Antibody:
 
     def __init__(self, sequence='', name='', numbering=None):
         self.raw_sequence = sequence
-        self.sequence = sequence.replace('-','')
+        self.sequence = sequence.replace('-', '')
         self.name = name
         self.numbering = numbering
-        self.url=''
+        self.hydrophobicity_matrix = np.array([])
+        self.chain = ''
 
     def apply_numbering(self, server='abysis', numbering_scheme='chothia'):
 
-        assert numbering_scheme.lower() in ['chothia', 'chothia_ext', 'kabat']
-        assert server in ['abysis']
+        available_numbering_schemes = ['chothia', 'chothia_ext', 'kabath']
+        available_servers = ['abysis']
 
-        self.numbering = get_Ab_numbering(self.sequence, server, numbering_scheme)
+        assert numbering_scheme.lower() in available_numbering_schemes, \
+            "Unknown Numbering scheme: {}. \
+            Numbering schemes available: {}".format(numbering_scheme,
+                                                    ', '.join(available_numbering_schemes))
+
+        assert server in available_servers, "Unknown server: {}. \
+            Available servers: {}".format(server, ' ,'.join(available_servers))
+
+        self.numbering = get_ab_numbering(self.sequence, server, numbering_scheme)
+
+        if self.numbering[0][0] == 'H':
+            self.chain = 'Heavy'
+        elif self.numbering[0][0] == 'L':
+            self.chain = 'Light'
+        else:
+            self.chain = ''
+            self.numbering = 'NA'
+            print('Could not apply numbering scheme on provided sequence')
+
+    def calculate_hydrophobicity(self, hydrophobicity_scores):
+
+        # check if all the required parameters are in order
+        available_hydrophobicity_scores = ['kd', 'ww', 'hh', 'mf', 'ew']
+
+        if isinstance(hydrophobicity_scores, str):
+            assert hydrophobicity_scores in available_hydrophobicity_scores, \
+                "Chosen hydrophobicity scores ({}) not available. \
+                Available hydrophobicity scores: {}".format(
+                    hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
+                )
+
+        if self.chain == 'Light':
+            self.hydrophobicity_matrix = np.zeros(138)
+        elif self.chain == 'Heavy':
+            self.hydrophobicity_matrix = np.zeros(158)
+        else:
+            self.hydrophobicity_matrix = 'NA'
+            print('Could not calculate the hydrophobicity matrix of the \
+                  the provided sequence')
+            return
+
+        # get the dictionary with the hydrophobicity scores
+        self.aa_hydrophobicity_scores = get_aa_hydrophobicity_scores(hydrophobicity_scores)
+
+        for i, amino_acid in enumerate(self.raw_sequence):
+            if amino_acid not in self.aa_hydrophobicity_scores.values():
+                self.hydrophobicity_matrix[i] = 0
+            else:
+                self.hydrophobicity_matrix[i] = self.aa_hydrophobicity_scores[amino_acid.upper()]
 
 
-
-class Antibodies:
-    """
-    Thoughts:
-    -   Same as Antibody, but this will hold
-        mutliple elements
-    -   Might remove the Antibody class depending
-        on how this will be used
-    TODO: description
-    """
-
-    def __init__(self):
-        pass
-
-
-def get_Ab_numbering(sequence, server, numbering_scheme):
-
+def get_ab_numbering(sequence, server, numbering_scheme):
     # check which server to use to get numbering
     if server.lower() == 'abysis':
         # find out which numbering scheme to use
@@ -52,57 +87,23 @@ def get_Ab_numbering(sequence, server, numbering_scheme):
         url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
                                                                                                   scheme)
 
-        numbering_table, error = download(url, verbose=False)
+        query = Download(url, verbose=False)
+
+        numbering_table = query.download().html
 
         parsed_numbering_table = re.findall('[\S| ]+', numbering_table)
 
         numbering = [x[:-2] for x in parsed_numbering_table]
 
         # TODO: add more server options
+    else:
+        numbering = ['']
 
     return numbering
 
+def get_aa_hydrophobicity_scores(hydrophobicity_scores):
 
-def download(url, user_agent='wswp', num_retries=2, verbose=True):
-    """
-    Function to download contents from a given url
+    with open('../../data/Hydrophobicity.json') as f:
+        hydrophobicity_data = json.load(f)
 
-    Input:
-            url: str
-            string with the url to download from
-
-            user_agent: str
-            Default 'wswp'
-
-            num_retries: int
-            Number of times to retry downloading
-            if there is an error
-
-            verbose: bool
-            Print out url and errors
-
-    Output:
-            returns: str
-            string with contents of given url
-    """
-
-    error = False
-    if verbose:
-        print 'Downloading:', url
-    headers = {'User-agent': user_agent}
-    request = urllib2.Request(url, headers=headers)
-    try:
-        html = urllib2.urlopen(request).read()
-    except urllib2.URLError as e:
-        if verbose:
-            print 'Download error:', e.reason
-        html = None
-        if num_retries > 0:
-            if hasattr(e, 'code') and 500 <= e.code < 600:
-                # retry 5XX HTTP errors
-                return download(url, user_agent, num_retries - 1)[0]
-            # elif hasattr(e, 'code') and e.code == 404:
-            else:
-                error = True
-
-    return html, error
+    return hydrophobicity_data["hydrophobicity"][hydrophobicity_scores+'hydrophobicity']
