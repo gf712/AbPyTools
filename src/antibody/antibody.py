@@ -53,11 +53,12 @@ class Antibody:
                 Available hydrophobicity scores: {}".format(
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
                 )
-
         if self.chain == 'Light':
-            self.hydrophobicity_matrix = np.zeros(138)
+            with open('/Users/gilhoben/AbPyTools/data/NumberingSchemes/LightChothiaWithCDR.txt','r') as f:
+                whole_sequence = [x.replace('\n', '') for x in f.readlines()]
         elif self.chain == 'Heavy':
-            self.hydrophobicity_matrix = np.zeros(158)
+            with open('/Users/gilhoben/AbPyTools/data/NumberingSchemes/HeavyChothiaWithCDR.txt','r') as f:
+                whole_sequence = [x.replace('\n', '') for x in f.readlines()]
         else:
             self.hydrophobicity_matrix = 'NA'
             print('Could not calculate the hydrophobicity matrix of the \
@@ -65,13 +66,20 @@ class Antibody:
             return
 
         # get the dictionary with the hydrophobicity scores
-        self.aa_hydrophobicity_scores = get_aa_hydrophobicity_scores(hydrophobicity_scores)
+        aa_hydrophobicity_scores = get_aa_hydrophobicity_scores(hydrophobicity_scores)
 
-        for i, amino_acid in enumerate(self.raw_sequence):
-            if amino_acid not in self.aa_hydrophobicity_scores.values():
+        # instantiate numpy array
+        self.hydrophobicity_matrix = np.zeros(len(whole_sequence))
+
+        for i, position in enumerate(whole_sequence):
+
+            if position not in self.numbering:
                 self.hydrophobicity_matrix[i] = 0
+
             else:
-                self.hydrophobicity_matrix[i] = self.aa_hydrophobicity_scores[amino_acid.upper()]
+                position_in_data = self.numbering.index(position)
+                self.hydrophobicity_matrix[i] = aa_hydrophobicity_scores[self.sequence[position_in_data]]
+
 
 
 def get_ab_numbering(sequence, server, numbering_scheme):
