@@ -32,11 +32,12 @@ class Antibody:
 
         self.numbering = get_ab_numbering(self.sequence, server, numbering_scheme)
 
-        if self.numbering[0][0] == 'H':
-            self.chain = 'Heavy'
-        elif self.numbering[0][0] == 'L':
-            self.chain = 'Light'
-        else:
+        try:
+            if self.numbering[0][0] == 'H':
+                self.chain = 'Heavy'
+            elif self.numbering[0][0] == 'L':
+                self.chain = 'Light'
+        except:
             self.chain = ''
             self.numbering = 'NA'
             print('Could not apply numbering scheme on provided sequence')
