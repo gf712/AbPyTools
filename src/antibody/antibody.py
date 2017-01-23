@@ -42,7 +42,7 @@ class Antibody:
             self.numbering = 'NA'
             print('Could not apply numbering scheme on provided sequence')
 
-    def calculate_hydrophobicity(self, hydrophobicity_scores):
+    def calculate_hydrophobicity(self, hydrophobicity_scores='ew'):
 
         # check if all the required parameters are in order
         available_hydrophobicity_scores = ['kd', 'ww', 'hh', 'mf', 'ew']
