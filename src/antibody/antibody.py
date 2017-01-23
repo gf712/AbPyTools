@@ -95,14 +95,12 @@ def get_ab_numbering(sequence, server, numbering_scheme):
 
         url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
                                                                                                   scheme)
+        numbering_table = Download(url, verbose=False)
+        numbering_table.download()
 
-        query = Download(url, verbose=False)
+        parsed_numbering_table = re.findall("[\S| ]+", numbering_table.html)
 
-        numbering_table = query.download().html
-
-        parsed_numbering_table = re.findall('[\S| ]+', numbering_table)
-
-        numbering = [x[:-2] for x in parsed_numbering_table]
+        numbering = [x[:-2] for x in parsed_numbering_table if x[-1]!= '-']
 
         # TODO: add more server options
     else:
