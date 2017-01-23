@@ -1,2 +1,9 @@
-*.pyc
-./.idea/
+.idea/
+*.ipynb
+data/Hydrophobicity.json
+data/HydrophobicityReferences.txt
+examples/.ipynb_checkpoints/
+examples/*.ipynb
+src/__pycache__/
+src/antibody/__pycache__/
+src/utils/__pycache__/
