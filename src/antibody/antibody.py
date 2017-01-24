@@ -111,7 +111,7 @@ def get_ab_numbering(sequence, server, numbering_scheme):
 
 def get_aa_hydrophobicity_scores(hydrophobicity_scores='ew'):
 
-    with open('/Users/gilhoben/AbPyTools/data/Hydrophobicity.json') as f:
+    with open('/Users/gilhoben/AbPyTools/data/AminoAcidProperties.json') as f:
         hydrophobicity_data = json.load(f)
 
     return hydrophobicity_data["hydrophobicity"][hydrophobicity_scores+'Hydrophobicity']
