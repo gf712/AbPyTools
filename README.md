@@ -7,6 +7,7 @@ Over time I will rewrite these to be easier to use and add some data (i.e. numbe
 Stuff that will be added next:
 - 
 - adding pI calculation
+- calculate MW
 - adding some useful functions, such as comparing sequence with available datasets
 - measure CDR length
 - work on Python 2 and 3 compatibility
