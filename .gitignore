@@ -1,6 +1,6 @@
 .idea/
 *.ipynb
-data/Hydrophobicity.json
+data/AminoAcidProperties.json
 data/HydrophobicityReferences.txt
 examples/.ipynb_checkpoints/
 examples/*.ipynb
