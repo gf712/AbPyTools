@@ -18,7 +18,20 @@ class Antibody:
         self.chain = ''
         self.mw = 0
 
-    def apply_numbering(self, server='abysis', numbering_scheme='chothia'):
+    def load(self):
+        """
+        Generates all the data available:
+        - Antibody Numbering
+        - Hydrophobicity matrix
+        :return:
+
+        """
+        self.numbering, self.chain = self.ab_numbering()
+        self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
+        self.mw = self.ab_molecular_weight()
+
+    def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
+        # type: (str, str) -> object
 
         available_numbering_schemes = ['chothia', 'chothia_ext', 'kabath']
         available_servers = ['abysis']
