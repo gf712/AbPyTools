@@ -1,7 +1,7 @@
 from src.utils.downloads import Download
+from data.data_loader import DataLoader
 import re
 import numpy as np
-import json
 
 
 class Antibody:
