@@ -44,19 +44,21 @@ class Antibody:
         assert server in available_servers, "Unknown server: {}. \
             Available servers: {}".format(server, ' ,'.join(available_servers))
 
-        self.numbering = get_ab_numbering(self.sequence, server, numbering_scheme)
+        numbering = get_ab_numbering(self.sequence, server, numbering_scheme)
+        chain = ''
 
-        try:
-            if self.numbering[0][0] == 'H':
-                self.chain = 'Heavy'
-            elif self.numbering[0][0] == 'L':
-                self.chain = 'Light'
-        except:
-            self.chain = ''
-            self.numbering = 'NA'
+        if numbering == ['']:
             print('Could not apply numbering scheme on provided sequence')
+            return 'NA', 'NA'
 
-    def calculate_hydrophobicity(self, hydrophobicity_scores='ew'):
+        elif numbering[0][0] == 'H':
+                chain = 'Heavy'
+        elif numbering[0][0] == 'L':
+                chain = 'Light'
+
+        return numbering, chain
+
+    def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew'):
 
         # check if all the required parameters are in order
         available_hydrophobicity_scores = ['kd', 'ww', 'hh', 'mf', 'ew']
@@ -68,32 +70,29 @@ class Antibody:
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
                 )
         if self.chain == 'Light':
-            with open('/Users/gilhoben/AbPyTools/data/NumberingSchemes/LightChothiaWithCDR.txt','r') as f:
-                whole_sequence = [x.replace('\n', '') for x in f.readlines()]
+            data_loader = DataLoader(numbering='LightChothiaWithCDR')
+            whole_sequence = data_loader.get_data()
+
         elif self.chain == 'Heavy':
-            with open('/Users/gilhoben/AbPyTools/data/NumberingSchemes/HeavyChothiaWithCDR.txt','r') as f:
-                whole_sequence = [x.replace('\n', '') for x in f.readlines()]
+            data_loader = DataLoader(numbering='HeavyChothiaWithCDR')
+            whole_sequence = data_loader.get_data()
+
         else:
             self.hydrophobicity_matrix = 'NA'
             print('Could not calculate the hydrophobicity matrix of the \
                   the provided sequence')
-            return
+            return np.array([])
 
         # get the dictionary with the hydrophobicity scores
-        aa_hydrophobicity_scores = get_aa_hydrophobicity_scores(hydrophobicity_scores)
+        data_loader = DataLoader(amino_acid_property=['hydrophobicity', hydrophobicity_scores + 'Hydrophobicity'])
+        aa_hydrophobicity_scores = data_loader.get_data()
 
-        # instantiate numpy array
-        self.hydrophobicity_matrix = np.zeros(len(whole_sequence))
+        return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence, numbering=self.numbering,
+                                               aa_hydrophobicity_scores=aa_hydrophobicity_scores,
+                                               sequence=self.sequence)
 
-        for i, position in enumerate(whole_sequence):
-
-            if position not in self.numbering:
-                self.hydrophobicity_matrix[i] = 0
     def ab_molecular_weight(self):
 
-            else:
-                position_in_data = self.numbering.index(position)
-                self.hydrophobicity_matrix[i] = aa_hydrophobicity_scores[self.sequence[position_in_data]]
         data_loader = DataLoader(amino_acid_property=['MolecularWeight', 'average'])
         mw_dict = data_loader.get_data()
 
@@ -101,6 +100,11 @@ class Antibody:
 
 
 def get_ab_numbering(sequence, server, numbering_scheme):
+
+    """
+
+    :rtype: list
+    """
     # check which server to use to get numbering
     if server.lower() == 'abysis':
         # find out which numbering scheme to use
@@ -118,7 +122,7 @@ def get_ab_numbering(sequence, server, numbering_scheme):
 
         parsed_numbering_table = re.findall("[\S| ]+", numbering_table.html)
 
-        numbering = [x[:-2] for x in parsed_numbering_table if x[-1]!= '-']
+        numbering = [x[:-2] for x in parsed_numbering_table if x[-1] != '-']
 
         # TODO: add more server options
     else:
@@ -127,11 +131,23 @@ def get_ab_numbering(sequence, server, numbering_scheme):
     return numbering
 
 
-def get_aa_hydrophobicity_scores(hydrophobicity_scores='ew'):
+def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity_scores, sequence):
 
-    with open('/Users/gilhoben/AbPyTools/data/AminoAcidProperties.json') as f:
-        hydrophobicity_data = json.load(f)
+    # instantiate numpy array
+    hydrophobicity_matrix = np.zeros(len(whole_sequence))
+
+    for i, position in enumerate(whole_sequence):
+
+        if position not in numbering:
+            hydrophobicity_matrix[i] = 0
+
+        else:
+            position_in_data = numbering.index(position)
+            hydrophobicity_matrix[i] = aa_hydrophobicity_scores[sequence[position_in_data]]
+
+    return hydrophobicity_matrix
+
+
 def calculate_mw(sequence, mw_dict):
 
-    return hydrophobicity_data["hydrophobicity"][hydrophobicity_scores+'Hydrophobicity']
     return sum(mw_dict[x] for x in sequence) - (len(sequence) - 1) * mw_dict['water']
