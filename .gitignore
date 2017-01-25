@@ -3,7 +3,15 @@
 data/AminoAcidProperties.json
 data/HydrophobicityReferences.txt
 examples/.ipynb_checkpoints/
-examples/*.ipynb
+__init__.pyc
+__pycache__/
+data/__init__.pyc
+data/data_loader.pyc
+src/__init__.pyc
 src/__pycache__/
+src/antibody/__init__.pyc
 src/antibody/__pycache__/
+src/antibody/antibody.pyc
+src/utils/__init__.pyc
 src/utils/__pycache__/
+src/utils/downloads.pyc
