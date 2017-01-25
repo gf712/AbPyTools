@@ -16,6 +16,7 @@ class Antibody:
         self.numbering = numbering
         self.hydrophobicity_matrix = np.array([])
         self.chain = ''
+        self.mw = 0
 
     def apply_numbering(self, server='abysis', numbering_scheme='chothia'):
 
@@ -75,11 +76,15 @@ class Antibody:
 
             if position not in self.numbering:
                 self.hydrophobicity_matrix[i] = 0
+    def ab_molecular_weight(self):
 
             else:
                 position_in_data = self.numbering.index(position)
                 self.hydrophobicity_matrix[i] = aa_hydrophobicity_scores[self.sequence[position_in_data]]
+        data_loader = DataLoader(amino_acid_property=['MolecularWeight', 'average'])
+        mw_dict = data_loader.get_data()
 
+        return calculate_mw(self.sequence, mw_dict)
 
 
 def get_ab_numbering(sequence, server, numbering_scheme):
@@ -113,5 +118,7 @@ def get_aa_hydrophobicity_scores(hydrophobicity_scores='ew'):
 
     with open('/Users/gilhoben/AbPyTools/data/AminoAcidProperties.json') as f:
         hydrophobicity_data = json.load(f)
+def calculate_mw(sequence, mw_dict):
 
     return hydrophobicity_data["hydrophobicity"][hydrophobicity_scores+'Hydrophobicity']
+    return sum(mw_dict[x] for x in sequence) - (len(sequence) - 1) * mw_dict['water']
