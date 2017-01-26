@@ -1,9 +1,6 @@
 import re
-
 import numpy as np
-
-from src.utils.data_loader import DataLoader
-from src.utils.downloads import Download
+from src.utils import DataLoader, Download
 
 
 class Antibody:
@@ -61,6 +58,9 @@ class Antibody:
                 chain = 'Light'
 
         return numbering, chain
+
+    def ab_numbering_as_pandas(self, server='abysis', numbering_scheme='chothia'):
+        pass
 
     def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew'):
 
