@@ -11,7 +11,7 @@ class Antibody:
     TODO: write description
     """
 
-    def __init__(self, sequence='', name='', numbering=[]):
+    def __init__(self, sequence='', name='', numbering=None):
         self.raw_sequence = sequence
         self.sequence = sequence.replace('-', '').upper()
         self.name = name
@@ -19,6 +19,7 @@ class Antibody:
         self.hydrophobicity_matrix = np.array([])
         self.chain = ''
         self.mw = 0
+        self.pI = 0
 
     def load(self):
         """
@@ -31,6 +32,7 @@ class Antibody:
         self.numbering, self.chain = self.ab_numbering()
         self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
         self.mw = self.ab_molecular_weight()
+        self.pI = self.ab_pi()
 
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
         # type: (str, str) -> object
@@ -93,12 +95,28 @@ class Antibody:
                                                aa_hydrophobicity_scores=aa_hydrophobicity_scores,
                                                sequence=self.sequence)
 
-    def ab_molecular_weight(self):
+    def ab_molecular_weight(self, monoisotopic=False):
 
-        data_loader = DataLoader(amino_acid_property=['MolecularWeight', 'average'])
+        if monoisotopic:
+            data_loader = DataLoader(amino_acid_property=['MolecularWeight', 'average'])
+        else:
+            data_loader = DataLoader(amino_acid_property=['MolecularWeight', 'monoisotopic'])
         mw_dict = data_loader.get_data()
 
         return calculate_mw(self.sequence, mw_dict)
+
+    def ab_pi(self, pi_database='Wikipedia'):
+
+        available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
+                                  "Grimsley"]
+        assert pi_database in available_pi_databases, \
+            "Selected pI database {} not available. Available databases: {}".format(pi_database,
+                                                                                    ' ,'.join(available_pi_databases))
+
+        data_loader = DataLoader(amino_acid_property=['pI', pi_database])
+        pi_data = data_loader.get_data()
+
+        return calculate_pi(sequence=self.sequence, pi_data=pi_data)
 
 
 def get_ab_numbering(sequence, server, numbering_scheme):
@@ -153,3 +171,47 @@ def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity
 def calculate_mw(sequence, mw_dict):
 
     return sum(mw_dict[x] for x in sequence) - (len(sequence) - 1) * mw_dict['water']
+
+
+def calculate_pi(sequence, pi_data):
+
+    # algorithm from http://isoelectric.ovh.org/files/practise-isoelectric-point.html
+
+    # count number of D, E, C, Y, H, K, R
+    d_count = sequence.count('D')
+    e_count = sequence.count('E')
+    c_count = sequence.count('C')
+    y_count = sequence.count('Y')
+    h_count = sequence.count('H')
+    k_count = sequence.count('K')
+    r_count = sequence.count('R')
+
+    # initiate value of pH and nq (any number above 0)
+    nq = 10
+    pH = 0
+    # define precision
+    delta = 0.01
+
+    while nq > 0:
+
+        if pH >= 14:
+            print('Could not calculate pI')
+            break
+
+        # qn1, qn2, qn3, qn4, qn5, qp1, qp2, qp3, qp4
+        qn1 = -1 / (1 + 10 ** (pi_data['COOH'] - pH))  # C-terminus charge
+        qn2 = - d_count / (1 + 10 ** (pi_data['D'] - pH))  # D charge
+        qn3 = - e_count / (1 + 10 ** (pi_data['E'] - pH))  # E charge
+        qn4 = - c_count / (1 + 10 ** (pi_data['C'] - pH))  # C charge
+        qn5 = - y_count / (1 + 10 ** (pi_data['Y'] - pH))  # Y charge
+        qp1 = h_count / (1 + 10 ** (pH - pi_data['H']))  # H charge
+        qp2 = 1 / (1 + 10 ** (pH - pi_data['NH2']))  # N-terminus charge
+        qp3 = k_count / (1 + 10 ** (pH - pi_data['K']))  # K charge
+        qp4 = r_count / (1 + 10 ** (pH - pi_data['R']))  # R charge
+
+        nq = qn1 + qn2 + qn3 + qn4 + qn5 + qp1 + qp2 + qp3 + qp4
+
+        # update pH
+        pH += delta
+
+    return pH
