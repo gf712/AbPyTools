@@ -222,7 +222,7 @@ def calculate_mw(sequence, mw_dict):
 
 def calculate_pi(sequence, pi_data):
 
-    # algorithm from http://isoelectric.ovh.org/files/practise-isoelectric-point.html
+    # algorithm implemented from http://isoelectric.ovh.org/files/practise-isoelectric-point.html
 
     # count number of D, E, C, Y, H, K, R
     d_count = sequence.count('D')
