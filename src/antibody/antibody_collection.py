@@ -25,10 +25,10 @@ class AntibodyCollection:
             if show_progressbar:
                 for antibody_object in tqdm(antibody_objects):
                     antibody_object.load()
-                    self._antibody_objects.append(antibody_object)
                     if antibody_object.numbering == 'NA':
                         skipped += 1
                     else:
+                        self._antibody_objects.append(antibody_object)
                         chains.append(antibody_object.chain)
             else:
                 for antibody_object in antibody_objects:
