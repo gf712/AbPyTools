@@ -1,6 +1,10 @@
 import re
 import numpy as np
 from src.utils import DataLoader, Download
+import logging
+
+# setting up debugging messages
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 class Antibody:
