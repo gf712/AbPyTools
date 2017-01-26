@@ -13,9 +13,9 @@ class Antibody:
     """
 
     def __init__(self, sequence='', name='', numbering=None):
-        self._raw_sequence = sequence
-        self.sequence = sequence.replace('-', '').upper()
-        self._name = name
+        self._raw_sequence = sequence.upper()
+        self.sequence = self._raw_sequence.replace('-', '')
+        self.name = name
         self.numbering = numbering
         self.hydrophobicity_matrix = np.array([])
         self.chain = ''
