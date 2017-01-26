@@ -1,6 +1,7 @@
 import json
 import os
 
+
 class DataLoader:
 
     def __init__(self, numbering='', amino_acid_property=[]):
@@ -20,4 +21,6 @@ class DataLoader:
 
             with open('{}/AminoAcidProperties.json'.format(self.directory_name), 'r') as f:
                 data = json.load(f)[measurement][database]
+        else:
+            data = ''
         return data
