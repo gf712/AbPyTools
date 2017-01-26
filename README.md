@@ -10,10 +10,10 @@ What it can do now:
 - calculate hydrophobicity matrix
 - calculate molecular weight
 - calculate pI (isoelectric point)
+- calculate CDR length
 
 Stuff that will be added next:
 - 
-- calculate CDR length
 - class that holds multiple Ab objects
 - adding some useful functions, such as comparing sequence with available datasets
 - Ab loader (from FASTA format probably)
