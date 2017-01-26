@@ -183,7 +183,8 @@ def get_ab_numbering(sequence, server, numbering_scheme):
         numbering_table = Download(url, verbose=False)
         numbering_table.download()
 
-        if numbering_table.html.replace("\n", '') == 'Warning: Unable to number sequence':
+        if numbering_table.html.replace("\n", '') == 'Warning: Unable to number sequence' or len(
+                numbering_table.html.replace("\n", '')) == 0:
             raise ValueError("Unable to number sequence")
 
         parsed_numbering_table = re.findall("[\S| ]+", numbering_table.html)
