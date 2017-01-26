@@ -1,7 +1,9 @@
-from src.utils.downloads import Download
-from data.data_loader import DataLoader
 import re
+
 import numpy as np
+
+from src.utils.data_loader import DataLoader
+from src.utils.downloads import Download
 
 
 class Antibody:
@@ -9,7 +11,7 @@ class Antibody:
     TODO: write description
     """
 
-    def __init__(self, sequence='', name='', numbering=None):
+    def __init__(self, sequence='', name='', numbering=[]):
         self.raw_sequence = sequence
         self.sequence = sequence.replace('-', '').upper()
         self.name = name
