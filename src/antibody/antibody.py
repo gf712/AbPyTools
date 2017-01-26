@@ -9,20 +9,27 @@ class Antibody:
     """
 
     def __init__(self, sequence='', name='', numbering=None):
-        self.raw_sequence = sequence
+        self._raw_sequence = sequence
         self.sequence = sequence.replace('-', '').upper()
-        self.name = name
+        self._name = name
         self.numbering = numbering
         self.hydrophobicity_matrix = np.array([])
         self.chain = ''
         self.mw = 0
         self.pI = 0
+        self.cdr = [0, 0, 0]
+        self._numbering_scheme = 'chothia'
 
     def load(self):
         """
-        Generates all the data available:
+        Generates all the data:
         - Antibody Numbering
         - Hydrophobicity matrix
+        - Molecular weight
+        - pI
+
+        All the data is then stored in its respective attributes
+
         :return:
 
         """
@@ -30,6 +37,7 @@ class Antibody:
         self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
         self.mw = self.ab_molecular_weight()
         self.pI = self.ab_pi()
+        self.cdr = self.ab_cdr()
 
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
         # type: (str, str) -> object
@@ -44,6 +52,9 @@ class Antibody:
 
         assert server in available_servers, "Unknown server: {}. \
             Available servers: {}".format(server, ' ,'.join(available_servers))
+
+        # store the numbering scheme used for reference in other methods
+        self._numbering_scheme = numbering_scheme
 
         numbering = get_ab_numbering(self.sequence, server, numbering_scheme)
         chain = ''
@@ -62,7 +73,7 @@ class Antibody:
     def ab_numbering_as_pandas(self, server='abysis', numbering_scheme='chothia'):
         pass
 
-    def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew'):
+    def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew', include_cdr=True):
 
         # check if all the required parameters are in order
         available_hydrophobicity_scores = ['kd', 'ww', 'hh', 'mf', 'ew']
@@ -74,15 +85,22 @@ class Antibody:
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
                 )
         if self.chain == 'Light':
-            data_loader = DataLoader(numbering='LightChothiaWithCDR')
-            whole_sequence = data_loader.get_data()
+            if include_cdr:
+                data_loader = DataLoader(numbering='LightChothiaWithCDR')
+                whole_sequence = data_loader.get_data()
+            else:
+                data_loader = DataLoader(numbering='LightChothiaNoCDR')
+                whole_sequence = data_loader.get_data()
 
         elif self.chain == 'Heavy':
-            data_loader = DataLoader(numbering='HeavyChothiaWithCDR')
-            whole_sequence = data_loader.get_data()
+            if include_cdr:
+                data_loader = DataLoader(numbering='HeavyChothiaWithCDR')
+                whole_sequence = data_loader.get_data()
+            else:
+                data_loader = DataLoader(numbering='HeavyChothiaNoCDR')
+                whole_sequence = data_loader.get_data()
 
         else:
-            self.hydrophobicity_matrix = 'NA'
             print('Could not calculate the hydrophobicity matrix of the \
                   the provided sequence')
             return np.array([])
@@ -94,6 +112,19 @@ class Antibody:
         return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence, numbering=self.numbering,
                                                aa_hydrophobicity_scores=aa_hydrophobicity_scores,
                                                sequence=self.sequence)
+
+    def ab_cdr(self):
+
+        if self.numbering is None:
+            self.numbering, self.chain = self.ab_numbering()
+
+        if self.numbering == 'NA':
+            raise ValueError("Cannot return CDR length without the antibody numbering information")
+
+        data_loader = DataLoader(misc=['CDR_positions.json', self._numbering_scheme, self.chain])
+        cdr_positions = data_loader.get_data()
+
+        return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions)
 
     def ab_molecular_weight(self, monoisotopic=False):
 
@@ -188,30 +219,49 @@ def calculate_pi(sequence, pi_data):
 
     # initiate value of pH and nq (any number above 0)
     nq = 10
-    pH = 0
+    ph = 0
     # define precision
     delta = 0.01
 
     while nq > 0:
 
-        if pH >= 14:
-            print('Could not calculate pI')
-            break
+        if ph >= 14:
+            raise Exception("Could not calculate pI (pH reached above 14)")
 
         # qn1, qn2, qn3, qn4, qn5, qp1, qp2, qp3, qp4
-        qn1 = -1 / (1 + 10 ** (pi_data['COOH'] - pH))  # C-terminus charge
-        qn2 = - d_count / (1 + 10 ** (pi_data['D'] - pH))  # D charge
-        qn3 = - e_count / (1 + 10 ** (pi_data['E'] - pH))  # E charge
-        qn4 = - c_count / (1 + 10 ** (pi_data['C'] - pH))  # C charge
-        qn5 = - y_count / (1 + 10 ** (pi_data['Y'] - pH))  # Y charge
-        qp1 = h_count / (1 + 10 ** (pH - pi_data['H']))  # H charge
-        qp2 = 1 / (1 + 10 ** (pH - pi_data['NH2']))  # N-terminus charge
-        qp3 = k_count / (1 + 10 ** (pH - pi_data['K']))  # K charge
-        qp4 = r_count / (1 + 10 ** (pH - pi_data['R']))  # R charge
+        qn1 = -1 / (1 + 10 ** (pi_data['COOH'] - ph))  # C-terminus charge
+        qn2 = - d_count / (1 + 10 ** (pi_data['D'] - ph))  # D charge
+        qn3 = - e_count / (1 + 10 ** (pi_data['E'] - ph))  # E charge
+        qn4 = - c_count / (1 + 10 ** (pi_data['C'] - ph))  # C charge
+        qn5 = - y_count / (1 + 10 ** (pi_data['Y'] - ph))  # Y charge
+        qp1 = h_count / (1 + 10 ** (ph - pi_data['H']))  # H charge
+        qp2 = 1 / (1 + 10 ** (ph - pi_data['NH2']))  # N-terminus charge
+        qp3 = k_count / (1 + 10 ** (ph - pi_data['K']))  # K charge
+        qp4 = r_count / (1 + 10 ** (ph - pi_data['R']))  # R charge
 
         nq = qn1 + qn2 + qn3 + qn4 + qn5 + qp1 + qp2 + qp3 + qp4
 
         # update pH
-        pH += delta
+        ph += delta
 
-    return pH
+    return ph
+
+
+def calculate_cdr(numbering, cdr_positions):
+
+    cdr_values = list()
+
+    cdrs = ['CDR1', 'CDR2', 'CDR3']
+
+    for i, cdr in enumerate(cdrs):
+
+        cdr_positions_i = cdr_positions[cdr]
+        cdr_value_i = 0
+
+        for position in numbering:
+            if position in cdr_positions_i:
+                cdr_value_i += 1
+
+        cdr_values.append(cdr_value_i)
+
+    return cdr_values
