@@ -33,11 +33,19 @@ class Antibody:
         :return:
 
         """
-        self.numbering, self.chain = self.ab_numbering()
-        self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
-        self.mw = self.ab_molecular_weight()
-        self.pI = self.ab_pi()
-        self.cdr = self.ab_cdr()
+        try:
+            self.numbering, self.chain = self.ab_numbering()
+            self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
+            self.mw = self.ab_molecular_weight()
+            self.pI = self.ab_pi()
+            self.cdr = self.ab_cdr()
+        except ValueError:
+            self.numbering = 'NA'
+            self.chain = 'NA'
+            self.hydrophobicity_matrix = 'NA'
+            self.mw = 'NA'
+            self.pI = 'NA'
+            self.cdr = 'NA'
 
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
         # type: (str, str) -> object
@@ -170,6 +178,9 @@ def get_ab_numbering(sequence, server, numbering_scheme):
                                                                                                   scheme)
         numbering_table = Download(url, verbose=False)
         numbering_table.download()
+
+        if numbering_table.html.replace("\n", '') == 'Warning: Unable to number sequence':
+            raise ValueError("Unable to number sequence")
 
         parsed_numbering_table = re.findall("[\S| ]+", numbering_table.html)
 
