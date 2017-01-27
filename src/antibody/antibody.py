@@ -76,9 +76,9 @@ class Antibody:
             return 'NA', 'NA'
 
         elif numbering[0][0] == 'H':
-                chain = 'Heavy'
+                chain = 'heavy'
         elif numbering[0][0] == 'L':
-                chain = 'Light'
+                chain = 'light'
 
         return numbering, chain
 
