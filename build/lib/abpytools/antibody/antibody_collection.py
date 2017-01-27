@@ -9,13 +9,25 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 class AntibodyCollection:
-    def __init__(self, antibody_objects=[], path=''):
+    def __init__(self, antibody_objects=None, path=None):
 
+        """
+
+        :type antibody_objects: list of Antibody objects
+              path:             string to a FASTA format file
+        """
+
+        if antibody_objects is None:
+            antibody_objects = []
+        if not isinstance(antibody_objects, list):
+            raise IOError("Expected a list, instead got object of type {}".format(type(antibody_objects)))
         if not all(isinstance(obj, Antibody) for obj in antibody_objects):
-            raise ValueError("Expected list with element of type abpytools.antibody.antibody.Antibody")
+            raise IOError("Expected a list containing objects of type Antibody")
+        if not isinstance(path, str):
+            raise IOError("Expected a string containing the path to a FASTA format file")
         self._antibody_objects = antibody_objects
-        self._chain = ''
-        self.path = path
+        self.chain = ''
+        self._path = path
         self.n_ab = 0
 
     def load_from_antibody_object(self, show_progressbar=True, n_jobs=-1):
@@ -43,15 +55,18 @@ class AntibodyCollection:
         print("Skipped {} objects in list".format(skipped))
 
         if len(set(chains_without_na)) == 1:
-            self._chain = chains_without_na[0]
+            self.chain = chains_without_na[0]
         else:
             raise ValueError("All sequences must of the same chain type: Light or Heavy")
 
         self.n_ab = len(chains_without_na)
 
+        if self.n_ab == 0:
+            raise IOError("Could not find any heavy or light chains in provided file or list of objects")
+
     def load_from_fasta(self, show_progressbar=True):
 
-        with open(self.path, 'r') as f:
+        with open(self._path, 'r') as f:
             names = []
             sequences = []
             for line in f:
@@ -77,7 +92,7 @@ class AntibodyCollection:
 
     def hydrophobicity_matrix(self):
 
-        if self._chain == 'heavy':
+        if self.chain == 'heavy':
             num_columns = 158
         else:
             num_columns = 138
@@ -87,6 +102,16 @@ class AntibodyCollection:
             abs_hydrophobicity_matrix[row] = self._antibody_objects[row].hydrophobicity_matrix
 
         return abs_hydrophobicity_matrix
+
+    def cdr_lengths(self):
+
+        # cdr lengths are stored in n by m matrix, where n is the number of antibodies
+        # and m is 3, since there are 3 CDRs
+        cdr_lengths = np.zeros((self.n_ab, 3))
+        for i, ab in enumerate(self._antibody_objects):
+            cdr_lengths[i, :] = ab.ab_cdr
+
+        return cdr_lengths
 
 
 def load_antibody_object(antibody_object):
@@ -100,6 +125,7 @@ all_bar_funcs = {
     'tqdm': lambda args: lambda x: tqdm(x, **args),
     'None': lambda args: iter,
 }
+
 
 def parallelexecutor(use_bar='tqdm', **joblib_args):
     def aprun(bar=use_bar, **tq_args):

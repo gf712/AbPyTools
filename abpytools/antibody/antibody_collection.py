@@ -34,6 +34,7 @@ class AntibodyCollection:
         :type antibody_objects: list of Antibody objects
               path:             string to a FASTA format file
         """
+
         if antibody_objects is None:
             antibody_objects = []
         if not isinstance(antibody_objects, list):
@@ -119,6 +120,16 @@ class AntibodyCollection:
             abs_hydrophobicity_matrix[row] = self._antibody_objects[row].hydrophobicity_matrix
 
         return abs_hydrophobicity_matrix
+
+    def cdr_lengths(self):
+
+        # cdr lengths are stored in n by m matrix, where n is the number of antibodies
+        # and m is 3, since there are 3 CDRs
+        cdr_lengths = np.zeros((self.n_ab, 3))
+        for i, ab in enumerate(self._antibody_objects):
+            cdr_lengths[i, :] = ab.ab_cdr()
+
+        return cdr_lengths
 
 
 def load_antibody_object(antibody_object):
