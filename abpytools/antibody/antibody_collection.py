@@ -21,10 +21,6 @@ class AntibodyCollection:
 
         if len(antibody_objects) > 0:
 
-            # with parallelexecutor(n_jobs=n_jobs) as parallel:
-            #     self._antibody_objects = parallel(total=len(antibody_objects)) \
-            #         (delayed(load_antibody_object)(obj) for obj in antibody_objects)
-
             # updated from stackoverflow answer in
             # http://stackoverflow.com/questions/37804279/how-can-we-use-tqdm-in-a-parallel-execution-with-joblib
             if show_progressbar:

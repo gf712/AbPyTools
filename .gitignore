@@ -1,12 +1,12 @@
 .idea/
 *.ipynb
-data/AminoAcidProperties.json
-data/HydrophobicityReferences.txt
+abpytools/data/AminoAcidProperties.json
+abpytools/data/HydrophobicityReferences.txt
 examples/.ipynb_checkpoints/
 __init__.pyc
 __pycache__/
-data/__init__.pyc
-data/data_loader.pyc
+abpytools/data/__init__.pyc
+abpytools/data/data_loader.pyc
 src/__init__.pyc
 src/__pycache__/
 src/antibody/__init__.pyc

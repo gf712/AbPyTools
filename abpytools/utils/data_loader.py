@@ -1,5 +1,7 @@
 import json
-from home import Home
+
+from abpytools.home import Home
+
 
 # TODO: sort out a single method of loading data
 # - best would be to put everything in json files with appropriate names
