@@ -28,6 +28,8 @@ these in a file with .json format
   - the main issue is the use of urllib (Python 3), instead of urllib2 (Python 2)
   - could use requests package instead 
 - write tests
+- write high level code for more specific analysis
+  - plot CDR lengths of antibodies
 
 Installing abpytools:
 -
