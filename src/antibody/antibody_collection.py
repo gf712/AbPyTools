@@ -16,13 +16,13 @@ class AntibodyCollection:
         self._chain = ''
         self.path = path
 
-    def load_from_antibody_object(self, antibody_objects=None, show_progressbar=True, n_jobs=-1):
+    def load_from_antibody_object(self, antibody_objects=None, show_progressbar=True, n_jobs=-1, verbose=5):
 
         print("Loading in antibody objects")
 
         if len(antibody_objects) > 0:
 
-            with Parallel(n_jobs=n_jobs, verbose=5) as parallel:
+            with Parallel(n_jobs=n_jobs, verbose=verbose) as parallel:
                 self._antibody_objects = parallel(delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
             chains = [x.chain for x in self._antibody_objects]
