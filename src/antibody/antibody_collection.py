@@ -9,21 +9,30 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 class AntibodyCollection:
-
     def __init__(self, antibody_objects='', path=''):
 
         self._antibody_objects = antibody_objects
         self._chain = ''
         self.path = path
 
-    def load_from_antibody_object(self, antibody_objects=None, show_progressbar=True, n_jobs=-1, verbose=5):
+    def load_from_antibody_object(self, antibody_objects=None, show_progressbar=True, n_jobs=-1):
 
         print("Loading in antibody objects")
 
         if len(antibody_objects) > 0:
 
-            with Parallel(n_jobs=n_jobs, verbose=verbose) as parallel:
-                self._antibody_objects = parallel(delayed(load_antibody_object)(obj) for obj in antibody_objects)
+            # with parallelexecutor(n_jobs=n_jobs) as parallel:
+            #     self._antibody_objects = parallel(total=len(antibody_objects)) \
+            #         (delayed(load_antibody_object)(obj) for obj in antibody_objects)
+
+            # updated from stackoverflow answer in
+            # http://stackoverflow.com/questions/37804279/how-can-we-use-tqdm-in-a-parallel-execution-with-joblib
+            if show_progressbar:
+                aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs)
+            else:
+                aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs)
+            self._antibody_objects = aprun(total=len(antibody_objects)) \
+                (delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
             chains = [x.chain for x in self._antibody_objects]
             chains_without_na = [x for x in chains if x != 'NA']
@@ -84,3 +93,24 @@ class AntibodyCollection:
 def load_antibody_object(antibody_object):
     antibody_object.load()
     return antibody_object
+
+
+# the following block of code was obtained from
+# http://stackoverflow.com/questions/37804279/how-can-we-use-tqdm-in-a-parallel-execution-with-joblib
+all_bar_funcs = {
+    'tqdm': lambda args: lambda x: tqdm(x, **args),
+    'None': lambda args: iter,
+}
+
+def parallelexecutor(use_bar='tqdm', **joblib_args):
+    def aprun(bar=use_bar, **tq_args):
+        def tmp(op_iter):
+            if str(bar) in all_bar_funcs.keys():
+                bar_func = all_bar_funcs[str(bar)](tq_args)
+            else:
+                raise ValueError("Value %s not supported as bar type" % bar)
+            return Parallel(**joblib_args)(bar_func(op_iter))
+
+        return tmp
+
+    return aprun
