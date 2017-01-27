@@ -15,8 +15,9 @@ AbPyTools features:
   - reads in data from FASTA format
   - calculates hydrophobicity matrix for whole dataset
   - get all the data already mentioned above
+- currently only has Python 3 compatibility
 
-Stuff that will be added next:
+Stuff that will be added/ worked on next:
 - 
 - write tutorials
 - adding some useful functions, such as comparing sequence with available datasets
@@ -24,5 +25,24 @@ Stuff that will be added next:
 - save Ab in new format to store all the stats that are calculated (i.e. numbering, MW, pI, ...). Most likely will store 
 these in a file with .json format
 - work on Python 2 and 3 compatibility
-- write setup.py
+  - the main issue is the use of urllib (Python 3), instead of urllib2 (Python 2)
+  - could use requests package instead 
 - write tests
+
+Installing abpytools:
+-
+Clone code from the GitHub repository
+
+`git clone https://github.com/gf712/AbPyTools.git`
+
+Change to package directory in your local machine
+
+`cd path/to/AbPyTools`
+
+Install package
+
+`python setup.py install`
+
+Import to python
+-
+`import abpytools`
