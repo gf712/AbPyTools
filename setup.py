@@ -8,5 +8,6 @@ setup(
     license='MIT',
     author='Gil Ferreira Hoben',
     author_email='gil.hoben.16@ucl.ac.uk',
-    description='Python package for antibody analysis'
+    description='Python package for antibody analysis',
+    install_requires=['numpy', 'tqdm', 'joblib']
 )
