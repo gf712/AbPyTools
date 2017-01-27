@@ -1,4 +1,4 @@
-import urllib2
+from urllib import request, error
 
 
 class Download:
@@ -14,7 +14,7 @@ class Download:
                                          num_retries=num_retries)
 
 
-def download(url, verbose, user_agent='wswp', num_retries=2):
+def download(url, verbose, user_agent='wswp', num_retries=2, decoding_format='utf-8'):
     """
     Function to download contents from a given url
 
@@ -32,6 +32,8 @@ def download(url, verbose, user_agent='wswp', num_retries=2):
             verbose: bool
             Print out url and errors
 
+            decoding: "utf-8"
+
     Output:
             returns: str
             string with contents of given url
@@ -41,10 +43,11 @@ def download(url, verbose, user_agent='wswp', num_retries=2):
     if verbose:
         print('Downloading:', url)
     headers = {'User-agent': user_agent}
-    request = urllib2.Request(url, headers=headers)
+    request_obj = request.Request(url, headers=headers)
     try:
-        html = urllib2.urlopen(request).read()
-    except urllib2.URLError as e:
+        with request.urlopen(request_obj) as response:
+            html = response.read()
+    except error.URLError as e:
         if verbose:
             print('Download error:', e.reason)
         html = None
@@ -56,4 +59,4 @@ def download(url, verbose, user_agent='wswp', num_retries=2):
             else:
                 error = True
 
-    return html, error
+    return html.decode(decoding_format), error
