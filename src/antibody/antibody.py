@@ -96,29 +96,24 @@ class Antibody:
                 Available hydrophobicity scores: {}".format(
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
                 )
-        if self.chain == 'Light':
-            if include_cdr:
-                data_loader = DataLoader(numbering='LightChothiaWithCDR')
-                whole_sequence = data_loader.get_data()
-            else:
-                data_loader = DataLoader(numbering='LightChothiaNoCDR')
-                whole_sequence = data_loader.get_data()
 
-        elif self.chain == 'Heavy':
-            if include_cdr:
-                data_loader = DataLoader(numbering='HeavyChothiaWithCDR')
-                whole_sequence = data_loader.get_data()
-            else:
-                data_loader = DataLoader(numbering='HeavyChothiaNoCDR')
-                whole_sequence = data_loader.get_data()
+        if self.chain == '':
+            self.chain, self.numbering = self.ab_numbering()
+        if self.chain == 'NA':
+            raise ValueError("Could not determine chain type")
 
+        data_loader = DataLoader(data_type='NumberingSchemes',
+                                 data=[self._numbering_scheme, self.chain])
+        whole_sequence_dict = data_loader.get_data()
+
+        if include_cdr:
+            whole_sequence = whole_sequence_dict['withCDR']
         else:
-            print('Could not calculate the hydrophobicity matrix of the \
-                  the provided sequence')
-            return np.array([])
+            whole_sequence = whole_sequence_dict['noCDR']
 
         # get the dictionary with the hydrophobicity scores
-        data_loader = DataLoader(amino_acid_property=['hydrophobicity', hydrophobicity_scores + 'Hydrophobicity'])
+        data_loader = DataLoader(data_type='AminoAcidProperties',
+                                 data=['hydrophobicity', hydrophobicity_scores + 'Hydrophobicity'])
         aa_hydrophobicity_scores = data_loader.get_data()
 
         return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence, numbering=self.numbering,
