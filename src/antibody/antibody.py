@@ -1,6 +1,6 @@
 import re
 import numpy as np
-from src.utils import DataLoader, Download
+from ..utils import DataLoader, Download
 import logging
 
 # setting up debugging messages
