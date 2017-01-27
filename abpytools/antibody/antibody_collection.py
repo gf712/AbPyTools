@@ -9,6 +9,24 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 class AntibodyCollection:
+
+    """
+    Object containing Antibody objects and to perform analysis on the ensemble.
+
+    Methods:
+        load_from_antibody_object: loads in Antibody objects provided in a list
+        load_from_fasta: parses a FASTA file and creates an Antibody object for each entry
+        name: returns a list with the names obtained from each Antibody object's name attribute
+        sequence: returns a list with the sequences of all antibodies in this AntibodyCollection object
+        hydrophobicity_matrix: returns a numpy array with the hydrophobicity of shape (number of ab, 158/138)
+        cdr_lengths: returns a numpy array with the CDR lengths of each antibody
+
+    Attributes:
+        chain: type of chain inferred form AbNum result
+        n_ab: number of Antibody objects
+
+    """
+
     def __init__(self, antibody_objects=None, path=None):
 
         """
