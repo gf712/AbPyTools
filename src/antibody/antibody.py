@@ -128,7 +128,7 @@ class Antibody:
         if self.numbering == 'NA':
             raise ValueError("Cannot return CDR length without the antibody numbering information")
 
-        data_loader = DataLoader(misc=['CDR_positions.json', self._numbering_scheme, self.chain])
+        data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self.chain])
         cdr_positions = data_loader.get_data()
 
         return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions)
@@ -136,9 +136,11 @@ class Antibody:
     def ab_molecular_weight(self, monoisotopic=False):
 
         if monoisotopic:
-            data_loader = DataLoader(amino_acid_property=['MolecularWeight', 'average'])
+            data_loader = DataLoader(data_type='AminoAcidProperties',
+                                     data=['MolecularWeight', 'average'])
         else:
-            data_loader = DataLoader(amino_acid_property=['MolecularWeight', 'monoisotopic'])
+            data_loader = DataLoader(data_type='AminoAcidProperties',
+                                     data=['MolecularWeight', 'monoisotopic'])
         mw_dict = data_loader.get_data()
 
         return calculate_mw(self.sequence, mw_dict)
@@ -151,7 +153,8 @@ class Antibody:
             "Selected pI database {} not available. Available databases: {}".format(pi_database,
                                                                                     ' ,'.join(available_pi_databases))
 
-        data_loader = DataLoader(amino_acid_property=['pI', pi_database])
+        data_loader = DataLoader(data_type='AminoAcidProperties',
+                                 data=['pI', pi_database])
         pi_data = data_loader.get_data()
 
         return calculate_pi(sequence=self.sequence, pi_data=pi_data)
