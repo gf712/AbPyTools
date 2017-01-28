@@ -1,8 +1,9 @@
 .idea/
 *.ipynb
+__pycache__/
+*.py[cod]
 abpytools/data/AminoAcidProperties.json
 abpytools/data/HydrophobicityReferences.txt
 .ipynb_checkpoints
-*.pyc
-__pycache__/
 build/
+abpytools/analysis/
