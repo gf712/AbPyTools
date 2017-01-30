@@ -179,7 +179,10 @@ def get_ab_numbering(sequence, server, numbering_scheme):
         url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
                                                                                                   scheme)
         numbering_table = Download(url, verbose=False)
-        numbering_table.download()
+        try:
+            numbering_table.download()
+        except ValueError:
+            raise ValueError("Check the internet connection.")
 
         if numbering_table.html.replace("\n", '') == 'Warning: Unable to number sequence' or len(
                 numbering_table.html.replace("\n", '')) == 0:
