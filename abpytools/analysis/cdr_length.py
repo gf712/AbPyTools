@@ -42,8 +42,8 @@ class CDRLength:
         if self._only_CDR3:
             plt.title('CDR3 Length', size=18)
             sns.distplot(cdrs[:, 2].astype(int), hist=self._hist)
-            plt.xlabel('Density', size=14)
-            plt.ylabel('CDR Length', size=14)
+            plt.ylabel('Density', size=14)
+            plt.xlabel('CDR Length', size=14)
         else:
             f, ax = plt.subplots(nrows=1, ncols=3, figsize=(10, 6))
             ax = ax.ravel()
