@@ -1,8 +1,14 @@
 from .antibody import Antibody
 import numpy as np
 import logging
-from tqdm import tqdm
 from joblib import Parallel, delayed
+from abpytools.utils import PythonConfig
+
+ipython_config = PythonConfig().get_ipython_info()
+if ipython_config == 'notebook':
+    from tqdm import tqdm_notebook as tqdm
+else:
+    from tqdm import tqdm
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
