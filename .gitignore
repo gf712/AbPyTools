@@ -2,8 +2,5 @@
 *.ipynb
 __pycache__/
 *.py[cod]
-abpytools/data/AminoAcidProperties.json
-abpytools/data/HydrophobicityReferences.txt
 .ipynb_checkpoints
 build/
-abpytools/analysis/
