@@ -3,15 +3,16 @@ import numpy as np
 import logging
 from joblib import Parallel, delayed
 from abpytools.utils import PythonConfig
+# setting up debugging messages
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
-ipython_config = PythonConfig().get_ipython_info()
-if ipython_config == 'notebook':
+
+ipython_config = PythonConfig()
+ipython_config.get_ipython_info()
+if ipython_config.backend == 'notebook':
     from tqdm import tqdm_notebook as tqdm
 else:
     from tqdm import tqdm
-
-# setting up debugging messages
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 class AntibodyCollection:
