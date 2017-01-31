@@ -42,7 +42,7 @@ class Antibody:
             self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
             self.mw = self.ab_molecular_weight()
             self.pI = self.ab_pi()
-            self.cdr = self.ab_cdr()
+            self.cdr = self.ab_regions()
         except ValueError:
             self.numbering = 'NA'
             self.chain = 'NA'
@@ -120,10 +120,10 @@ class Antibody:
                                                aa_hydrophobicity_scores=aa_hydrophobicity_scores,
                                                sequence=self.sequence)
 
-    def ab_cdr(self):
+    def ab_regions(self):
 
         """
-        method to determine index of each CDR
+        method to determine Antibody regions (CDR and Framework) of each amino acid in sequence
 
         :return:
         """
@@ -137,7 +137,11 @@ class Antibody:
         data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self.chain])
         cdr_positions = data_loader.get_data()
 
-        return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions)
+        data_loader = DataLoader(data_type='Framework_positions', data=[self._numbering_scheme, self.chain])
+        framework_position = data_loader.get_data()
+
+        return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
+                             framework_positions=framework_position)
 
     def ab_molecular_weight(self, monoisotopic=False):
 
@@ -270,14 +274,13 @@ def calculate_pi(sequence, pi_data):
     return ph
 
 
-def calculate_cdr(numbering, cdr_positions):
+def calculate_cdr(numbering, cdr_positions, framework_positions):
 
     """
-    function that returns index in sequence of CDRs
 
     :param numbering:
-    :param sequence:
     :param cdr_positions:
+    :param framework_positions:
     :return:
     """
 
@@ -285,7 +288,12 @@ def calculate_cdr(numbering, cdr_positions):
             'CDR2': list(),
             'CDR3': list()}
 
-    for i, cdr in enumerate(cdrs.keys()):
+    frameworks = {'FR1': list(),
+                  'FR2': list(),
+                  'FR3': list(),
+                  'FR4': list()}
+
+    for cdr in cdrs.keys():
 
         cdr_positions_i = cdr_positions[cdr]
 
@@ -293,4 +301,14 @@ def calculate_cdr(numbering, cdr_positions):
             if position in cdr_positions_i:
                 cdrs[cdr].append(i)
 
-    return cdrs
+    for framework in frameworks.keys():
+
+        framework_position_i = framework_positions[framework]
+
+        for i, position in enumerate(numbering):
+            if position in framework_position_i:
+                frameworks[framework].append(i)
+
+
+    return cdrs, frameworks
+

@@ -19,8 +19,9 @@ class CDR:
         else:
             raise IOError("Unexpected file type")
 
-        self._cdrs = self.antibodies.cdr_index()
-        self._framework = None
+        self._regions = self.antibodies.ab_region_index()
+        self._cdrs = self._regions['CDRs']
+        self._framework = self._regions['Frameworks']
         self._sequence = self.antibodies.sequences()
 
     def cdr_length(self):
@@ -32,8 +33,8 @@ class CDR:
         cdr_length_matrix = np.zeros((len(self._cdrs), 3))
 
         for m, antibody in enumerate(self._cdrs):
-            for n, cdr in enumerate(['CDR1','CDR2','CDR3']):
-                cdr_length_matrix[m,n] = len(antibody[cdr])
+            for n, cdr in enumerate(['CDR1', 'CDR2', 'CDR3']):
+                cdr_length_matrix[m, n] = len(antibody[cdr])
 
         return cdr_length_matrix
 
@@ -58,7 +59,25 @@ class CDR:
         return cdr_sequences
 
     def framework_length(self):
-        pass
+        framework_length_matrix = np.zeros((len(self._framework), 4))
+
+        for m, antibody in enumerate(self._framework):
+            for n, framework in enumerate(['FR1', 'FR2', 'FR3', 'FR4']):
+                framework_length_matrix[m, n] = len(antibody[framework])
+
+        return framework_length_matrix
 
     def framework_sequences(self):
-        pass
+        framework_sequences = list()
+
+        for sequence, antibody in zip(self._sequence, self._framework):
+            dict_i = dict()
+            for framework in ['FR1', 'FR2', 'FR3', 'FR4']:
+                seq_i = list()
+                indices = antibody[framework]
+                for i in indices:
+                    seq_i.append(sequence[i])
+                dict_i[framework] = ''.join(seq_i)
+            framework_sequences.append(dict_i)
+
+        return framework_sequences

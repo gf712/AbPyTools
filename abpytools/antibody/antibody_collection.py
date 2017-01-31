@@ -102,15 +102,18 @@ class AntibodyCollection:
 
         return abs_hydrophobicity_matrix
 
-    def cdr_index(self):
+    def ab_region_index(self):
 
         """
         method to determine index of amino acids in CDR regions
-        :return: list of dictionaries with CDR1, CDR2 and CDR3 keys for each antibody in the same order as sequences is
-        returned
+        :return: dictionary with keys 'CDR' and 'Framework'
+        'CDR' entry contains dictionaries with CDR1, CDR2 and CDR3 regions (keys) for each antibody in the same order as
+        sequences
+        'Framework' entry contains dictionaries with FR1, FR2, FR3 and FR4 regions
         """
-
-        return [x.ab_cdr() for x in self._antibody_objects]
+        cdrs = [x.ab_regions()[0] for x in self._antibody_objects]
+        frameworks = [x.ab_regions()[1] for x in self._antibody_objects]
+        return {'CDRs': cdrs, 'Frameworks': frameworks}
 
 
 def load_antibody_object(antibody_object):
