@@ -3,12 +3,13 @@ import seaborn as sns
 from abpytools import AntibodyCollection
 from os.path import join
 from abpytools.utils import PythonConfig
+from abpytools.metrics import CDR
 
 
 class CDRLength:
 
     def __init__(self, path=None, antibody_collection=None, plot_path='./', plot_name='CDR_length',
-                 plot_title='CDR Lengths', hist=True, notebook_plot=True, only_CDR3=True):
+                 plot_title='CDR Lengths', hist=True, notebook_plot=True):
 
         if path is None and antibody_collection is None:
             raise IOError("Nothing to work with, please provide a path to a FASTA file or a AntibodyCollection object")
@@ -29,19 +30,19 @@ class CDRLength:
         self._hist = hist
         self._plot_title = plot_title
         self._notebook_plot = notebook_plot
-        self._only_CDR3 = only_CDR3
 
-    def plot_cdr(self):
+    def plot_cdr(self, only_cdr3=True):
 
         if self._path is not None:
             self.antibody_collection = AntibodyCollection(path=self._path)
             self.antibody_collection.load()
 
-        cdrs = self.antibody_collection.cdr_lengths()
+        cdrs = CDR(antibodies=self.antibody_collection)
+        cdr_lengths = cdrs.cdr_length()
 
-        if self._only_CDR3:
+        if only_cdr3:
             plt.title('CDR3 Length', size=18)
-            sns.distplot(cdrs[:, 2].astype(int), hist=self._hist)
+            sns.distplot(cdr_lengths[:, 2], hist=self._hist)
             plt.ylabel('Density', size=14)
             plt.xlabel('CDR Length', size=14)
         else:
@@ -51,7 +52,7 @@ class CDRLength:
             for i, cdr in enumerate(['CDR 1', 'CDR 2', 'CDR 3']):
 
                 ax[i].set_title(cdr, size=16)
-                sns.distplot(cdrs[:, i].astype(int), hist=self._hist, ax=ax[i])
+                sns.distplot(cdr_lengths[:, i], hist=self._hist, ax=ax[i])
 
                 if i == 1:
                     ax[i].set_ylabel('Density', size=16)
