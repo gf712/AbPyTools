@@ -68,3 +68,4 @@ class CDRLength:
             plt.plot()
         else:
             plt.savefig(join(self._plot_path, self._plot_name))
+            plt.close()
