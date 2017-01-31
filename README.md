@@ -15,10 +15,13 @@ AbPyTools features:
   - reads in data from FASTA format
   - calculates hydrophobicity matrix for whole dataset
   - get all the data already mentioned above
+  - access CDR and framework sequences
+- high level function to easily plot CDR length using a FASTA file as input
 - currently only has Python 3 compatibility
 
 Stuff that will be added/ worked on next:
 - 
+- Currently working on log-odds scores
 - write tutorials
 - adding some useful functions, such as comparing sequence with available datasets
 - write out Ab sequences (e.g. FASTA format)
