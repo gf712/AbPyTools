@@ -44,7 +44,7 @@ def download(url, verbose, user_agent='wswp', num_retries=2, decoding_format='ut
             string with contents of given url
     """
 
-    #html_error = False
+    # html_error = False
     if verbose:
         print('Downloading:', url)
     headers = {'User-agent': user_agent}

@@ -1,11 +1,5 @@
 import json
-
 from abpytools.home import Home
-
-
-# TODO: sort out a single method of loading data
-# - best would be to put everything in json files with appropriate names
-# - or put everything in a single file -> could become confusing to edit
 
 
 class DataLoader:
