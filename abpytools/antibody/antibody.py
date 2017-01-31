@@ -122,6 +122,12 @@ class Antibody:
 
     def ab_cdr(self):
 
+        """
+        method to determine index of each CDR
+
+        :return:
+        """
+
         if self.numbering is None:
             self.numbering, self.chain = self.ab_numbering()
 
@@ -266,19 +272,25 @@ def calculate_pi(sequence, pi_data):
 
 def calculate_cdr(numbering, cdr_positions):
 
-    cdr_values = list()
+    """
+    function that returns index in sequence of CDRs
 
-    cdrs = ['CDR1', 'CDR2', 'CDR3']
+    :param numbering:
+    :param sequence:
+    :param cdr_positions:
+    :return:
+    """
 
-    for i, cdr in enumerate(cdrs):
+    cdrs = {'CDR1': list(),
+            'CDR2': list(),
+            'CDR3': list()}
+
+    for i, cdr in enumerate(cdrs.keys()):
 
         cdr_positions_i = cdr_positions[cdr]
-        cdr_value_i = 0
 
-        for position in numbering:
+        for i, position in enumerate(numbering):
             if position in cdr_positions_i:
-                cdr_value_i += 1
+                cdrs[cdr].append(i)
 
-        cdr_values.append(cdr_value_i)
-
-    return cdr_values
+    return cdrs

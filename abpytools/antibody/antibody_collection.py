@@ -102,15 +102,15 @@ class AntibodyCollection:
 
         return abs_hydrophobicity_matrix
 
-    def cdr_lengths(self):
+    def cdr_index(self):
 
-        # cdr lengths are stored in n by m matrix, where n is the number of antibodies
-        # and m is 3, since there are 3 CDRs
-        cdr_lengths = np.zeros((self.n_ab, 3))
-        for i, ab in enumerate(self._antibody_objects):
-            cdr_lengths[i, :] = ab.ab_cdr()
+        """
+        method to determine index of amino acids in CDR regions
+        :return: list of dictionaries with CDR1, CDR2 and CDR3 keys for each antibody in the same order as sequences is
+        returned
+        """
 
-        return cdr_lengths
+        return [x.ab_cdr() for x in self._antibody_objects]
 
 
 def load_antibody_object(antibody_object):
