@@ -3,6 +3,7 @@ import numpy as np
 import logging
 from joblib import Parallel, delayed
 from abpytools.utils import PythonConfig
+from os import path
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -114,6 +115,17 @@ class AntibodyCollection:
         cdrs = [x.ab_regions()[0] for x in self._antibody_objects]
         frameworks = [x.ab_regions()[1] for x in self._antibody_objects]
         return {'CDRs': cdrs, 'Frameworks': frameworks}
+
+    def save(self, file_format='FASTA', path='./', file_name='Ab_FASTA.txt', information='all'):
+
+        if file_format == 'FASTA':
+            with open(path.join(path, file_name), 'w') as f:
+                for antibody in self._antibody_objects:
+                    f.write('>{}\n'.format(antibody.name))
+                    f.write('{}\n'.format(antibody.sequence))
+
+        if information == 'all':
+            pass
 
 
 def load_antibody_object(antibody_object):
