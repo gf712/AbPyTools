@@ -3,6 +3,7 @@ import numpy as np
 import logging
 from joblib import Parallel, delayed
 from abpytools.utils import PythonConfig
+import json
 from os import path
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -63,21 +64,41 @@ class AntibodyCollection:
 
         if self._path is not None:
 
-            with open(self._path, 'r') as f:
-                names = list()
-                sequences = list()
-                for line in f:
-                    if line.startswith(">"):
-                        names.append(line.replace("\n", "")[1:])
-                    else:
-                        sequences.append(line.replace("\n", ""))
-                if len(names) != len(sequences):
-                    raise IOError("Error reading file: make sure it is FASTA format")
+            if self._path.endswith(".json"):
+                with open(self._path, 'r') as f:
+                    data = json.load(f)
 
-                self._antibody_objects = list()
+                    for key_i in data.keys():
+                        antibody_dict_i = data[key_i]
+                        antibody_i = Antibody(name=key_i, sequence=antibody_dict_i['sequence'])
+                        antibody_i.numbering = antibody_dict_i['numbering']
+                        antibody_i.chain = antibody_dict_i['chain']
+                        antibody_i.mw = antibody_dict_i['MW']
+                        antibody_i.CDR = antibody_dict_i["CDR"]
+                        antibody_i.numbering_scheme = antibody_dict_i["numbering_scheme"]
+                        antibody_i.pI = antibody_dict_i["pI"]
 
-                for name, sequence in zip(names, sequences):
-                    self._antibody_objects.append(Antibody(name=name, sequence=sequence))
+                        self._antibody_objects.append(antibody_i)
+
+            else:
+                with open(self._path, 'r') as f:
+                    names = list()
+                    sequences = list()
+                    for line in f:
+                        if line.startswith(">"):
+                            names.append(line.replace("\n", "")[1:])
+                        # if line is empty skip line
+                        elif line.isspace():
+                            pass
+                        else:
+                            sequences.append(line.replace("\n", ""))
+                    if len(names) != len(sequences):
+                        raise IOError("Error reading file: make sure it is FASTA format")
+
+                    self._antibody_objects = list()
+
+                    for name, sequence in zip(names, sequences):
+                        self._antibody_objects.append(Antibody(name=name, sequence=sequence))
 
         self._antibody_objects, self.chain, self.n_ab = load_from_antibody_object(
             antibody_objects=self._antibody_objects,
@@ -116,16 +137,33 @@ class AntibodyCollection:
         frameworks = [x.ab_regions()[1] for x in self._antibody_objects]
         return {'CDRs': cdrs, 'Frameworks': frameworks}
 
-    def save(self, file_format='FASTA', path='./', file_name='Ab_FASTA.txt', information='all'):
+    def save(self, file_format='FASTA', file_path='./', file_name='Ab_FASTA.txt', information='all'):
 
         if file_format == 'FASTA':
-            with open(path.join(path, file_name), 'w') as f:
+            with open(path.join((file_path, file_name)), 'w') as f:
                 for antibody in self._antibody_objects:
                     f.write('>{}\n'.format(antibody.name))
                     f.write('{}\n'.format(antibody.sequence))
 
-        if information == 'all':
-            pass
+        if file_format == 'json':
+            if information == 'all':
+
+                with open(path.join(file_path, file_name), 'w') as f:
+                    # if antibody does not have name generate name:
+                    # ID_chain_idi, where chain is heavy/light, idi is idi (1,..,N)
+                    idi = 1
+                    data = dict()
+                    for antibody in self._antibody_objects:
+
+                        antibody_dict = antibody.ab_format()
+                        if len(antibody_dict['name']) > 0:
+                            key_i = antibody_dict['name']
+                        else:
+                            key_i = "ID_{}_{}".format(antibody.chain, idi)
+                            idi += 1
+                        antibody_dict.pop("name")
+                        data[key_i] = antibody_dict
+                    json.dump(data, f, indent=2)
 
 
 def load_antibody_object(antibody_object):
@@ -164,6 +202,8 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
         aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs)
     else:
         aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs)
+
+    # load in objects in parallel
     antibody_objects = aprun(total=len(antibody_objects)) \
         (delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
