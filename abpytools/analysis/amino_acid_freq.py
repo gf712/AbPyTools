@@ -4,6 +4,8 @@ from collections import Counter
 import numpy as np
 from matplotlib import pyplot as plt
 from abpytools.utils.data_loader import DataLoader
+from os import path
+from abpytools.utils import PythonConfig
 
 amino_acid_index = {"R": 0,
                     "N": 1,
@@ -64,6 +66,7 @@ class AminoAcidFreq:
         self._aa_hyd_count = np.zeros((3, len(max(self._sequences, key=len))))
         self._aa_chg_count = np.zeros((3, len(max(self._sequences, key=len))))
 
+
     def _amino_acid_freq(self, normalize):
 
         # if the sum of self._aa_count is zero then the count has not been performed at this point
@@ -112,7 +115,8 @@ class AminoAcidFreq:
         else:
             return self._aa_count, self._aa_chg_count, self._aa_hyd_count
 
-    def plot(self, sort_by='name', normalize=True, display_count=True):
+    def plot(self, sort_by='name', normalize=True, display_count=True, plot_path='./',
+             plot_name='AminoAcidFrequency.png', notebook_plot=True):
 
         if sort_by not in ['name', 'hydropathy', 'charge']:
             raise ValueError("Argument for sort_by not valid. Valid arguments are name, hydrophobicity and charge")
@@ -207,3 +211,11 @@ class AminoAcidFreq:
         else:
             plt.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
                        prop={"size": 16})
+
+        ipython_config = PythonConfig()
+        ipython_config.get_ipython_info()
+        if ipython_config.backend == 'notebook' and notebook_plot:
+            plt.plot()
+        else:
+            plt.savefig(path.join(plot_path, plot_name))
+            plt.close()
