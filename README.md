@@ -18,13 +18,14 @@ AbPyTools features:
   - access CDR and framework sequences
 - high level function to easily plot CDR length using a FASTA file as input
 - currently only has Python 3 compatibility
+- load and write antibody sequences in FASTA and json formats
 
 Stuff that will be added/ worked on next:
 - 
 - Currently working on log-odds scores
 - write tutorials
 - adding some useful functions, such as comparing sequence with available datasets
-- write out Ab sequences (e.g. FASTA format)
+
 - save Ab in new format to store all the stats that are calculated (i.e. numbering, MW, pI, ...). Most likely will store 
 these in a file with .json format
 - work on Python 2 and 3 compatibility
