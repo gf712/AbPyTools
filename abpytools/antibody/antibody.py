@@ -22,7 +22,7 @@ class Antibody:
         self.mw = 0
         self.pI = 0
         self.cdr = [0, 0, 0]
-        self._numbering_scheme = 'chothia'
+        self.numbering_scheme = 'chothia'
 
     def load(self):
         """
