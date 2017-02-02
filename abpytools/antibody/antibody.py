@@ -38,11 +38,16 @@ class Antibody:
 
         """
         try:
-            self.numbering, self.chain = self.ab_numbering()
-            self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
-            self.mw = self.ab_molecular_weight()
-            self.pI = self.ab_pi()
-            self.cdr = self.ab_regions()
+            if self.numbering is None or self.chain == '':
+                self.numbering, self.chain = self.ab_numbering()
+            if self.hydrophobicity_matrix.size == 0:
+                self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
+            if self.mw == 0:
+                self.mw = self.ab_molecular_weight()
+            if self.pI == 0:
+                self.pI = self.ab_pi()
+            if sum(self.cdr) == 0:
+                self.cdr = self.ab_regions()
         except ValueError:
             self.numbering = 'NA'
             self.chain = 'NA'
@@ -66,7 +71,7 @@ class Antibody:
             Available servers: {}".format(server, ' ,'.join(available_servers))
 
         # store the numbering scheme used for reference in other methods
-        self._numbering_scheme = numbering_scheme
+        self.numbering_scheme = numbering_scheme
 
         numbering = get_ab_numbering(self.sequence, server, numbering_scheme)
         chain = ''
@@ -103,7 +108,7 @@ class Antibody:
             raise ValueError("Could not determine chain type")
 
         data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[self._numbering_scheme, self.chain])
+                                 data=[self.numbering_scheme, self.chain])
         whole_sequence_dict = data_loader.get_data()
 
         if include_cdr:
@@ -134,10 +139,10 @@ class Antibody:
         if self.numbering == 'NA':
             raise ValueError("Cannot return CDR length without the antibody numbering information")
 
-        data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self.chain])
+        data_loader = DataLoader(data_type='CDR_positions', data=[self.numbering_scheme, self.chain])
         cdr_positions = data_loader.get_data()
 
-        data_loader = DataLoader(data_type='Framework_positions', data=[self._numbering_scheme, self.chain])
+        data_loader = DataLoader(data_type='Framework_positions', data=[self.numbering_scheme, self.chain])
         framework_position = data_loader.get_data()
 
         return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
@@ -316,6 +321,4 @@ def calculate_cdr(numbering, cdr_positions, framework_positions):
             if position in framework_position_i:
                 frameworks[framework].append(i)
 
-
     return cdrs, frameworks
-
