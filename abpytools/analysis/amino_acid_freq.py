@@ -128,7 +128,7 @@ class AminoAcidFreq:
             color = iter(plt.get_cmap('Vega20').colors)
 
             if sort_by == 'name':
-                plt.title(self.region + ' amino acids')
+                plt.title(self.region + ' amino acids', size=20)
                 for i, amino_acid in enumerate(sorted(amino_acid_index.keys())):
                     c = next(color)
                     plt.bar(position, aa[amino_acid_index[amino_acid], position], bottom=previous,
@@ -136,7 +136,7 @@ class AminoAcidFreq:
                     previous += aa[amino_acid_index[amino_acid], position]
 
             elif sort_by == 'hydropathy':
-                plt.title(self.region + ' amino acid hydropathy')
+                plt.title(self.region + ' amino acid hydropathy', size=20)
                 for i, prop_i in enumerate(['Hydrophilic', 'Moderate', 'Hydrophobic']):
                     c = next(color)
                     plt.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c)
@@ -144,7 +144,7 @@ class AminoAcidFreq:
 
             else:
                 color = ['b', 'r', 'k']
-                plt.title(self.region + ' amino acid charge')
+                plt.title(self.region + ' amino acid charge', size=20)
                 for i, prop_i in enumerate(['Negative', 'Positive', 'Neutral']):
                     c = color[i]
                     plt.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
