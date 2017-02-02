@@ -66,7 +66,6 @@ class AminoAcidFreq:
         self._aa_hyd_count = np.zeros((3, len(max(self._sequences, key=len))))
         self._aa_chg_count = np.zeros((3, len(max(self._sequences, key=len))))
 
-
     def _amino_acid_freq(self, normalize):
 
         # if the sum of self._aa_count is zero then the count has not been performed at this point
@@ -126,32 +125,33 @@ class AminoAcidFreq:
         # since they will always be plotted independently
         aa, chg, hyd = self._amino_acid_freq(normalize=normalize)
 
-        plt.figure(figsize=(8, 8))
+        fig = plt.figure(1, figsize=(8, 8))
+        ax = fig.add_subplot(111)
         for position in range(self._aa_freq.shape[1]):
             previous = 0
             color = iter(plt.get_cmap('Vega20').colors)
 
             if sort_by == 'name':
-                plt.title(self.region + ' amino acids', size=20)
+                ax.set_title(self.region + ' amino acids', size=20)
                 for i, amino_acid in enumerate(sorted(amino_acid_index.keys())):
                     c = next(color)
-                    plt.bar(position, aa[amino_acid_index[amino_acid], position], bottom=previous,
+                    ax.bar(position, aa[amino_acid_index[amino_acid], position], bottom=previous,
                             label=amino_acid, color=c)
                     previous += aa[amino_acid_index[amino_acid], position]
 
             elif sort_by == 'hydropathy':
-                plt.title(self.region + ' amino acid hydropathy', size=20)
+                ax.set_title(self.region + ' amino acid hydropathy', size=20)
                 for i, prop_i in enumerate(['Hydrophilic', 'Moderate', 'Hydrophobic']):
                     c = next(color)
-                    plt.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c)
+                    ax.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c)
                     previous += hyd[i, position]
 
             else:
                 color = ['b', 'r', 'k']
-                plt.title(self.region + ' amino acid charge', size=20)
+                ax.set_title(self.region + ' amino acid charge', size=20)
                 for i, prop_i in enumerate(['Negative', 'Positive', 'Neutral']):
                     c = color[i]
-                    plt.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
+                    ax.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
                     previous += chg[i, position]
 
         if display_count:
@@ -166,11 +166,11 @@ class AminoAcidFreq:
 
                 for position in range(aa.shape[1]):
                     if self._aa_count[:, position].sum() > 9:
-                        plt.text(x=position-0.25, y=aa[:, position].sum()+shift,
-                                 s=str(int(self._aa_count[:, position].sum())))
+                        ax.text(x=position-0.25, y=aa[:, position].sum()+2*shift,
+                                s=str(int(self._aa_count[:, position].sum())), rotation=45)
                     else:
-                        plt.text(x=position-0.1, y=aa[:, position].sum()+shift,
-                                 s=str(int(self._aa_count[:, position].sum())))
+                        ax.text(x=position-0.1, y=aa[:, position].sum()+shift,
+                                s=str(int(self._aa_count[:, position].sum())), rotation=45)
 
             else:
 
@@ -180,42 +180,40 @@ class AminoAcidFreq:
                     shift = 0.02
 
                 for position in range(aa.shape[1]):
-                    if self._aa_count[:, position].sum() < 9:
-                        plt.text(x=position-0.2, y=aa[:, position].sum() + shift, rotation=90,
-                                 s=str(int(self._aa_count[:, position].sum())))
-                    elif self._aa_count[:, position].sum() > 9:
-                        plt.text(x=position-0.2, y=aa[:, position].sum() + 2 * shift, rotation=90,
-                                 s=str(int(self._aa_count[:, position].sum())))
-                    elif self._aa_count[:, position].sum() > 99:
-                        plt.text(x=position-0.2, y=aa[:, position].sum() + 3 * shift, rotation=90,
-                                 s=str(int(self._aa_count[:, position].sum())))
+                    if self._aa_count[:, position].sum() < 99:
+                        ax.text(x=position-0.2, y=aa[:, position].sum() + shift, rotation=45,
+                                s=str(int(self._aa_count[:, position].sum())))
+                    elif 99 < self._aa_count[:, position].sum() < 999:
+                        ax.text(x=position-0.2, y=aa[:, position].sum() + 2 * shift, rotation=45,
+                                s=str(int(self._aa_count[:, position].sum())))
                     else:
-                        plt.text(x=position - 0.2, y=aa[:, position].sum() + 4 * shift, rotation=90,
-                                 s=str(int(self._aa_count[:, position].sum())))
+                        ax.text(x=position-0.2, y=aa[:, position].sum() + 4 * shift, rotation=45,
+                                s=str(int(self._aa_count[:, position].sum())))
 
-        plt.xticks(np.arange(aa.shape[1]), self._numbering, rotation=60)
+        ax.set_xticklabels(self._numbering, rotation=60)
         # plt.margins(x=0.05, y=0.1)
-        plt.xlabel('Position', size=16)
-        plt.ylim([0, aa.sum(0).max()*1.1])
-        plt.grid(axis='x')
+        ax.set_xlabel('Position', size=16)
+        ax.set_ylim([0, aa.sum(0).max()*1.1])
+        ax.grid(axis='x')
         if normalize:
-            plt.ylabel('Frequency', size=16)
+            ax.set_ylabel('Frequency', size=16)
         else:
-            plt.ylabel('Count', size=16)
+            ax.set_ylabel('Count', size=16)
 
         if sort_by == 'name':
-            plt.legend(sorted(amino_acid_index.keys()), loc='center left', bbox_to_anchor=(1, 0.5), prop={"size": 16})
+            lgd = ax.legend(sorted(amino_acid_index.keys()), loc='center left', bbox_to_anchor=(1, 0.5),
+                            prop={"size": 16})
         elif sort_by == 'hydropathy':
-            plt.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5),
-                       prop={"size": 16})
+            lgd = ax.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5),
+                            prop={"size": 16})
         else:
-            plt.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
-                       prop={"size": 16})
+            lgd = ax.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
+                            prop={"size": 16})
 
         ipython_config = PythonConfig()
         ipython_config.get_ipython_info()
         if ipython_config.backend == 'notebook' and notebook_plot:
-            plt.plot()
+            ax.plot()
         else:
-            plt.savefig(path.join(plot_path, plot_name))
-            plt.close()
+            fig.savefig(path.join(plot_path, plot_name), bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plt.close(fig)
