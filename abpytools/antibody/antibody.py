@@ -176,10 +176,8 @@ class Antibody:
 
     def ab_format(self):
 
-            return {'name': self.name,
-                    'sequence': self.sequence,
-                    'numbering': self.numbering,
-                    'numbering_scheme': self._numbering_scheme}
+            return {"name": self.name, "sequence": self.sequence, "numbering": self.numbering, "chain": self.chain,
+                    "MW": self.mw, "CDR": self.cdr, "numbering_scheme": self.numbering_scheme, "pI": self.pI}
 
 
 def get_ab_numbering(sequence, server, numbering_scheme):
