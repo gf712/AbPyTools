@@ -60,84 +60,110 @@ class AminoAcidFreq:
         self._aa_hyd_freq = np.zeros((3, len(max(self._sequences, key=len))))
         self._aa_chg_freq = np.zeros((3, len(max(self._sequences, key=len))))
 
-    def _amino_acid_freq(self):
+        self._aa_count = np.zeros((20, len(max(self._sequences, key=len))))
+        self._aa_hyd_count = np.zeros((3, len(max(self._sequences, key=len))))
+        self._aa_chg_count = np.zeros((3, len(max(self._sequences, key=len))))
 
-        for position in range(len(max(self._sequences, key=len))):
+    def _amino_acid_freq(self, normalize):
 
-            # AVJHVILSVCIUV
-            # AABIUBXIB
-            # BAIDVSVCU
+        # if the sum of self._aa_count is zero then the count has not been performed at this point
+        if self._aa_count.sum() == 0:
 
-            position_sequence = [x[position] for x in self._sequences if len(x) > position]
-            count_i = Counter(position_sequence)
-            total_i = len(position_sequence)
+            for position in range(len(max(self._sequences, key=len))):
 
-            for amino_acid_i in count_i.keys():
+                position_sequence = [x[position] for x in self._sequences if len(x) > position]
+                count_i = Counter(position_sequence)
+                total_i = len(position_sequence)
 
-                self._aa_freq[amino_acid_index[amino_acid_i], position] = count_i[amino_acid_i] / total_i
+                for amino_acid_i in count_i.keys():
 
-                # _aa_hyd_freq: row1 -> hydrophilic
-                #               row2 -> moderate
-                #               row3 -> hydrophobic
-                if amino_acid_i in ['R', 'N', 'D', 'E', 'Q', 'K', 'S', 'T']:
-                    self._aa_hyd_freq[0, position] += count_i[amino_acid_i]
-                elif amino_acid_i in ['C', 'H', 'M']:
-                    self._aa_hyd_freq[1, position] += count_i[amino_acid_i]
-                else:
-                    self._aa_hyd_freq[2, position] += count_i[amino_acid_i]
+                    self._aa_count[amino_acid_index[amino_acid_i], position] = count_i[amino_acid_i]
 
-                # _aa_chg_freq: row1 -> negative
-                #               row2 -> positive
-                #               row3 -> neutral
-                if amino_acid_i in ['D', 'E']:
-                    self._aa_chg_freq[0, position] += count_i[amino_acid_i]
-                elif amino_acid_i in ['R', 'K', 'H']:
-                    self._aa_chg_freq[1, position] += count_i[amino_acid_i]
-                else:
-                    self._aa_chg_freq[2, position] += count_i[amino_acid_i]
+                    # _aa_hyd_freq: row1 -> hydrophilic
+                    #               row2 -> moderate
+                    #               row3 -> hydrophobic
+                    if amino_acid_i in ['R', 'N', 'D', 'E', 'Q', 'K', 'S', 'T']:
+                        self._aa_hyd_count[0, position] += count_i[amino_acid_i]
+                    elif amino_acid_i in ['C', 'H', 'M']:
+                        self._aa_hyd_count[1, position] += count_i[amino_acid_i]
+                    else:
+                        self._aa_hyd_count[2, position] += count_i[amino_acid_i]
 
-            # normalize values
-            self._aa_chg_freq[:, position] /= total_i
-            self._aa_hyd_freq[:, position] /= total_i
+                    # _aa_chg_freq: row1 -> negative
+                    #               row2 -> positive
+                    #               row3 -> neutral
+                    if amino_acid_i in ['D', 'E']:
+                        self._aa_chg_count[0, position] += count_i[amino_acid_i]
+                    elif amino_acid_i in ['R', 'K', 'H']:
+                        self._aa_chg_count[1, position] += count_i[amino_acid_i]
+                    else:
+                        self._aa_chg_count[2, position] += count_i[amino_acid_i]
 
-    def plot(self, sort_by='name'):
+                # normalize values
+                # doing it even when it is not required comes at a small computational cost
+                # it would take longer if the user had to recalculate everything to have a count plot and then a
+                # frequency plot
+                self._aa_freq[:, position] = self._aa_count[:, position] / total_i
+                self._aa_chg_freq[:, position] = self._aa_chg_count[:, position] / total_i
+                self._aa_hyd_freq[:, position] = self._aa_hyd_count[:, position] / total_i
+
+        if normalize:
+            return self._aa_freq, self._aa_chg_freq, self._aa_hyd_freq
+        else:
+            return self._aa_count, self._aa_chg_count, self._aa_hyd_count
+
+    def plot(self, sort_by='name', normalize=True):
 
         if sort_by not in ['name', 'hydropathy', 'charge']:
             raise ValueError("Argument for sort_by not valid. Valid arguments are name, hydrophobicity and charge")
 
-        # calculate frequency matrices
-        self._amino_acid_freq()
+        # get count/ freq matrices
+        # to avoid writing more code than necessary the count and freq are stored in the same variable
+        # since they will always be plotted independently
+        aa, chg, hyd = self._amino_acid_freq(normalize=normalize)
 
         plt.figure(figsize=(8, 8))
         for position in range(self._aa_freq.shape[1]):
             previous = 0
-            # color = iter(cm.rainbow(np.linspace(0, 1, self._aa_freq.shape[1])))
             color = iter(plt.get_cmap('Vega20').colors)
 
             if sort_by == 'name':
+                plt.title(self.region + ' amino acids')
                 for i, amino_acid in enumerate(sorted(amino_acid_index.keys())):
                     c = next(color)
-                    plt.bar(position, self._aa_freq[amino_acid_index[amino_acid], position], bottom=previous,
+                    plt.bar(position, aa[amino_acid_index[amino_acid], position], bottom=previous,
                             label=amino_acid, color=c)
-                    previous += self._aa_freq[amino_acid_index[amino_acid], position]
+                    previous += aa[amino_acid_index[amino_acid], position]
+
             elif sort_by == 'hydropathy':
+                plt.title(self.region + ' amino acid hydropathy')
                 for i, prop_i in enumerate(['Hydrophilic', 'Moderate', 'Hydrophobic']):
                     c = next(color)
-                    plt.bar(position, self._aa_hyd_freq[i, position], bottom=previous, label=prop_i, color=c)
-                    previous += self._aa_hyd_freq[i, position]
-            else:
-                for i, prop_i in enumerate(['Negative', 'Positive', 'Neutral']):
-                    c = next(color)
-                    plt.bar(position, self._aa_chg_freq[i, position], bottom=previous, label=prop_i, color=c)
-                    previous += self._aa_chg_freq[i, position]
+                    plt.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c)
+                    previous += hyd[i, position]
 
-        plt.xticks(np.arange(self._aa_freq.shape[1]), self._numbering, rotation=60)
-        plt.margins(0.02)
+            else:
+                color = ['b', 'r', 'k']
+                plt.title(self.region + ' amino acid charge')
+                for i, prop_i in enumerate(['Negative', 'Positive', 'Neutral']):
+                    c = color[i]
+                    plt.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
+                    previous += chg[i, position]
+
+        plt.xticks(np.arange(aa.shape[1]), self._numbering, rotation=60)
+        # plt.margins(x=0.05, y=0.1)
         plt.xlabel('Position', size=16)
-        plt.ylabel('Frequency', size=16)
-        if sort_by == 'name':
-            plt.legend(sorted(amino_acid_index.keys()), loc='center left', bbox_to_anchor=(1, 0.5))
-        elif sort_by == 'hydropathy':
-            plt.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.ylim([0, aa.sum(0).max()*1.1])
+        if normalize:
+            plt.ylabel('Frequency', size=16)
         else:
-            plt.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5))
+            plt.ylabel('Count', size=16)
+
+        if sort_by == 'name':
+            plt.legend(sorted(amino_acid_index.keys()), loc='center left', bbox_to_anchor=(1, 0.5), prop={"size": 16})
+        elif sort_by == 'hydropathy':
+            plt.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5),
+                       prop={"size": 16})
+        else:
+            plt.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
+                       prop={"size": 16})
