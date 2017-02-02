@@ -112,7 +112,7 @@ class AminoAcidFreq:
         else:
             return self._aa_count, self._aa_chg_count, self._aa_hyd_count
 
-    def plot(self, sort_by='name', normalize=True):
+    def plot(self, sort_by='name', normalize=True, display_count=True):
 
         if sort_by not in ['name', 'hydropathy', 'charge']:
             raise ValueError("Argument for sort_by not valid. Valid arguments are name, hydrophobicity and charge")
@@ -150,10 +150,50 @@ class AminoAcidFreq:
                     plt.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
                     previous += chg[i, position]
 
+        if display_count:
+
+            if self._aa_count.sum(0).max() < 99:
+
+                # so that the text is always at the same distance of the bar
+                if aa.max() > 1:
+                    shift = aa.max() * 0.05
+                else:
+                    shift = 0.02
+
+                for position in range(aa.shape[1]):
+                    if self._aa_count[:, position].sum() > 9:
+                        plt.text(x=position-0.25, y=aa[:, position].sum()+shift,
+                                 s=str(int(self._aa_count[:, position].sum())))
+                    else:
+                        plt.text(x=position-0.1, y=aa[:, position].sum()+shift,
+                                 s=str(int(self._aa_count[:, position].sum())))
+
+            else:
+
+                if aa.max() > 1:
+                    shift = aa.max() * 0.075
+                else:
+                    shift = 0.02
+
+                for position in range(aa.shape[1]):
+                    if self._aa_count[:, position].sum() < 9:
+                        plt.text(x=position-0.2, y=aa[:, position].sum() + shift, rotation=90,
+                                 s=str(int(self._aa_count[:, position].sum())))
+                    elif self._aa_count[:, position].sum() > 9:
+                        plt.text(x=position-0.2, y=aa[:, position].sum() + 2 * shift, rotation=90,
+                                 s=str(int(self._aa_count[:, position].sum())))
+                    elif self._aa_count[:, position].sum() > 99:
+                        plt.text(x=position-0.2, y=aa[:, position].sum() + 3 * shift, rotation=90,
+                                 s=str(int(self._aa_count[:, position].sum())))
+                    else:
+                        plt.text(x=position - 0.2, y=aa[:, position].sum() + 4 * shift, rotation=90,
+                                 s=str(int(self._aa_count[:, position].sum())))
+
         plt.xticks(np.arange(aa.shape[1]), self._numbering, rotation=60)
         # plt.margins(x=0.05, y=0.1)
         plt.xlabel('Position', size=16)
         plt.ylim([0, aa.sum(0).max()*1.1])
+        plt.grid(axis='x')
         if normalize:
             plt.ylabel('Frequency', size=16)
         else:
