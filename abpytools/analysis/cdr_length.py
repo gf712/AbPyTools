@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 import seaborn as sns
 from abpytools import AntibodyCollection
-from os.path import join
+from os import path
 from abpytools.utils import PythonConfig
 from abpytools.metrics import CDR
 
@@ -68,5 +68,5 @@ class CDRLength:
         if ipython_config.backend == 'notebook' and self._notebook_plot:
             plt.plot()
         else:
-            plt.savefig(join(self._plot_path, self._plot_name))
+            plt.savefig(path.join(self._plot_path, self._plot_name))
             plt.close()
