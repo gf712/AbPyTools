@@ -2,6 +2,7 @@ import re
 import numpy as np
 from ..utils import DataLoader, Download
 import logging
+import pandas as pd
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -87,8 +88,43 @@ class Antibody:
 
         return numbering, chain
 
-    def ab_numbering_as_pandas(self, server='abysis', numbering_scheme='chothia'):
-        pass
+    def ab_numbering_table(self, name='', only_array=False):
+
+        """
+
+        :param name:
+        :param only_array: if True returns numpy.array, if False returns a pandas.DataFrame
+        :return:
+        """
+
+        if len(name) == 0:
+            name = self.name
+
+        data_loader = DataLoader(data_type='NumberingSchemes',
+                                 data=[self.numbering_scheme, self.chain])
+        whole_sequence_dict = data_loader.get_data()
+
+        whole_sequence = whole_sequence_dict['withCDR']
+
+        if only_array:
+
+            data = np.empty((len(whole_sequence)), dtype=str)
+            for i, position in enumerate(whole_sequence):
+                if position in self.numbering:
+                    data[i] = self.sequence[self.numbering.index(position)]
+                else:
+                    data[i] = '-'
+
+            return data
+
+        else:
+
+            data = pd.DataFrame(columns=whole_sequence, index=[name])
+
+            for i, position in enumerate(self.numbering):
+                data.ix[0, data.columns == position] = self.sequence[i]
+
+            return data.fillna(value='-')
 
     def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew', include_cdr=True):
 
