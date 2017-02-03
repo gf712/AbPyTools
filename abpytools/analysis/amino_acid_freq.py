@@ -190,6 +190,7 @@ class AminoAcidFreq:
                         ax.text(x=position-0.2, y=aa[:, position].sum() + 4 * shift, rotation=45,
                                 s=str(int(self._aa_count[:, position].sum())))
 
+        ax.set_xticks(np.arange(len(self._numbering)))
         ax.set_xticklabels(self._numbering, rotation=60)
         # plt.margins(x=0.05, y=0.1)
         ax.set_xlabel('Position', size=16)
