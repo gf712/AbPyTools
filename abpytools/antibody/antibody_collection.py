@@ -5,6 +5,8 @@ from joblib import Parallel, delayed
 from abpytools.utils import PythonConfig
 import json
 from os import path
+import pandas as pd
+from ..utils import DataLoader
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -136,6 +138,33 @@ class AntibodyCollection:
         cdrs = [x.ab_regions()[0] for x in self._antibody_objects]
         frameworks = [x.ab_regions()[1] for x in self._antibody_objects]
         return {'CDRs': cdrs, 'Frameworks': frameworks}
+
+    def numbering_table(self):
+
+        idi = 1
+        names = list()
+
+        for antibody in self._antibody_objects:
+
+            if len(antibody.name) > 0:
+                names.append(antibody.name)
+            else:
+                names.append("ID_{}_{}".format(antibody.chain, idi))
+                idi += 1
+
+        data_loader = DataLoader(data_type='NumberingSchemes',
+                                 data=[antibody.numbering_scheme, self.chain])
+        whole_sequence_dict = data_loader.get_data()
+
+        whole_sequence = whole_sequence_dict['withCDR']
+
+        df = pd.DataFrame(columns=whole_sequence, index=names)
+
+        for antibody, name in zip(self._antibody_objects, names):
+
+            df.loc[name] = antibody.ab_numbering_table(name=name, only_array=True)
+
+        return df
 
     def save(self, file_format='FASTA', file_path='./', file_name='Ab_FASTA.txt', information='all'):
 
