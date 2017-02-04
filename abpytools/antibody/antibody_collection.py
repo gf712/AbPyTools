@@ -57,7 +57,7 @@ class AntibodyCollection:
         if not isinstance(path, str):
             raise IOError("Expected a string containing the path to a FASTA format file")
 
-        self._antibody_objects = antibody_objects
+        self.antibody_objects = antibody_objects
         self.chain = ''
         self._path = path
         self.n_ab = 0
@@ -80,7 +80,7 @@ class AntibodyCollection:
                         antibody_i.numbering_scheme = antibody_dict_i["numbering_scheme"]
                         antibody_i.pI = antibody_dict_i["pI"]
 
-                        self._antibody_objects.append(antibody_i)
+                        self.antibody_objects.append(antibody_i)
 
             else:
                 with open(self._path, 'r') as f:
@@ -97,21 +97,21 @@ class AntibodyCollection:
                     if len(names) != len(sequences):
                         raise IOError("Error reading file: make sure it is FASTA format")
 
-                    self._antibody_objects = list()
+                    self.antibody_objects = list()
 
                     for name, sequence in zip(names, sequences):
-                        self._antibody_objects.append(Antibody(name=name, sequence=sequence))
+                        self.antibody_objects.append(Antibody(name=name, sequence=sequence))
 
-        self._antibody_objects, self.chain, self.n_ab = load_from_antibody_object(
-            antibody_objects=self._antibody_objects,
+        self.antibody_objects, self.chain, self.n_ab = load_from_antibody_object(
+            antibody_objects=self.antibody_objects,
             show_progressbar=show_progressbar,
             n_jobs=n_jobs)
 
     def names(self):
-        return [x.name for x in self._antibody_objects]
+        return [x.name for x in self.antibody_objects]
 
     def sequences(self):
-        return [x.sequence for x in self._antibody_objects]
+        return [x.sequence for x in self.antibody_objects]
 
     def hydrophobicity_matrix(self):
 
@@ -119,10 +119,10 @@ class AntibodyCollection:
             num_columns = 158
         else:
             num_columns = 138
-        abs_hydrophobicity_matrix = np.zeros((len(self._antibody_objects), num_columns))
+        abs_hydrophobicity_matrix = np.zeros((len(self.antibody_objects), num_columns))
 
         for row in range(abs_hydrophobicity_matrix.shape[0]):
-            abs_hydrophobicity_matrix[row] = self._antibody_objects[row].hydrophobicity_matrix
+            abs_hydrophobicity_matrix[row] = self.antibody_objects[row].hydrophobicity_matrix
 
         return abs_hydrophobicity_matrix
 
@@ -135,8 +135,8 @@ class AntibodyCollection:
         sequences
         'Framework' entry contains dictionaries with FR1, FR2, FR3 and FR4 regions
         """
-        cdrs = [x.ab_regions()[0] for x in self._antibody_objects]
-        frameworks = [x.ab_regions()[1] for x in self._antibody_objects]
+        cdrs = [x.ab_regions()[0] for x in self.antibody_objects]
+        frameworks = [x.ab_regions()[1] for x in self.antibody_objects]
         return {'CDRs': cdrs, 'Frameworks': frameworks}
 
     def numbering_table(self):
@@ -144,7 +144,7 @@ class AntibodyCollection:
         idi = 1
         names = list()
 
-        for antibody in self._antibody_objects:
+        for antibody in self.antibody_objects:
 
             if len(antibody.name) > 0:
                 names.append(antibody.name)
@@ -160,7 +160,7 @@ class AntibodyCollection:
 
         df = pd.DataFrame(columns=whole_sequence, index=names)
 
-        for antibody, name in zip(self._antibody_objects, names):
+        for antibody, name in zip(self.antibody_objects, names):
 
             df.loc[name] = antibody.ab_numbering_table(name=name, only_array=True)
 
@@ -170,7 +170,7 @@ class AntibodyCollection:
 
         if file_format == 'FASTA':
             with open(path.join((file_path, file_name)), 'w') as f:
-                for antibody in self._antibody_objects:
+                for antibody in self.antibody_objects:
                     f.write('>{}\n'.format(antibody.name))
                     f.write('{}\n'.format(antibody.sequence))
 
@@ -182,7 +182,7 @@ class AntibodyCollection:
                     # ID_chain_idi, where chain is heavy/light, idi is idi (1,..,N)
                     idi = 1
                     data = dict()
-                    for antibody in self._antibody_objects:
+                    for antibody in self.antibody_objects:
 
                         antibody_dict = antibody.ab_format()
                         if len(antibody_dict['name']) > 0:
@@ -193,6 +193,40 @@ class AntibodyCollection:
                         antibody_dict.pop("name")
                         data[key_i] = antibody_dict
                     json.dump(data, f, indent=2)
+
+    def append(self, antibody_obj):
+
+        # TODO: complete method
+
+        if isinstance(antibody_obj, Antibody):
+            self.antibody_objects.append(antibody_obj)
+        elif isinstance(antibody_obj, AntibodyCollection):
+            self.antibody_objects.append(antibody_obj.antibody_objects)
+
+        self.antibody_objects = load_antibody_object(self.antibody_objects)
+
+    def remove(self, antibody_obj=None, name=''):
+
+        # TODO: complete method
+
+        if isinstance(antibody_obj, Antibody):
+            name = antibody_obj.name
+        elif isinstance(antibody_obj, AntibodyCollection):
+            name = AntibodyCollection.names()
+        elif antibody_obj is None and len(name) > 0:
+            self.antibody_objects.pop([x for x in antibody_obj if x.name == name][0])
+
+        self._update_obj()
+
+    def filter(self):
+        pass
+
+    def _update_obj(self, index='all'):
+
+        # TODO: write method
+        if index == 'all':
+            self.antibody_objects == load_from_antibody_object(self.antibody_objects, show_progressbar=True,
+                                                               n_jobs=-1)
 
 
 def load_antibody_object(antibody_object):

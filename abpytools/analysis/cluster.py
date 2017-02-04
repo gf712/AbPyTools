@@ -5,8 +5,8 @@ from matplotlib import pyplot as plt
 
 
 class Cluster:
-    def __init__(self, antibodies, metric='hydrophobicity', clustering_method='kmeans',
-                 decomposition='PCA'):
+
+    def __init__(self, antibodies, metric='hydrophobicity', clustering_method='kmeans', decomposition_method='PCA'):
 
         if isinstance(antibodies, AntibodyCollection):
             self.antibodies = antibodies
@@ -17,7 +17,7 @@ class Cluster:
 
         self.metric = metric
         self.clustering_method = clustering_method
-        self.decomposition_method = decomposition
+        self.decomposition_method = decomposition_method
         self.cluster_assignment = np.zeros(self.antibodies.n_ab, dtype=int)
         self.cluster_assignment_dict = dict()
         self._data = None

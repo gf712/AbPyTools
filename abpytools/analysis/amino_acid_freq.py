@@ -30,12 +30,14 @@ amino_acid_index = {"R": 0,
 
 
 class AminoAcidFreq:
+
     def __init__(self, antibodies, region='CDR3'):
 
         # expect a string which is a path to a FASTA file
         if isinstance(antibodies, str):
             self._antibodies = AntibodyCollection(path=antibodies)
             self._antibodies.load()
+
         # can also be a AntibodyCollection object
         elif isinstance(antibodies, AntibodyCollection):
             self._antibodies = antibodies
@@ -43,16 +45,22 @@ class AminoAcidFreq:
             # TODO come up with a more elegant way to check if .load() method has been called
             if self._antibodies.n_ab == 0:
                 self._antibodies.load()
+
         if region in ['all', 'CDRs', 'FRs', 'FR1', 'FR2', 'FR3', 'FR4', 'CDR1', 'CDR2', 'CDR3']:
+
             # get the sequence for the specified region
             self.region = region
             self._region_assignment = CDR(self._antibodies)
+
             if self.region.startswith('CDR'):
                 self._sequences = [x[self.region] for x in self._region_assignment.cdr_sequences()]
                 data_loader = DataLoader(data_type='CDR_positions', data=['chothia', self._antibodies.chain])
                 self._numbering = data_loader.get_data()[self.region]
+
             elif self.region.startswith('FR'):
                 self._sequences = [x[self.region] for x in self._region_assignment.framework_sequences()]
+
+            # TODO: implement 'all'
             elif self.region == 'all':
                 self._sequences = [x.sequence for x in self._antibodies]
         else:
@@ -127,6 +135,7 @@ class AminoAcidFreq:
 
         fig = plt.figure(1, figsize=(8, 8))
         ax = fig.add_subplot(111)
+
         for position in range(self._aa_freq.shape[1]):
             previous = 0
             color = iter(plt.get_cmap('Vega20').colors)
@@ -192,10 +201,10 @@ class AminoAcidFreq:
 
         ax.set_xticks(np.arange(len(self._numbering)))
         ax.set_xticklabels(self._numbering, rotation=60)
-        # plt.margins(x=0.05, y=0.1)
         ax.set_xlabel('Position', size=16)
         ax.set_ylim([0, aa.sum(0).max()*1.1])
         ax.grid(axis='x')
+
         if normalize:
             ax.set_ylabel('Frequency', size=16)
         else:
