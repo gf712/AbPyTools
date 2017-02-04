@@ -15,13 +15,12 @@ AbPyTools features:
 - calculate pI (isoelectric point)
 - calculate CDR length
 - higher level class that can load data from several antibody sequences
-  - reads in data from FASTA format
+  - load and write antibody sequences in FASTA and json formats
   - calculates hydrophobicity matrix for whole dataset
   - get all the data already mentioned above
   - access CDR and framework sequences
 - high level function to easily plot CDR length using a FASTA file as input
 - currently only has Python 3 compatibility
-- load and write antibody sequences in FASTA and json formats
 
 Stuff that will be added/ worked on next:
 - 
