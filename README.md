@@ -25,6 +25,7 @@ AbPyTools features:
 
 Stuff that will be added/ worked on next:
 - 
+- Add remaining antibody numbering schemes
 - Currently working on log-odds scores
 - write tutorials
 - adding some useful functions, such as comparing sequence with available datasets
