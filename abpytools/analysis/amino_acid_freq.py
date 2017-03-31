@@ -138,28 +138,31 @@ class AminoAcidFreq:
 
         for position in range(self._aa_freq.shape[1]):
             previous = 0
-            color = iter(plt.get_cmap('Vega20').colors)
-
+            # 20 distinct colors
+            colors = ["#023fa5", "#7d87b9", "#bec1d4", "#d6bcc0", "#bb7784", "#8e063b", "#4a6fe3", "#8595e1",
+                      "#b5bbe3", "#e6afb9", "#e07b91", "#d33f6a", "#11c638", "#8dd593", "#c6dec7", "#ead3c6",
+                      "#f0b98d", "#ef9708", "#0fcfc0", "#9cded6", "#d5eae7", "#f3e1eb", "#f6c4e1", "#f79cd4"]
             if sort_by == 'name':
                 ax.set_title(self.region + ' amino acids', size=20)
                 for i, amino_acid in enumerate(sorted(amino_acid_index.keys())):
-                    c = next(color)
+                    c = colors[i]
                     ax.bar(position, aa[amino_acid_index[amino_acid], position], bottom=previous,
                             label=amino_acid, color=c)
                     previous += aa[amino_acid_index[amino_acid], position]
 
             elif sort_by == 'hydropathy':
+                colors = ['b', 'r', 'k']
                 ax.set_title(self.region + ' amino acid hydropathy', size=20)
                 for i, prop_i in enumerate(['Hydrophilic', 'Moderate', 'Hydrophobic']):
-                    c = next(color)
+                    c = colors[i]
                     ax.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c)
                     previous += hyd[i, position]
 
             else:
-                color = ['b', 'r', 'k']
+                colors = ['b', 'r', 'k']
                 ax.set_title(self.region + ' amino acid charge', size=20)
                 for i, prop_i in enumerate(['Negative', 'Positive', 'Neutral']):
-                    c = color[i]
+                    c = colors[i]
                     ax.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
                     previous += chg[i, position]
 
@@ -175,10 +178,10 @@ class AminoAcidFreq:
 
                 for position in range(aa.shape[1]):
                     if self._aa_count[:, position].sum() > 9:
-                        ax.text(x=position-0.25, y=aa[:, position].sum()+2*shift,
+                        ax.text(x=position, y=aa[:, position].sum()+2*shift,
                                 s=str(int(self._aa_count[:, position].sum())), rotation=45)
                     else:
-                        ax.text(x=position-0.1, y=aa[:, position].sum()+shift,
+                        ax.text(x=position, y=aa[:, position].sum()+shift,
                                 s=str(int(self._aa_count[:, position].sum())), rotation=45)
 
             else:
@@ -199,10 +202,11 @@ class AminoAcidFreq:
                         ax.text(x=position-0.2, y=aa[:, position].sum() + 4 * shift, rotation=45,
                                 s=str(int(self._aa_count[:, position].sum())))
 
-        ax.set_xticks(np.arange(len(self._numbering)))
+        ax.set_xticks(np.arange(len(self._numbering)) + 0.3)
         ax.set_xticklabels(self._numbering, rotation=60)
         ax.set_xlabel('Position', size=16)
         ax.set_ylim([0, aa.sum(0).max()*1.1])
+        ax.margins(0.02)
         ax.grid(axis='x')
 
         if normalize:
