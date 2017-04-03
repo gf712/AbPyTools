@@ -294,5 +294,17 @@
       "Y": 181.073893,
       "water": 18.010565
     }
+  },
+  "ExtinctionCoefficient": {
+    "Standard": {
+      "W": 5500,
+      "Y": 1490,
+      "C": 125
+    },
+    "Standard_reduced": {
+      "W": 5500,
+      "Y": 1490,
+      "C": 62.5
+    }
   }
 }

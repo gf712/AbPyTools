@@ -210,6 +210,18 @@ class Antibody:
 
         return calculate_pi(sequence=self.sequence, pi_data=pi_data)
 
+    def ab_ec(self, extinction_coefficient_database='Standard', reduced=False):
+
+        if reduced:
+            extinction_coefficient_database += '_reduced'
+
+        data_loader = DataLoader(data_type='AminoAcidProperties', data=['ExtinctionCoefficient',
+                                                                        extinction_coefficient_database])
+
+        ec_data = data_loader.get_data()
+
+        return calculate_ec(sequence=self.sequence, ec_data=ec_data)
+
     def ab_format(self):
 
             return {"name": self.name, "sequence": self.sequence, "numbering": self.numbering, "chain": self.chain,
@@ -272,9 +284,17 @@ def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity
     return hydrophobicity_matrix
 
 
-def calculate_mw(sequence, mw_dict):
+def calculate_mw(sequence, mw_data):
 
-    return sum(mw_dict[x] for x in sequence) - (len(sequence) - 1) * mw_dict['water']
+    return sum(mw_data[x] for x in sequence) - (len(sequence) - 1) * mw_data['water']
+
+def calculate_ec(sequence, ec_data):
+
+    # ϵ280 = nW x 5,500 + nY x 1,490 + nC x 125
+    n_W = sequence.count('W')
+    n_Y = sequence.count('Y')
+    n_C = sequence.count('C')
+    return n_W * ec_data['W'] + n_Y * ec_data['Y'] + n_C * ec_data['C']
 
 
 def calculate_pi(sequence, pi_data):

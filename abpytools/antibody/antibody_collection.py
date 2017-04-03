@@ -113,6 +113,13 @@ class AntibodyCollection:
     def sequences(self):
         return [x.sequence for x in self.antibody_objects]
 
+    def molecular_weights(self, monoisotopic=False):
+        return [x.ab_molecular_weight(monoisotopic=monoisotopic) for x in self.antibody_objects]
+
+    def extinction_coefficients(self, extinction_coefficient_database='Standard', reduced=False):
+        return [x.ab_ec(extinction_coefficient_database=extinction_coefficient_database,
+                        reduced=reduced) for x in self.antibody_objects]
+
     def hydrophobicity_matrix(self):
 
         if self.chain == 'heavy':

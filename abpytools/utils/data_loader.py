@@ -36,13 +36,15 @@ class DataLoader:
         else:
             if len(self.data) != 2:
                 raise ValueError("Expected 2, instead of {} values.".format(len(self.data)))
-            if self.data[0] not in ["hydrophobicity", "pI", "MolecularWeight"]:
+            if self.data[0] not in ["hydrophobicity", "pI", "MolecularWeight", "ExtinctionCoefficient"]:
                 raise ValueError("Got {}, but only {} are available".format(self.data[0],
-                                                                            "hydrophobicity, pI and MolecularWeight"))
+                                                                            """hydrophobicity, pI, ExtinctionCoefficient
+                                                                             and MolecularWeight"""))
 
             if self.data[1] not in ["kdHydrophobicity", "wwHydrophobicity", "hhHydrophobicity", "mfHydrophobicity",
                                     "ewHydrophobicity", "EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell",
-                                    "Wikipedia", "Lehninger", "Grimsley", "average", "monoisotopic"]:
+                                    "Wikipedia", "Lehninger", "Grimsley", "average", "monoisotopic", "Standard",
+                                    "Standard_reduced"]:
                 raise ValueError("Got {}, but only {} are available".format(self.data[1],
                                                                             """
                                                                             kdHydrophobicity ,wwHydrophobicity,
@@ -50,7 +52,8 @@ class DataLoader:
                                                                             ewHydrophobicity, EMBOSS, DTASetect,
                                                                             Solomon, Sillero, Rodwell,
                                                                             Wikipedia, Lehninger, Grimsley,
-                                                                            average and monoisotopic
+                                                                            average, monoisotopic, Standard and
+                                                                            Standard_reduced
                                                                             """
                                                                             ))
 
