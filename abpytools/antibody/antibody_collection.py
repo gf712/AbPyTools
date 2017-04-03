@@ -134,6 +134,13 @@ class AntibodyCollection:
 
         return abs_hydrophobicity_matrix
 
+    def get_object(self, name=''):
+        if name in self.names():
+            index = self.names().index(name)
+            return self.antibody_objects[index]
+        else:
+            raise ValueError('Could not find sequence with specified name')
+
     def ab_region_index(self):
 
         """
