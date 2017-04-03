@@ -35,8 +35,11 @@ class AntibodyPair:
             self._heavy_chains.load()
             self._light_chains.load()
 
-        self.pair_sequences = [heavy + light for heavy, light in zip(self._heavy_chains.sequences(),
-                                                                     self._light_chains.sequences())]
+        self._pair_sequences = [heavy + light for heavy, light in zip(self._heavy_chains.sequences(),
+                                                                      self._light_chains.sequences())]
+
+        self._names = ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names(),
+                                                                              self._light_chains.names())]
 
     def pairs_mw(self, monoisotopic=False):
 
@@ -53,9 +56,10 @@ class AntibodyPair:
             reduced=reduced)
         return [heavy + light for heavy, light in zip(heavy_ec, light_ec)]
 
+    @property
     def names(self):
-        return ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names(),
-                                                                       self._light_chains.names())]
+        return self._names
 
+    @property
     def sequences(self):
-        return [heavy + light for heavy, light in zip(self._heavy_chains.sequences(), self._light_chains.sequences())]
+        return self._pair_sequences
