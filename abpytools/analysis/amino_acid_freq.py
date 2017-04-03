@@ -46,8 +46,8 @@ class AminoAcidFreq:
             if self._antibodies.n_ab == 0:
                 self._antibodies.load()
 
-        if region in ['all', 'CDRs', 'FRs', 'FR1', 'FR2', 'FR3', 'FR4', 'CDR1', 'CDR2', 'CDR3']:
-
+        regions = ['all', 'CDRs', 'FRs', 'FR1', 'FR2', 'FR3', 'FR4', 'CDR1', 'CDR2', 'CDR3']
+        if region in regions:
             # get the sequence for the specified region
             self.region = region
             self._region_assignment = CDR(self._antibodies)
@@ -64,15 +64,17 @@ class AminoAcidFreq:
             elif self.region == 'all':
                 self._sequences = [x.sequence for x in self._antibodies]
         else:
-            raise ValueError()
+            raise ValueError('Parameter region must be either: {}. Not {}'.format(' ,'.join(regions), region))
 
-        self._aa_freq = np.zeros((20, len(max(self._sequences, key=len))))
-        self._aa_hyd_freq = np.zeros((3, len(max(self._sequences, key=len))))
-        self._aa_chg_freq = np.zeros((3, len(max(self._sequences, key=len))))
+        self._sequence_count = len(max(self._sequences, key=len))
 
-        self._aa_count = np.zeros((20, len(max(self._sequences, key=len))))
-        self._aa_hyd_count = np.zeros((3, len(max(self._sequences, key=len))))
-        self._aa_chg_count = np.zeros((3, len(max(self._sequences, key=len))))
+        self._aa_freq = np.zeros((20, self._sequence_count))
+        self._aa_hyd_freq = np.zeros((3, self._sequence_count))
+        self._aa_chg_freq = np.zeros((3, self._sequence_count))
+
+        self._aa_count = np.zeros((20, self._sequence_count))
+        self._aa_hyd_count = np.zeros((3, self._sequence_count))
+        self._aa_chg_count = np.zeros((3, self._sequence_count))
 
     def _amino_acid_freq(self, normalize):
 
@@ -141,14 +143,16 @@ class AminoAcidFreq:
             # 20 distinct colors
             colors = ["#023fa5", "#7d87b9", "#bec1d4", "#d6bcc0", "#bb7784", "#8e063b", "#4a6fe3", "#8595e1",
                       "#b5bbe3", "#e6afb9", "#e07b91", "#d33f6a", "#11c638", "#8dd593", "#c6dec7", "#ead3c6",
-                      "#f0b98d", "#ef9708", "#0fcfc0", "#9cded6", "#d5eae7", "#f3e1eb", "#f6c4e1", "#f79cd4"]
+                      "#f0b98d", "#ef9708", "#0fcfc0", "#9cded6"]
             if sort_by == 'name':
                 ax.set_title(self.region + ' amino acids', size=20)
                 for i, amino_acid in enumerate(sorted(amino_acid_index.keys())):
                     c = colors[i]
                     ax.bar(position, aa[amino_acid_index[amino_acid], position], bottom=previous,
-                            label=amino_acid, color=c)
+                           label=amino_acid, color=c)
                     previous += aa[amino_acid_index[amino_acid], position]
+                lgd = ax.legend(sorted(amino_acid_index.keys()), loc='center left', bbox_to_anchor=(1, 0.5),
+                                prop={"size": 16})
 
             elif sort_by == 'hydropathy':
                 colors = ['b', 'r', 'k']
@@ -157,6 +161,8 @@ class AminoAcidFreq:
                     c = colors[i]
                     ax.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c)
                     previous += hyd[i, position]
+                lgd = ax.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5),
+                                prop={"size": 16})
 
             else:
                 colors = ['b', 'r', 'k']
@@ -165,6 +171,8 @@ class AminoAcidFreq:
                     c = colors[i]
                     ax.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
                     previous += chg[i, position]
+                lgd = ax.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
+                                prop={"size": 16})
 
         if display_count:
 
@@ -202,27 +210,17 @@ class AminoAcidFreq:
                         ax.text(x=position-0.2, y=aa[:, position].sum() + 4 * shift, rotation=45,
                                 s=str(int(self._aa_count[:, position].sum())))
 
+        if normalize:
+            ax.set_ylabel('Frequency', size=16)
+        else:
+            ax.set_ylabel('Count', size=16)
+
         ax.set_xticks(np.arange(len(self._numbering)) + 0.3)
         ax.set_xticklabels(self._numbering, rotation=60)
         ax.set_xlabel('Position', size=16)
         ax.set_ylim([0, aa.sum(0).max()*1.1])
         ax.margins(0.02)
         ax.grid(axis='x')
-
-        if normalize:
-            ax.set_ylabel('Frequency', size=16)
-        else:
-            ax.set_ylabel('Count', size=16)
-
-        if sort_by == 'name':
-            lgd = ax.legend(sorted(amino_acid_index.keys()), loc='center left', bbox_to_anchor=(1, 0.5),
-                            prop={"size": 16})
-        elif sort_by == 'hydropathy':
-            lgd = ax.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5),
-                            prop={"size": 16})
-        else:
-            lgd = ax.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
-                            prop={"size": 16})
 
         ipython_config = PythonConfig()
         ipython_config.get_ipython_info()
