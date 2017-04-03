@@ -51,10 +51,10 @@ class AntibodyCollection:
         if not isinstance(antibody_objects, list):
             raise IOError("Expected a list, instead got object of type {}".format(type(antibody_objects)))
 
-        if not all(isinstance(obj, Antibody) for obj in antibody_objects):
+        elif not all(isinstance(obj, Antibody) for obj in antibody_objects) and len(antibody_objects) > 0:
             raise IOError("Expected a list containing objects of type Antibody")
 
-        if not isinstance(path, str):
+        elif not isinstance(path, str) and path is not None:
             raise IOError("Expected a string containing the path to a FASTA format file")
 
         self.antibody_objects = antibody_objects
@@ -62,7 +62,7 @@ class AntibodyCollection:
         self._path = path
         self.n_ab = 0
 
-    def load(self, show_progressbar=True, n_jobs=-1):
+    def load(self, show_progressbar=True, n_jobs=-1, get_numbering=True):
 
         if self._path is not None:
 
@@ -102,10 +102,11 @@ class AntibodyCollection:
                     for name, sequence in zip(names, sequences):
                         self.antibody_objects.append(Antibody(name=name, sequence=sequence))
 
-        self.antibody_objects, self.chain, self.n_ab = load_from_antibody_object(
-            antibody_objects=self.antibody_objects,
-            show_progressbar=show_progressbar,
-            n_jobs=n_jobs)
+        if get_numbering:
+            self.antibody_objects, self.chain, self.n_ab = load_from_antibody_object(
+                antibody_objects=self.antibody_objects,
+                show_progressbar=show_progressbar,
+                n_jobs=n_jobs)
 
     def names(self):
         return [x.name for x in self.antibody_objects]
