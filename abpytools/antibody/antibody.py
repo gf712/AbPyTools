@@ -13,17 +13,17 @@ class Antibody:
     TODO: write description
     """
 
-    def __init__(self, sequence='', name='', numbering=None):
+    def __init__(self, sequence='', name='', numbering=None, numbering_scheme='chothia'):
         self._raw_sequence = sequence.upper()
-        self.sequence = self._raw_sequence.replace('-', '')
-        self.name = name
+        self._sequence = self._raw_sequence.replace('-', '')
+        self._name = name
         self.numbering = numbering
         self.hydrophobicity_matrix = np.array([])
-        self.chain = ''
+        self._chain = ''
         self.mw = 0
         self.pI = 0
         self.cdr = [0, 0, 0]
-        self.numbering_scheme = 'chothia'
+        self.numbering_scheme = numbering_scheme
 
     def load(self):
         """
@@ -39,8 +39,8 @@ class Antibody:
 
         """
         try:
-            if self.numbering is None or self.chain == '':
-                self.numbering, self.chain = self.ab_numbering()
+            if self.numbering is None or self._chain == '':
+                self.numbering, self._chain = self.ab_numbering()
             if self.hydrophobicity_matrix.size == 0:
                 self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
             if self.mw == 0:
@@ -51,12 +51,12 @@ class Antibody:
                 self.cdr = self.ab_regions()
         except ValueError:
             self.numbering = 'NA'
-            self.chain = 'NA'
+            self._chain = 'NA'
             self.hydrophobicity_matrix = 'NA'
             self.mw = 'NA'
             self.pI = 'NA'
             self.cdr = 'NA'
-
+    
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
         # type: (str, str) -> object
 
@@ -74,7 +74,7 @@ class Antibody:
         # store the numbering scheme used for reference in other methods
         self.numbering_scheme = numbering_scheme
 
-        numbering = get_ab_numbering(self.sequence, server, numbering_scheme)
+        numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
         chain = ''
 
         if numbering == ['']:
@@ -82,9 +82,9 @@ class Antibody:
             return 'NA', 'NA'
 
         elif numbering[0][0] == 'H':
-                chain = 'heavy'
+            chain = 'heavy'
         elif numbering[0][0] == 'L':
-                chain = 'light'
+            chain = 'light'
 
         return numbering, chain
 
@@ -98,10 +98,10 @@ class Antibody:
         """
 
         if len(name) == 0:
-            name = self.name
+            name = self._name
 
         data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[self.numbering_scheme, self.chain])
+                                 data=[self.numbering_scheme, self._chain])
         whole_sequence_dict = data_loader.get_data()
 
         whole_sequence = whole_sequence_dict['withCDR']
@@ -111,7 +111,7 @@ class Antibody:
             data = np.empty((len(whole_sequence)), dtype=str)
             for i, position in enumerate(whole_sequence):
                 if position in self.numbering:
-                    data[i] = self.sequence[self.numbering.index(position)]
+                    data[i] = self._sequence[self.numbering.index(position)]
                 else:
                     data[i] = '-'
 
@@ -122,7 +122,7 @@ class Antibody:
             data = pd.DataFrame(columns=whole_sequence, index=[name])
 
             for i, position in enumerate(self.numbering):
-                data.ix[0, data.columns == position] = self.sequence[i]
+                data.ix[0, data.columns == position] = self._sequence[i]
 
             return data.fillna(value='-')
 
@@ -138,13 +138,13 @@ class Antibody:
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
                 )
 
-        if self.chain == '':
-            self.chain, self.numbering = self.ab_numbering()
-        if self.chain == 'NA':
+        if self._chain == '':
+            self._chain, self.numbering = self.ab_numbering()
+        if self._chain == 'NA':
             raise ValueError("Could not determine chain type")
 
         data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[self.numbering_scheme, self.chain])
+                                 data=[self.numbering_scheme, self._chain])
         whole_sequence_dict = data_loader.get_data()
 
         if include_cdr:
@@ -159,7 +159,7 @@ class Antibody:
 
         return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence, numbering=self.numbering,
                                                aa_hydrophobicity_scores=aa_hydrophobicity_scores,
-                                               sequence=self.sequence)
+                                               sequence=self._sequence)
 
     def ab_regions(self):
 
@@ -170,15 +170,15 @@ class Antibody:
         """
 
         if self.numbering is None:
-            self.numbering, self.chain = self.ab_numbering()
+            self.numbering, self._chain = self.ab_numbering()
 
         if self.numbering == 'NA':
             raise ValueError("Cannot return CDR length without the antibody numbering information")
 
-        data_loader = DataLoader(data_type='CDR_positions', data=[self.numbering_scheme, self.chain])
+        data_loader = DataLoader(data_type='CDR_positions', data=[self.numbering_scheme, self._chain])
         cdr_positions = data_loader.get_data()
 
-        data_loader = DataLoader(data_type='Framework_positions', data=[self.numbering_scheme, self.chain])
+        data_loader = DataLoader(data_type='Framework_positions', data=[self.numbering_scheme, self._chain])
         framework_position = data_loader.get_data()
 
         return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
@@ -194,7 +194,7 @@ class Antibody:
                                      data=['MolecularWeight', 'monoisotopic'])
         mw_dict = data_loader.get_data()
 
-        return calculate_mw(self.sequence, mw_dict)
+        return calculate_mw(self._sequence, mw_dict)
 
     def ab_pi(self, pi_database='Wikipedia'):
 
@@ -208,7 +208,7 @@ class Antibody:
                                  data=['pI', pi_database])
         pi_data = data_loader.get_data()
 
-        return calculate_pi(sequence=self.sequence, pi_data=pi_data)
+        return calculate_pi(sequence=self._sequence, pi_data=pi_data)
 
     def ab_ec(self, extinction_coefficient_database='Standard', reduced=False):
 
@@ -220,16 +220,26 @@ class Antibody:
 
         ec_data = data_loader.get_data()
 
-        return calculate_ec(sequence=self.sequence, ec_data=ec_data)
+        return calculate_ec(sequence=self._sequence, ec_data=ec_data)
 
     def ab_format(self):
+        return {"name": self._name, "sequence": self._sequence, "numbering": self.numbering, "chain": self._chain,
+                "MW": self.mw, "CDR": self.cdr, "numbering_scheme": self.numbering_scheme, "pI": self.pI}
+    
+    @property
+    def chain(self):
+        return self._chain
+    
+    @property
+    def name(self):
+        return self._name
 
-            return {"name": self.name, "sequence": self.sequence, "numbering": self.numbering, "chain": self.chain,
-                    "MW": self.mw, "CDR": self.cdr, "numbering_scheme": self.numbering_scheme, "pI": self.pI}
+    @property
+    def sequence(self):
+        return self._sequence
 
 
 def get_ab_numbering(sequence, server, numbering_scheme):
-
     """
 
     :rtype: list
@@ -268,7 +278,6 @@ def get_ab_numbering(sequence, server, numbering_scheme):
 
 
 def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity_scores, sequence):
-
     # instantiate numpy array
     hydrophobicity_matrix = np.zeros(len(whole_sequence))
 
@@ -285,11 +294,10 @@ def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity
 
 
 def calculate_mw(sequence, mw_data):
-
     return sum(mw_data[x] for x in sequence) - (len(sequence) - 1) * mw_data['water']
 
-def calculate_ec(sequence, ec_data):
 
+def calculate_ec(sequence, ec_data):
     # ϵ280 = nW x 5,500 + nY x 1,490 + nC x 125
     n_W = sequence.count('W')
     n_Y = sequence.count('Y')
@@ -298,7 +306,6 @@ def calculate_ec(sequence, ec_data):
 
 
 def calculate_pi(sequence, pi_data):
-
     # algorithm implemented from http://isoelectric.ovh.org/files/practise-isoelectric-point.html
 
     # count number of D, E, C, Y, H, K, R
@@ -341,7 +348,6 @@ def calculate_pi(sequence, pi_data):
 
 
 def calculate_cdr(numbering, cdr_positions, framework_positions):
-
     """
 
     :param numbering:
