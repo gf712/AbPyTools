@@ -7,9 +7,9 @@ import json
 from os import path
 import pandas as pd
 from ..utils import DataLoader
+
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
 
 ipython_config = PythonConfig()
 ipython_config.get_ipython_info()
@@ -37,7 +37,7 @@ class AntibodyCollection:
 
     """
 
-    def __init__(self, antibody_objects=None, path=None):
+    def __init__(self, antibody_objects=None, path=None, numbering_scheme='chothia'):
 
         """
 
@@ -58,11 +58,21 @@ class AntibodyCollection:
             raise IOError("Expected a string containing the path to a FASTA format file")
 
         self.antibody_objects = antibody_objects
-        self.chain = ''
-        self._path = path
-        self.n_ab = 0
 
-    def load(self, show_progressbar=True, n_jobs=-1, get_numbering=True):
+        if len(self.antibody_objects) > 0:
+            if self.antibody_objects[0].chain != '':
+                self._numbering_scheme = antibody_objects[0].numbering_scheme
+                self._chain = antibody_objects[0].chain
+            else:
+                self._chain = ''
+                self._path = path
+                self._numbering_scheme = numbering_scheme
+        else:
+            self._chain = ''
+            self._path = path
+            self._numbering_scheme = numbering_scheme
+
+    def load(self, show_progressbar=True, n_jobs=-1):
 
         if self._path is not None:
 
@@ -74,10 +84,10 @@ class AntibodyCollection:
                         antibody_dict_i = data[key_i]
                         antibody_i = Antibody(name=key_i, sequence=antibody_dict_i['sequence'])
                         antibody_i.numbering = antibody_dict_i['numbering']
-                        antibody_i.chain = antibody_dict_i['chain']
+                        antibody_i._chain = antibody_dict_i['chain']
                         antibody_i.mw = antibody_dict_i['MW']
                         antibody_i.CDR = antibody_dict_i["CDR"]
-                        antibody_i.numbering_scheme = antibody_dict_i["numbering_scheme"]
+                        antibody_i._numbering_scheme = antibody_dict_i["numbering_scheme"]
                         antibody_i.pI = antibody_dict_i["pI"]
 
                         self.antibody_objects.append(antibody_i)
@@ -102,17 +112,10 @@ class AntibodyCollection:
                     for name, sequence in zip(names, sequences):
                         self.antibody_objects.append(Antibody(name=name, sequence=sequence))
 
-        if get_numbering:
-            self.antibody_objects, self.chain, self.n_ab = load_from_antibody_object(
-                antibody_objects=self.antibody_objects,
-                show_progressbar=show_progressbar,
-                n_jobs=n_jobs)
-
-    def names(self):
-        return [x.name for x in self.antibody_objects]
-
-    def sequences(self):
-        return [x.sequence for x in self.antibody_objects]
+        self.antibody_objects, self._chain = load_from_antibody_object(
+            antibody_objects=self.antibody_objects,
+            show_progressbar=show_progressbar,
+            n_jobs=n_jobs)
 
     def molecular_weights(self, monoisotopic=False):
         return [x.ab_molecular_weight(monoisotopic=monoisotopic) for x in self.antibody_objects]
@@ -123,7 +126,7 @@ class AntibodyCollection:
 
     def hydrophobicity_matrix(self):
 
-        if self.chain == 'heavy':
+        if self._chain == 'heavy':
             num_columns = 158
         else:
             num_columns = 138
@@ -135,8 +138,8 @@ class AntibodyCollection:
         return abs_hydrophobicity_matrix
 
     def get_object(self, name=''):
-        if name in self.names():
-            index = self.names().index(name)
+        if name in self.names:
+            index = self.names.index(name)
             return self.antibody_objects[index]
         else:
             raise ValueError('Could not find sequence with specified name')
@@ -168,7 +171,7 @@ class AntibodyCollection:
                 idi += 1
 
         data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[antibody.numbering_scheme, self.chain])
+                                 data=[antibody.numbering_scheme, self._chain])
         whole_sequence_dict = data_loader.get_data()
 
         whole_sequence = whole_sequence_dict['withCDR']
@@ -176,8 +179,9 @@ class AntibodyCollection:
         df = pd.DataFrame(columns=whole_sequence, index=names)
 
         for antibody, name in zip(self.antibody_objects, names):
-
-            df.loc[name] = antibody.ab_numbering_table(name=name, only_array=True)
+            index = np.where(df.index.values == name)[0]
+            for i in index:
+                df.ix[i] = antibody.ab_numbering_table(name=name, only_array=True)
 
         return df
 
@@ -194,7 +198,7 @@ class AntibodyCollection:
 
                 with open(path.join(file_path, file_name), 'w') as f:
                     # if antibody does not have name generate name:
-                    # ID_chain_idi, where chain is heavy/light, idi is idi (1,..,N)
+                    # ID_chain_idi, where chain is heavy/light, idi is i = [1,..,N]
                     idi = 1
                     data = dict()
                     for antibody in self.antibody_objects:
@@ -234,6 +238,8 @@ class AntibodyCollection:
         self._update_obj()
 
     def filter(self):
+
+        # TODO: complete method
         pass
 
     def _update_obj(self, index='all'):
@@ -242,6 +248,34 @@ class AntibodyCollection:
         if index == 'all':
             self.antibody_objects == load_from_antibody_object(self.antibody_objects, show_progressbar=True,
                                                                n_jobs=-1)
+
+    @property
+    def names(self):
+        return [x.name for x in self.antibody_objects]
+
+    @property
+    def sequences(self):
+        return [x.sequence for x in self.antibody_objects]
+
+    @property
+    def n_ab(self):
+        return len(self.sequences)
+
+    @property
+    def chain(self):
+        if self._chain == '':
+            chains = set([x.chain for x in self.antibody_objects])
+            if len(chains) == 1:
+                self._chain = next(iter(chains))
+                return self._chain
+            else:
+                raise ValueError('Different types of chains found in collection!')
+        else:
+            return self._chain
+
+    @property
+    def numbering_scheme(self):
+        return self._numbering_scheme
 
 
 def load_antibody_object(antibody_object):
@@ -265,25 +299,21 @@ def parallelexecutor(use_bar='tqdm', **joblib_args):
             else:
                 raise ValueError("Value %s not supported as bar type" % bar)
             return Parallel(**joblib_args)(bar_func(op_iter))
-
         return tmp
-
     return aprun
 
 
 def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1):
     print("Loading in antibody objects")
 
-    # updated from stackoverflow answer in
-    # http://stackoverflow.com/questions/37804279/how-can-we-use-tqdm-in-a-parallel-execution-with-joblib
     if show_progressbar:
         aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs)
     else:
         aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs)
 
     # load in objects in parallel
-    antibody_objects = aprun(total=len(antibody_objects)) \
-        (delayed(load_antibody_object)(obj) for obj in antibody_objects)
+    antibody_objects = aprun(total=len(antibody_objects))(
+        delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
     chains = [x.chain for x in antibody_objects]
     chains_without_na = [x for x in chains if x != 'NA']
@@ -306,4 +336,4 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
     if n_ab == 0:
         raise IOError("Could not find any heavy or light chains in provided file or list of objects")
 
-    return antibody_objects, chain, n_ab
+    return antibody_objects, chain
