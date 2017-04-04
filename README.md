@@ -10,15 +10,14 @@ will be performed in a separate branch.
 AbPyTools features:
 - 
 - obtain Antibody numbering by querying AbNum (http://www.bioinf.org.uk/abs/abnum/)
-- calculate hydrophobicity matrix
-- calculate molecular weight
-- calculate pI (isoelectric point)
-- calculate CDR length
+- calculate molecular weight, pI (isoelectric point) and extinction coefficients
+- calculate hydrophobicity matrix and CDR length
 - higher level class that can load data from several antibody sequences
   - load and write antibody sequences in FASTA and json formats
   - calculates hydrophobicity matrix for whole dataset
   - get all the data already mentioned above
   - access CDR and framework sequences
+- Work with heavy and light chains or combinations 
 - high level function to easily plot CDR length using a FASTA file as input
 - currently only has Python 3 compatibility
 
