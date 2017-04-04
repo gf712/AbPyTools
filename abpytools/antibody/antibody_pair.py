@@ -1,5 +1,6 @@
-from .antibody import Antibody
 from .antibody_collection import AntibodyCollection
+import numpy as np
+import pandas as pd
 
 
 class AntibodyPair:
@@ -35,18 +36,20 @@ class AntibodyPair:
             self._heavy_chains.load()
             self._light_chains.load()
 
-        self._pair_sequences = [heavy + light for heavy, light in zip(self._heavy_chains.sequences(),
-                                                                      self._light_chains.sequences())]
+        self._pair_sequences = [heavy + light for heavy, light in zip(self._heavy_chains.sequences,
+                                                                      self._light_chains.sequences)]
 
-        self._names = ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names(),
-                                                                              self._light_chains.names())]
+        self._names = ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names,
+                                                                              self._light_chains.names)]
 
-    def pairs_mw(self, monoisotopic=False):
+        self._n_ab = self._light_chains.n_ab
+
+    def molecular_weight(self, monoisotopic=False):
 
         return [heavy + light for heavy, light in zip(self._heavy_chains.molecular_weights(monoisotopic=monoisotopic),
                                                       self._light_chains.molecular_weights(monoisotopic=monoisotopic))]
 
-    def pairs_ec(self, extinction_coefficient_database='Standard', reduced=False):
+    def extinction_coefficient(self, extinction_coefficient_database='Standard', reduced=False):
 
         heavy_ec = self._heavy_chains.extinction_coefficients(
             extinction_coefficient_database=extinction_coefficient_database,
@@ -56,6 +59,17 @@ class AntibodyPair:
             reduced=reduced)
         return [heavy + light for heavy, light in zip(heavy_ec, light_ec)]
 
+    def hydrophobicity_matrix(self):
+
+        return np.column_stack((self._heavy_chains.hydrophobicity_matrix(), self._light_chains.hydrophobicity_matrix()))
+
+    def numbering_table(self):
+
+        return pd.DataFrame(np.concatenate((self._heavy_chains.numbering_table().as_matrix(),
+                                            self._light_chains.numbering_table().as_matrix()), axis=1),
+                            columns=self._heavy_chains.numbering_table().columns.append(
+                            self._light_chains.numbering_table().columns), index=self.names)
+
     @property
     def names(self):
         return self._names
@@ -63,3 +77,7 @@ class AntibodyPair:
     @property
     def sequences(self):
         return self._pair_sequences
+
+    @property
+    def n_ab(self):
+        return self._n_ab
