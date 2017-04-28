@@ -281,6 +281,10 @@ class AntibodyCollection:
     def charge(self):
         return np.array([x.ab_charge() for x in self.antibody_objects])
 
+    @property
+    def total_charge(self):
+        return [x.ab_total_charge() for x in self.antibody_objects]
+
 
 def load_antibody_object(antibody_object):
     antibody_object.load()

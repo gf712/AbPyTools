@@ -1,6 +1,8 @@
 from .antibody_collection import AntibodyCollection
 import numpy as np
 import pandas as pd
+from .antibody import calculate_charge
+from abpytools.utils import DataLoader
 
 
 class AntibodyPair:
@@ -66,6 +68,19 @@ class AntibodyPair:
     def charge(self):
 
         return np.column_stack((self._heavy_chains.charge, self._light_chains.charge))
+
+    def total_charge(self, ph=7.4, pka_database='Wikipedia'):
+
+        available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
+        "Grimsley"]
+        assert pka_database in available_pi_databases, \
+            "Selected pI database {} not available. Available databases: {}".format(pka_database,
+                                                                                    ' ,'.join(available_pi_databases))
+
+        data_loader = DataLoader(data_type='AminoAcidProperties', data=['pI', pka_database])
+        pka_data = data_loader.get_data()
+
+        return [calculate_charge(sequence=seq, ph=ph, pka_values=pka_data) for seq in self.sequences]
 
     @property
     def numbering_table(self):

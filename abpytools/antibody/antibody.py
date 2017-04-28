@@ -241,12 +241,29 @@ class Antibody:
         :return: array with amino acid charges
         """
 
-        if align:
-            sequence = self.ab_numbering_table(only_array=True)
-        else:
-            sequence = list(self.sequence)
+        # FIXME
+        # if align:
+        #     sequence = self.ab_numbering_table(only_array=True)
+        # else:
+        #     sequence = list(self.sequence)
+        #
+        # return np.array(list(map(calculate_charge, sequence)))
 
-        return np.array(list(map(calculate_charge, sequence)))
+        pass
+
+    def ab_total_charge(self, ph=7.4, pka_database='Wikipedia'):
+
+        available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
+                                  "Grimsley"]
+        assert pka_database in available_pi_databases, \
+            "Selected pI database {} not available. Available databases: {}".format(pka_database,
+                                                                                    ' ,'.join(available_pi_databases))
+
+        data_loader = DataLoader(data_type='AminoAcidProperties',
+                                 data=['pI', pka_database])
+        pka_data = data_loader.get_data()
+
+        return calculate_charge(sequence=self._sequence, ph=ph, pka_values=pka_data)
 
     @property
     def chain(self):
@@ -406,10 +423,27 @@ def calculate_cdr(numbering, cdr_positions, framework_positions):
     return cdrs, frameworks
 
 
-def calculate_charge(amino_acid):
-    amino_acid_charge = {'D': -1, 'E': -1, 'R': 1, 'K': 1, 'H': 1}
+def calculate_charge(sequence, ph, pka_values):
+    # count number of D, E, C, Y, H, K, R
+    d_count = sequence.count('D')
+    e_count = sequence.count('E')
+    c_count = sequence.count('C')
+    y_count = sequence.count('Y')
+    h_count = sequence.count('H')
+    k_count = sequence.count('K')
+    r_count = sequence.count('R')
 
-    if amino_acid in amino_acid_charge.keys():
-        return amino_acid_charge[amino_acid]
-    else:
-        return 0
+    # qn1, qn2, qn3, qn4, qn5, qp1, qp2, qp3, qp4
+    qn1 = -1 / (1 + 10 ** (pka_values['COOH'] - ph))  # C-terminus charge
+    qn2 = - d_count / (1 + 10 ** (pka_values['D'] - ph))  # D charge
+    qn3 = - e_count / (1 + 10 ** (pka_values['E'] - ph))  # E charge
+    qn4 = - c_count / (1 + 10 ** (pka_values['C'] - ph))  # C charge
+    qn5 = - y_count / (1 + 10 ** (pka_values['Y'] - ph))  # Y charge
+    qp1 = h_count / (1 + 10 ** (ph - pka_values['H']))  # H charge
+    qp2 = 1 / (1 + 10 ** (ph - pka_values['NH2']))  # N-terminus charge
+    qp3 = k_count / (1 + 10 ** (ph - pka_values['K']))  # K charge
+    qp4 = r_count / (1 + 10 ** (ph - pka_values['R']))  # R charge
+
+    nq = qn1 + qn2 + qn3 + qn4 + qn5 + qp1 + qp2 + qp3 + qp4
+
+    return nq
