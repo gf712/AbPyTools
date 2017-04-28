@@ -154,8 +154,8 @@ class AntibodyCollection:
         'Framework' entry contains dictionaries with FR1, FR2, FR3 and FR4 regions
         """
         cdrs = [x.ab_regions()[0] for x in self.antibody_objects]
-        frameworks = [x.ab_regions()[1] for x in self.antibody_objects]
-        return {'CDRs': cdrs, 'Frameworks': frameworks}
+        fr = [x.ab_regions()[1] for x in self.antibody_objects]
+        return {'CDRs': cdrs, 'FR': fr}
 
     def numbering_table(self):
 

@@ -67,12 +67,17 @@ class AntibodyPair:
 
         return np.column_stack((self._heavy_chains.charge, self._light_chains.charge))
 
+    @property
     def numbering_table(self):
 
         return pd.DataFrame(np.concatenate((self._heavy_chains.numbering_table().as_matrix(),
                                             self._light_chains.numbering_table().as_matrix()), axis=1),
                             columns=self._heavy_chains.numbering_table().columns.append(
                             self._light_chains.numbering_table().columns), index=self.names)
+
+    @property
+    def regions(self):
+        return {'Heavy': self._heavy_chains.ab_region_index(), 'Light': self._light_chains.ab_region_index()}
 
     @property
     def names(self):
