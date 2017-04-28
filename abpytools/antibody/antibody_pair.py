@@ -63,6 +63,10 @@ class AntibodyPair:
 
         return np.column_stack((self._heavy_chains.hydrophobicity_matrix(), self._light_chains.hydrophobicity_matrix()))
 
+    def charge(self):
+
+        return np.column_stack((self._heavy_chains.charge, self._light_chains.charge))
+
     def numbering_table(self):
 
         return pd.DataFrame(np.concatenate((self._heavy_chains.numbering_table().as_matrix(),

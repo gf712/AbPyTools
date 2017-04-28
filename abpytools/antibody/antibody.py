@@ -259,7 +259,7 @@ class Antibody:
     @property
     def sequence(self):
         return self._sequence
-    
+
 
 def get_ab_numbering(sequence, server, numbering_scheme):
     """
