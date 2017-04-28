@@ -230,7 +230,24 @@ class Antibody:
     def ab_format(self):
         return {"name": self._name, "sequence": self._sequence, "numbering": self.numbering, "chain": self._chain,
                 "MW": self.mw, "CDR": self.cdr, "numbering_scheme": self.numbering_scheme, "pI": self.pI}
-    
+
+    def ab_charge(self, align=True):
+
+        """
+        Method to calculate the charges for each amino acid of antibody
+        :param align: if set to True an alignment will be performed, 
+                      if it hasn't been done already using the ab_numbering method
+                        
+        :return: array with amino acid charges
+        """
+
+        if align:
+            sequence = self.ab_numbering_table(only_array=True)
+        else:
+            sequence = list(self.sequence)
+
+        return np.array(list(map(calculate_charge, sequence)))
+
     @property
     def chain(self):
         return self._chain
@@ -387,3 +404,12 @@ def calculate_cdr(numbering, cdr_positions, framework_positions):
                 frameworks[framework].append(i)
 
     return cdrs, frameworks
+
+
+def calculate_charge(amino_acid):
+    amino_acid_charge = {'D': -1, 'E': -1, 'R': 1, 'K': 1, 'H': 1}
+
+    if amino_acid in amino_acid_charge.keys():
+        return amino_acid_charge[amino_acid]
+    else:
+        return 0
