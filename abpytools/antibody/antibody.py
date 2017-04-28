@@ -118,7 +118,7 @@ class Antibody:
                 if position in self.numbering:
                     data[i] = self._sequence[self.numbering.index(position)]
                 else:
-                    data[i] = '-'
+                    data[i] = replacement
 
             return data
 
@@ -129,7 +129,7 @@ class Antibody:
             for i, position in enumerate(self.numbering):
                 data.ix[0, data.columns == position] = self._sequence[i]
 
-            return data.fillna(value='-')
+            return data.fillna(value=replacement)
 
     def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew', include_cdr=True):
 
