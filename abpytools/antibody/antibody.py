@@ -56,7 +56,7 @@ class Antibody:
             self.mw = 'NA'
             self.pI = 'NA'
             self.cdr = 'NA'
-    
+
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
         # type: (str, str) -> object
 
@@ -75,6 +75,7 @@ class Antibody:
         self.numbering_scheme = numbering_scheme
 
         numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
+
         chain = ''
 
         if numbering == ['']:
@@ -88,17 +89,21 @@ class Antibody:
 
         return numbering, chain
 
-    def ab_numbering_table(self, name='', only_array=False):
+    def ab_numbering_table(self, name='', only_array=False, replacement='-'):
 
         """
 
         :param name:
-        :param only_array: if True returns numpy.array, if False returns a pandas.DataFrame
+        :param only_array: if True returns numpy.array object, if False returns a pandas.DataFrame
+        :param replacement: value to replace empty positions
         :return:
         """
 
         if len(name) == 0:
             name = self._name
+
+        if self._chain == '':
+            self.numbering, self._chain = self.ab_numbering()
 
         data_loader = DataLoader(data_type='NumberingSchemes',
                                  data=[self.numbering_scheme, self._chain])
@@ -229,7 +234,7 @@ class Antibody:
     @property
     def chain(self):
         return self._chain
-    
+
     @property
     def name(self):
         return self._name
@@ -237,7 +242,7 @@ class Antibody:
     @property
     def sequence(self):
         return self._sequence
-
+    
 
 def get_ab_numbering(sequence, server, numbering_scheme):
     """
