@@ -6,7 +6,7 @@ from abpytools.utils import DataLoader
 
 
 class AntibodyPair:
-    def __init__(self, heavy_chains=None, light_chains=None, load=True):
+    def __init__(self, heavy_chains=None, light_chains=None, load=True, names=None):
 
         # check if it's an Antibody class
         if heavy_chains is None and light_chains is None:
@@ -41,8 +41,15 @@ class AntibodyPair:
         self._pair_sequences = [heavy + light for heavy, light in zip(self._heavy_chains.sequences,
                                                                       self._light_chains.sequences)]
 
-        self._names = ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names,
-                                                                              self._light_chains.names)]
+        if isinstance(names, list):
+            if len(names) == self._heavy_chains.n_ab:
+                self._names = names
+            else:
+                raise ValueError('Length of name list must be the same as length of heavy_chains/light chains lists')
+
+        if names is None:
+            self._names = ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names,
+                                                                                  self._light_chains.names)]
 
         self._n_ab = self._light_chains.n_ab
 
