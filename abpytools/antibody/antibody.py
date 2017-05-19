@@ -231,25 +231,34 @@ class Antibody:
         return {"name": self._name, "sequence": self._sequence, "numbering": self.numbering, "chain": self._chain,
                 "MW": self.mw, "CDR": self.cdr, "numbering_scheme": self.numbering_scheme, "pI": self.pI}
 
-    def ab_charge(self, align=True):
+    def ab_charge(self, align=True, ph=7.4, pka_database='Wikipedia'):
 
         """
         Method to calculate the charges for each amino acid of antibody
+        :param pka_database: 
+        :param ph: 
         :param align: if set to True an alignment will be performed, 
                       if it hasn't been done already using the ab_numbering method
                         
         :return: array with amino acid charges
         """
 
-        # FIXME
-        # if align:
-        #     sequence = self.ab_numbering_table(only_array=True)
-        # else:
-        #     sequence = list(self.sequence)
-        #
-        # return np.array(list(map(calculate_charge, sequence)))
+        available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
+                                  "Grimsley"]
+        assert pka_database in available_pi_databases, \
+            "Selected pI database {} not available. Available databases: {}".format(pka_database,
+                                                                                    ' ,'.join(available_pi_databases))
 
-        pass
+        data_loader = DataLoader(data_type='AminoAcidProperties',
+                                 data=['pI', pka_database])
+        pka_data = data_loader.get_data()
+
+        if align:
+            sequence = self.ab_numbering_table(only_array=True)
+        else:
+            sequence = list(self.sequence)
+
+        return np.array([amino_acid_charge(x, ph, pka_data) for x in sequence])
 
     def ab_total_charge(self, ph=7.4, pka_database='Wikipedia'):
 
@@ -423,7 +432,25 @@ def calculate_cdr(numbering, cdr_positions, framework_positions):
     return cdrs, frameworks
 
 
+def amino_acid_charge(amino_acid, ph, pka_values):
+
+    if amino_acid in ['D', 'E', 'C', 'Y']:
+        return -1 / (1 + 10 ** (pka_values[amino_acid] - ph))
+    elif amino_acid in ['K', 'R', 'H']:
+        return 1 / (1 + 10 ** (ph - pka_values[amino_acid]))
+    else:
+        return 0
+
+
 def calculate_charge(sequence, ph, pka_values):
+
+    # This calculation would make more sense but is slower (~1.5-2x)
+    # cooh = -1 / (1 + 10 ** (pka_values['COOH'] - ph))
+    # nh2 = 1 / (1 + 10 ** (ph - pka_values['NH2']))
+    #
+    # return sum([amino_acid_charge(x, ph, pka_values) for x in list(sequence)]) + cooh + nh2
+
+    # Faster implementation
     # count number of D, E, C, Y, H, K, R
     d_count = sequence.count('D')
     e_count = sequence.count('E')
