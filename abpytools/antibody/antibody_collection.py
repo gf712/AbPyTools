@@ -157,7 +157,7 @@ class AntibodyCollection:
         fr = [x.ab_regions()[1] for x in self.antibody_objects]
         return {'CDRs': cdrs, 'FR': fr}
 
-    def numbering_table(self):
+    def numbering_table(self, only_array=False):
 
         idi = 1
         names = list()
@@ -176,14 +176,14 @@ class AntibodyCollection:
 
         whole_sequence = whole_sequence_dict['withCDR']
 
-        df = pd.DataFrame(columns=whole_sequence, index=names)
+        table = np.array(
+            [x.ab_numbering_table(only_array=True) for x, name in zip(self.antibody_objects, names)])
 
-        for antibody, name in zip(self.antibody_objects, names):
-            index = np.where(df.index.values == name)[0]
-            for i in index:
-                df.ix[i] = antibody.ab_numbering_table(name=name, only_array=True)
+        if only_array:
+            return table
 
-        return df
+        else:
+            return pd.DataFrame(data=table, columns=whole_sequence, index=names)
 
     def save(self, file_format='FASTA', file_path='./', file_name='Ab_FASTA.txt', information='all'):
 
@@ -307,7 +307,9 @@ def parallelexecutor(use_bar='tqdm', **joblib_args):
             else:
                 raise ValueError("Value %s not supported as bar type" % bar)
             return Parallel(**joblib_args)(bar_func(op_iter))
+
         return tmp
+
     return aprun
 
 
