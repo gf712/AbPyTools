@@ -1,5 +1,5 @@
 # AbPyTools
-AbPyTools is a Python package to extract information from heavy and light antibody chain sequences. Using the built-in 
+AbPyTools is a Python 3 package to extract information from heavy and light antibody chain sequences. Using the built-in
 Antibody and AntibodyCollection it is very easy to manipulate the data and do more specific analysis with custom scripts.
 
 This package is still in its early days and and lacks detailed documentation...!
@@ -19,7 +19,6 @@ AbPyTools features:
   - access CDR and framework sequences
 - Work with heavy and light chains or combinations 
 - high level function to easily plot CDR length using a FASTA file as input
-- currently only has Python 3 compatibility
 
 Stuff that will be added/ worked on next:
 - 
@@ -27,12 +26,6 @@ Stuff that will be added/ worked on next:
 - Currently working on log-odds scores
 - write tutorials
 - adding some useful functions, such as comparing sequence with available datasets
-
-- save Ab in new format to store all the stats that are calculated (i.e. numbering, MW, pI, ...). Most likely will store 
-these in a file with .json format
-- work on Python 2 and 3 compatibility
-  - the main issue is the use of urllib (Python 3), instead of urllib2 (Python 2)
-  - could use requests package instead 
 - write tests
 - write high level code for more specific analysis
   - plot CDR lengths of antibodies
