@@ -9,8 +9,9 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 class Antibody:
+
+    # TODO: write description
     """
-    TODO: write description
     """
 
     def __init__(self, sequence='', name='', numbering=None, numbering_scheme='chothia'):
@@ -23,7 +24,8 @@ class Antibody:
         self.mw = 0
         self.pI = 0
         self.cdr = [0, 0, 0]
-        self.numbering_scheme = numbering_scheme
+        self._numbering_scheme = numbering_scheme
+        self._loading_status = 'Not Loaded'
 
     def load(self):
         """
@@ -38,27 +40,21 @@ class Antibody:
         :return:
 
         """
-        try:
-            if self.numbering is None or self._chain == '':
+        if self._loading_status in ['Failed', 'Not Loaded']:
+            try:
                 self.numbering, self._chain = self.ab_numbering()
-            if self.hydrophobicity_matrix.size == 0:
-                self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
-            if self.mw == 0:
-                self.mw = self.ab_molecular_weight()
-            if self.pI == 0:
-                self.pI = self.ab_pi()
-            if sum(self.cdr) == 0:
-                self.cdr = self.ab_regions()
-        except ValueError:
-            self.numbering = 'NA'
-            self._chain = 'NA'
-            self.hydrophobicity_matrix = 'NA'
-            self.mw = 'NA'
-            self.pI = 'NA'
-            self.cdr = 'NA'
+                self._loading_status = 'Loaded'
+
+            except ValueError:
+                self._loading_status = 'Not Loaded'
+
+        if self._loading_status == 'Loaded':
+            self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
+            self.mw = self.ab_molecular_weight()
+            self.pI = self.ab_pi()
+            self.cdr = self.ab_regions()
 
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
-        # type: (str, str) -> object
 
         available_numbering_schemes = ['chothia', 'chothia_ext', 'kabath']
         available_servers = ['abysis']
@@ -72,47 +68,45 @@ class Antibody:
             Available servers: {}".format(server, ' ,'.join(available_servers))
 
         # store the numbering scheme used for reference in other methods
-        self.numbering_scheme = numbering_scheme
+        self._numbering_scheme = numbering_scheme
 
-        numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
-
-        chain = ''
+        # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
+        try:
+            numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
+        except ValueError:
+            self._loading_status = 'Not Loaded'
+            return self.numbering, self._chain
 
         if numbering == ['']:
-            print('Could not apply numbering scheme on provided sequence')
-            return 'NA', 'NA'
+            self._loading_status = 'NA'
+            return 'NA'
 
         elif numbering[0][0] == 'H':
-            chain = 'heavy'
+            self._chain = 'heavy'
         elif numbering[0][0] == 'L':
-            chain = 'light'
+            self._chain = 'light'
 
-        return numbering, chain
+        return numbering
 
-    def ab_numbering_table(self, name='', only_array=False, replacement='-'):
+    def ab_numbering_table(self, only_array=False, replacement='-'):
 
         """
 
-        :param name:
         :param only_array: if True returns numpy.array object, if False returns a pandas.DataFrame
         :param replacement: value to replace empty positions
         :return:
         """
 
-        if len(name) == 0:
-            name = self._name
-
-        if self._chain == '':
-            self.numbering, self._chain = self.ab_numbering()
+        if self._loading_status in ['Not Loaded', 'Failed']:
+            self.numbering = self.ab_numbering()
 
         data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[self.numbering_scheme, self._chain])
+                                 data=[self._numbering_scheme, self._chain])
         whole_sequence_dict = data_loader.get_data()
 
         whole_sequence = whole_sequence_dict['withCDR']
 
         if only_array:
-
             data = np.empty((len(whole_sequence)), dtype=str)
             for i, position in enumerate(whole_sequence):
                 if position in self.numbering:
@@ -123,8 +117,7 @@ class Antibody:
             return data
 
         else:
-
-            data = pd.DataFrame(columns=whole_sequence, index=[name])
+            data = pd.DataFrame(columns=whole_sequence, index=[self._name])
 
             for i, position in enumerate(self.numbering):
                 data.ix[0, data.columns == position] = self._sequence[i]
@@ -149,9 +142,10 @@ class Antibody:
             raise ValueError("Could not determine chain type")
 
         data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[self.numbering_scheme, self._chain])
+                                 data=[self._numbering_scheme, self._chain])
         whole_sequence_dict = data_loader.get_data()
 
+        # whole_sequence is a list with all the amino acid positions in the selected numbering scheme
         if include_cdr:
             whole_sequence = whole_sequence_dict['withCDR']
         else:
@@ -180,10 +174,10 @@ class Antibody:
         if self.numbering == 'NA':
             raise ValueError("Cannot return CDR length without the antibody numbering information")
 
-        data_loader = DataLoader(data_type='CDR_positions', data=[self.numbering_scheme, self._chain])
+        data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self._chain])
         cdr_positions = data_loader.get_data()
 
-        data_loader = DataLoader(data_type='Framework_positions', data=[self.numbering_scheme, self._chain])
+        data_loader = DataLoader(data_type='Framework_positions', data=[self._numbering_scheme, self._chain])
         framework_position = data_loader.get_data()
 
         return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
@@ -229,7 +223,7 @@ class Antibody:
 
     def ab_format(self):
         return {"name": self._name, "sequence": self._sequence, "numbering": self.numbering, "chain": self._chain,
-                "MW": self.mw, "CDR": self.cdr, "numbering_scheme": self.numbering_scheme, "pI": self.pI}
+                "MW": self.mw, "CDR": self.cdr, "numbering_scheme": self._numbering_scheme, "pI": self.pI}
 
     def ab_charge(self, align=True, ph=7.4, pka_database='Wikipedia'):
 
@@ -286,6 +280,14 @@ class Antibody:
     def sequence(self):
         return self._sequence
 
+    @property
+    def status(self):
+        return self._loading_status
+
+    @property
+    def numbering_scheme(self):
+        return self._numbering_scheme
+
 
 def get_ab_numbering(sequence, server, numbering_scheme):
     """
@@ -302,20 +304,25 @@ def get_ab_numbering(sequence, server, numbering_scheme):
         else:
             scheme = '-k'
 
+        # prepare the url string to query server
         url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
                                                                                                   scheme)
+        # use the Download class from utils to get output
         numbering_table = Download(url, verbose=False)
         try:
             numbering_table.download()
         except ValueError:
             raise ValueError("Check the internet connection.")
 
+        # check whether the server returned an error
         if numbering_table.html.replace("\n", '') == 'Warning: Unable to number sequence' or len(
                 numbering_table.html.replace("\n", '')) == 0:
             raise ValueError("Unable to number sequence")
 
+        # parse the results
         parsed_numbering_table = re.findall("[\S| ]+", numbering_table.html)
 
+        # get the numbering from the parsed table
         numbering = [x[:-2] for x in parsed_numbering_table if x[-1] != '-']
 
         # TODO: add more server options
@@ -326,15 +333,15 @@ def get_ab_numbering(sequence, server, numbering_scheme):
 
 
 def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity_scores, sequence):
-    # instantiate numpy array
+
+    # instantiate numpy array (whole sequence includes all the amino acid positions of the VH/VL, even the ones
+    # that aren't occupied -> these will be filled with zeros
     hydrophobicity_matrix = np.zeros(len(whole_sequence))
 
+    # iterate through each position
     for i, position in enumerate(whole_sequence):
 
-        if position not in numbering:
-            hydrophobicity_matrix[i] = 0
-
-        else:
+        if position in numbering:
             position_in_data = numbering.index(position)
             hydrophobicity_matrix[i] = aa_hydrophobicity_scores[sequence[position_in_data]]
 

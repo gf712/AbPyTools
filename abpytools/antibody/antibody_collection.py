@@ -89,6 +89,7 @@ class AntibodyCollection:
                         antibody_i.CDR = antibody_dict_i["CDR"]
                         antibody_i._numbering_scheme = antibody_dict_i["numbering_scheme"]
                         antibody_i.pI = antibody_dict_i["pI"]
+                        antibody_i._loading_status = 'Loaded'
 
                         self.antibody_objects.append(antibody_i)
 
@@ -197,7 +198,7 @@ class AntibodyCollection:
             if information == 'all':
 
                 with open(path.join(file_path, file_name), 'w') as f:
-                    # if antibody does not have name generate name:
+                    # if antibody does not have name, generate name:
                     # ID_chain_idi, where chain is heavy/light, idi is i = [1,..,N]
                     idi = 1
                     data = dict()
@@ -246,8 +247,8 @@ class AntibodyCollection:
 
         # TODO: write method
         if index == 'all':
-            self.antibody_objects == load_from_antibody_object(self.antibody_objects, show_progressbar=True,
-                                                               n_jobs=-1)
+            self.antibody_objects = load_from_antibody_object(self.antibody_objects, show_progressbar=True,
+                                                              n_jobs=-1)
 
     @property
     def names(self):
