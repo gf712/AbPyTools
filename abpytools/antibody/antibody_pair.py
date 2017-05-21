@@ -92,8 +92,8 @@ class AntibodyPair:
     @property
     def numbering_table(self):
 
-        return pd.DataFrame(np.concatenate((self._heavy_chains.numbering_table().as_matrix(),
-                                            self._light_chains.numbering_table().as_matrix()), axis=1),
+        return pd.DataFrame(np.concatenate((self._heavy_chains.numbering_table(as_array=True),
+                                            self._light_chains.numbering_table(as_array=True)), axis=1),
                             columns=self._heavy_chains.numbering_table().columns.append(
                             self._light_chains.numbering_table().columns), index=self.names)
 

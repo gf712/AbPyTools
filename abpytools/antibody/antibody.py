@@ -88,11 +88,11 @@ class Antibody:
 
         return numbering
 
-    def ab_numbering_table(self, only_array=False, replacement='-'):
+    def ab_numbering_table(self, as_array=False, replacement='-'):
 
         """
 
-        :param only_array: if True returns numpy.array object, if False returns a pandas.DataFrame
+        :param as_array: if True returns numpy.array object, if False returns a pandas.DataFrame
         :param replacement: value to replace empty positions
         :return:
         """
@@ -106,7 +106,7 @@ class Antibody:
 
         whole_sequence = whole_sequence_dict['withCDR']
 
-        if only_array:
+        if as_array:
             data = np.empty((len(whole_sequence)), dtype=str)
             for i, position in enumerate(whole_sequence):
                 if position in self.numbering:
@@ -248,7 +248,7 @@ class Antibody:
         pka_data = data_loader.get_data()
 
         if align:
-            sequence = self.ab_numbering_table(only_array=True)
+            sequence = self.ab_numbering_table(as_array=True)
         else:
             sequence = list(self.sequence)
 

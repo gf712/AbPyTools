@@ -158,7 +158,7 @@ class AntibodyCollection:
         fr = [x.ab_regions()[1] for x in self.antibody_objects]
         return {'CDRs': cdrs, 'FR': fr}
 
-    def numbering_table(self, only_array=False):
+    def numbering_table(self, as_array=False):
 
         idi = 1
         names = list()
@@ -178,9 +178,9 @@ class AntibodyCollection:
         whole_sequence = whole_sequence_dict['withCDR']
 
         table = np.array(
-            [x.ab_numbering_table(only_array=True) for x, name in zip(self.antibody_objects, names)])
+            [x.ab_numbering_table(as_array=True) for x, name in zip(self.antibody_objects, names)])
 
-        if only_array:
+        if as_array:
             return table
 
         else:
