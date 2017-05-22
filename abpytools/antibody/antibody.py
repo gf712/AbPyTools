@@ -7,6 +7,12 @@ import pandas as pd
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
+available_numbering_schemes = ['chothia', 'chothia_ext', 'kabath']
+available_servers = ['abysis']
+available_hydrophobicity_scores = ['kd', 'ww', 'hh', 'mf', 'ew']
+available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
+                          "Grimsley"]
+
 
 class Antibody:
 
@@ -55,9 +61,6 @@ class Antibody:
             self.cdr = self.ab_regions()
 
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
-
-        available_numbering_schemes = ['chothia', 'chothia_ext', 'kabath']
-        available_servers = ['abysis']
 
         assert numbering_scheme.lower() in available_numbering_schemes, \
             "Unknown Numbering scheme: {}. \
@@ -127,8 +130,6 @@ class Antibody:
     def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew', include_cdr=True):
 
         # check if all the required parameters are in order
-        available_hydrophobicity_scores = ['kd', 'ww', 'hh', 'mf', 'ew']
-
         if isinstance(hydrophobicity_scores, str):
             assert hydrophobicity_scores in available_hydrophobicity_scores, \
                 "Chosen hydrophobicity scores ({}) not available. \
@@ -237,8 +238,6 @@ class Antibody:
         :return: array with amino acid charges
         """
 
-        available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
-                                  "Grimsley"]
         assert pka_database in available_pi_databases, \
             "Selected pI database {} not available. Available databases: {}".format(pka_database,
                                                                                     ' ,'.join(available_pi_databases))
@@ -256,8 +255,6 @@ class Antibody:
 
     def ab_total_charge(self, ph=7.4, pka_database='Wikipedia'):
 
-        available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
-                                  "Grimsley"]
         assert pka_database in available_pi_databases, \
             "Selected pI database {} not available. Available databases: {}".format(pka_database,
                                                                                     ' ,'.join(available_pi_databases))
