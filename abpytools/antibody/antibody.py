@@ -288,6 +288,10 @@ class Antibody:
     def numbering_scheme(self):
         return self._numbering_scheme
 
+    @property
+    def insertions(self):
+        return [(number, seq) for seq, number in zip(self.sequence, self.numbering) if number[-1].isdigit() is False]
+
 
 def get_ab_numbering(sequence, server, numbering_scheme):
     """
