@@ -6,6 +6,7 @@ from abpytools.utils import DataLoader
 
 
 class AntibodyPair:
+
     def __init__(self, heavy_chains=None, light_chains=None, load=True, names=None):
 
         # check if it's an Antibody class
@@ -103,7 +104,11 @@ class AntibodyPair:
 
     @property
     def regions(self):
-        return {'Heavy': self._heavy_chains.ab_region_index(), 'Light': self._light_chains.ab_region_index()}
+        heavy_regions = self._heavy_chains.ab_region_index()
+        light_regions = self._light_chains.ab_region_index()
+
+        return {name: {'Heavy': heavy_regions[heavy], 'Light': light_regions[light]} for name, heavy, light in
+                zip(self.names, self._internal_heavy_name, self._internal_light_name)}
 
     @property
     def names(self):

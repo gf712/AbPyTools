@@ -149,14 +149,11 @@ class AntibodyCollection:
 
         """
         method to determine index of amino acids in CDR regions
-        :return: dictionary with keys 'CDR' and 'Framework'
-        'CDR' entry contains dictionaries with CDR1, CDR2 and CDR3 regions (keys) for each antibody in the same order as
-        sequences
-        'Framework' entry contains dictionaries with FR1, FR2, FR3 and FR4 regions
+        :return: dictionary with names as keys and each value is a dictionary with keys CDR and FR
+        'CDR' entry contains dictionaries with CDR1, CDR2 and CDR3 regions
+        'FR' entry contains dictionaries with FR1, FR2, FR3 and FR4 regions
         """
-        cdrs = [x.ab_regions()[0] for x in self.antibody_objects]
-        fr = [x.ab_regions()[1] for x in self.antibody_objects]
-        return {'CDRs': cdrs, 'FR': fr}
+        return {x.name: {'CDR': x.ab_regions()[0], 'FR': x.ab_regions()[1]} for x in self.antibody_objects}
 
     def numbering_table(self, as_array=False):
 
@@ -326,23 +323,24 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
     antibody_objects = aprun(total=len(antibody_objects))(
         delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
-    chains = [x.chain for x in antibody_objects]
-    chains_without_na = [x for x in chains if x != 'NA']
+    status = [x.status for x in antibody_objects]
+    loaded_obj_chains = [x.chain for x in antibody_objects if x.status != 'Not Loaded']
 
-    skipped = len([x.chain for x in antibody_objects if x.chain == 'NA'])
+    failed = sum([1 if x == 'Not Loaded' else 0 for x in status])
 
-    while 'NA' in chains:
-        i = chains.index('NA')
-        del antibody_objects[i], chains[i]
+    # remove objects that did not load
+    while 'Not Loaded' in status:
+        i = status.index('Not Loaded')
+        del antibody_objects[i], status[i]
 
-    print("Skipped {} objects in list".format(skipped))
+    print("Failed to load {} objects in list".format(failed))
 
-    if len(set(chains_without_na)) == 1:
-        chain = chains_without_na[0]
+    if len(set(loaded_obj_chains)) == 1:
+        chain = loaded_obj_chains[0]
     else:
         raise ValueError("All sequences must of the same chain type: Light or Heavy")
 
-    n_ab = len(chains_without_na)
+    n_ab = len(loaded_obj_chains)
 
     if n_ab == 0:
         raise IOError("Could not find any heavy or light chains in provided file or list of objects")
