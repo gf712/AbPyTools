@@ -53,6 +53,10 @@ class AntibodyPair:
 
         self._n_ab = self._light_chains.n_ab
 
+        # keep the name of the heavy and light chains internally to keep everything in the right order
+        self._internal_heavy_name = self._heavy_chains.names
+        self._internal_light_name = self._light_chains.names
+
     def molecular_weight(self, monoisotopic=False):
 
         return [heavy + light for heavy, light in zip(self._heavy_chains.molecular_weights(monoisotopic=monoisotopic),
