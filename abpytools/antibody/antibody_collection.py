@@ -173,7 +173,7 @@ class AntibodyCollection:
                                  data=[antibody.numbering_scheme, self._chain])
         whole_sequence_dict = data_loader.get_data()
 
-        whole_sequence = whole_sequence_dict['withCDR']
+        whole_sequence = whole_sequence_dict
 
         table = np.array(
             [x.ab_numbering_table(as_array=True) for x, name in zip(self.antibody_objects, names)])
@@ -369,7 +369,7 @@ class AntibodyCollection:
 
     @property
     def total_charge(self):
-        return [x.ab_total_charge() for x in self.antibody_objects]
+        return {x.name: x.ab_total_charge() for x in self.antibody_objects}
 
     @property
     def germline_identity(self):
