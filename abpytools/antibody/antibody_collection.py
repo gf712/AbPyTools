@@ -7,6 +7,7 @@ import json
 from os import path
 import pandas as pd
 from ..utils import DataLoader
+import re
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -247,6 +248,93 @@ class AntibodyCollection:
             self.antibody_objects = load_from_antibody_object(self.antibody_objects, show_progressbar=True,
                                                               n_jobs=-1)
 
+    def load_imgt_query(self, file_path):
+
+        # TODO: Work on method to query IGBLAST directly using abpytools
+
+        """
+        Method to load in additional data from an IGBLAST file.
+        Note for this to work properly you need to choose to get the data in tabular format and download the html
+        Calling this method will give access to the germline identity of individual regions of the Fab
+
+        :return: self
+        """
+        try:
+            from bs4 import BeautifulSoup
+        except ImportError:
+            raise ImportError("Please install bs4 to parse the IGBLAST html file!")
+
+        # load in file
+        with open(file_path, 'r') as f:
+            file = f.readlines()
+
+        # instantiate BeautifulSoup object to make life easier with the html text!
+        soup = BeautifulSoup(''.join(file), "lxml")
+
+        # get the results found in <div id="content"> and return the text as a string
+        results = soup.find(attrs={'id': "content"}).text
+
+        # get query names
+        query = re.compile('Query: (.*)')
+        query_ids = query.findall(results)
+
+        # make sure that all the query names in query are in self.names
+        if set(query_ids) != set(self.names):
+            raise ValueError('Make sure that you gave the same names in AntibodyCollection as you gave'
+                             'in the query submitted to IGBLAST')
+
+        # regular expression to get tabular data from each region and the query ID
+        all_regions = re.compile('Query:\s.*|[CDR\d|FR\d].*-IMGT.*|Total\t.*')
+
+        # parse the results with regex
+        parsed_results = all_regions.findall(results)
+
+        # regex to quickly get the key from each line of results (the key is just the region name)
+        key = re.compile('^[CDR\d|FR\d|Total]*')
+
+        # allows to skip first Antibody.germline_identiy assignment
+        first = True
+
+        # iterate over each line of the parsed results
+        for i, line in enumerate(parsed_results):
+
+            # is this a new query?
+            if line.startswith('Query'):
+
+                if not first:
+                    # assign query_id_dict_i (which is a dict with the germline identity of each region) to
+                    # Antibody germline_identiy attribute
+                    obj_i.germline_identity = query_id_dict_i
+                # key_i is the query name (Query: XX, here key_i would be XX)
+                key_i = query.findall(line)[0]
+                # get the right object using the get_object method
+                obj_i = self.get_object(name=key_i)
+                # after assigning the query_id_dict_i to previous object can instantiate a new dict
+                query_id_dict_i = dict()
+                # get the top germline assignment
+                v_line_assignment = re.compile('V\s{}\t.*'.format(key_i))
+                # the top germline assignment is at the top
+                germline_result =  v_line_assignment.findall(results)[0].split()
+                # store the germline assignment and the bit score in a tuple as the germline attribute of Antibody
+                obj_i.germline = (germline_result[2], float(germline_result[-2]))
+
+            # this is the first line of the stats of the query and has no more information
+            elif line.startswith('Total queries'):
+                break
+
+            else:
+                # find out what the line corresponds to: CDR1|CDR2|CDR3|FR1|FR2|FR3
+                key_i = key.findall(line)[0]
+
+                # get similarity which is at the end of the string
+                query_id_dict_i[key_i] = float(line.split()[-1])
+
+                first = False
+
+            # store the last object when the last line is reached
+            if i == len(parsed_results)-1:
+                obj_i.germline_identity = query_id_dict_i
+
     @property
     def names(self):
         return [x.name for x in self.antibody_objects]
@@ -283,6 +371,13 @@ class AntibodyCollection:
     def total_charge(self):
         return [x.ab_total_charge() for x in self.antibody_objects]
 
+    @property
+    def germline_identity(self):
+        return {x.name: x.germline_identity for x in self.antibody_objects}
+
+    @property
+    def germline(self):
+        return {x.name: x.germline for x in self.antibody_objects}
 
 def load_antibody_object(antibody_object):
     antibody_object.load()

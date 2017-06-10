@@ -32,6 +32,8 @@ class Antibody:
         self.cdr = [0, 0, 0]
         self._numbering_scheme = numbering_scheme
         self._loading_status = 'Not Loaded'
+        self.germline_identity = dict()
+        self.germline = tuple()
 
     def load(self):
         """

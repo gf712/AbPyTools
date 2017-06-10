@@ -6,7 +6,6 @@ from abpytools.utils import DataLoader
 
 
 class AntibodyPair:
-
     def __init__(self, heavy_chains=None, light_chains=None, load=True, names=None):
 
         # check if it's an Antibody class
@@ -84,7 +83,7 @@ class AntibodyPair:
     def total_charge(self, ph=7.4, pka_database='Wikipedia'):
 
         available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
-        "Grimsley"]
+                                  "Grimsley"]
         assert pka_database in available_pi_databases, \
             "Selected pI database {} not available. Available databases: {}".format(pka_database,
                                                                                     ' ,'.join(available_pi_databases))
@@ -94,13 +93,23 @@ class AntibodyPair:
 
         return [calculate_charge(sequence=seq, ph=ph, pka_values=pka_data) for seq in self.sequences]
 
+    def load_imgt_query(self, file_path, chain):
+
+        if chain.lower() not in ['heavy', 'light']:
+            raise ValueError('Specify if the data being loaded is for the heavy or light chain')
+
+        if chain.lower() == 'light':
+            self._light_chains.load_imgt_query(file_path=file_path)
+        else:
+            self._heavy_chains.load_imgt_query(file_path=file_path)
+
     @property
     def numbering_table(self):
 
         return pd.DataFrame(np.concatenate((self._heavy_chains.numbering_table(as_array=True),
                                             self._light_chains.numbering_table(as_array=True)), axis=1),
                             columns=self._heavy_chains.numbering_table().columns.append(
-                            self._light_chains.numbering_table().columns), index=self.names)
+                                self._light_chains.numbering_table().columns), index=self.names)
 
     @property
     def regions(self):
@@ -121,3 +130,31 @@ class AntibodyPair:
     @property
     def n_ab(self):
         return self._n_ab
+
+    @property
+    def germline_identity(self):
+        return self._germline_identity()
+
+    def _germline_identity(self):
+
+        h_germline_pd = pd.DataFrame(self._heavy_chains.germline_identity).T
+        l_germline_pd = pd.DataFrame(self._light_chains.germline_identity).T
+
+        l_columns = pd.MultiIndex.from_tuples([('Light', x) for x in l_germline_pd.columns], names=['Chain', 'Region'])
+        h_columns = pd.MultiIndex.from_tuples([('Heavy', x) for x in h_germline_pd.columns], names=['Chain', 'Region'])
+
+        l = pd.DataFrame(index=self._internal_light_name,
+                         columns=l_columns)
+        h = pd.DataFrame(index=self._internal_heavy_name,
+                         columns=h_columns)
+
+        l = l.apply(lambda x: l_germline_pd.ix[x.name], axis=1)
+        h = h.apply(lambda x: h_germline_pd.ix[x.name], axis=1)
+
+        l.columns = l_columns
+        h.columns = h_columns
+
+        l.index = self._names
+        h.index = self._names
+
+        return pd.concat([h, l], axis=1)
