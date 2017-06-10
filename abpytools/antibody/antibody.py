@@ -52,13 +52,17 @@ class Antibody:
                 self._loading_status = 'Loaded'
 
             except ValueError:
-                self._loading_status = 'Not Loaded'
+                self._loading_status = 'Failed'
 
-        if self._loading_status == 'Loaded':
+        elif self._loading_status == 'Loaded':
             self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
             self.mw = self.ab_molecular_weight()
             self.pI = self.ab_pi()
             self.cdr = self.ab_regions()
+
+        else:
+            # this should never happen...
+            raise ValueError("Unknown loading status")
 
     def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
 
@@ -74,11 +78,7 @@ class Antibody:
         self._numbering_scheme = numbering_scheme
 
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
-        try:
-            numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
-        except ValueError:
-            self._loading_status = 'Not Loaded'
-            return self.numbering, self._chain
+        numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
 
         if numbering == ['']:
             self._loading_status = 'NA'
@@ -107,7 +107,7 @@ class Antibody:
                                  data=[self._numbering_scheme, self._chain])
         whole_sequence_dict = data_loader.get_data()
 
-        whole_sequence = whole_sequence_dict['withCDR']
+        whole_sequence = whole_sequence_dict
 
         if as_array:
             data = np.empty((len(whole_sequence)), dtype=str)
@@ -127,7 +127,7 @@ class Antibody:
 
             return data.fillna(value=replacement)
 
-    def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew', include_cdr=True):
+    def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew'):
 
         # check if all the required parameters are in order
         if isinstance(hydrophobicity_scores, str):
@@ -147,10 +147,7 @@ class Antibody:
         whole_sequence_dict = data_loader.get_data()
 
         # whole_sequence is a list with all the amino acid positions in the selected numbering scheme
-        if include_cdr:
-            whole_sequence = whole_sequence_dict['withCDR']
-        else:
-            whole_sequence = whole_sequence_dict['noCDR']
+        whole_sequence = whole_sequence_dict
 
         # get the dictionary with the hydrophobicity scores
         data_loader = DataLoader(data_type='AminoAcidProperties',
@@ -264,6 +261,7 @@ class Antibody:
         pka_data = data_loader.get_data()
 
         return calculate_charge(sequence=self._sequence, ph=ph, pka_values=pka_data)
+
 
     @property
     def chain(self):
