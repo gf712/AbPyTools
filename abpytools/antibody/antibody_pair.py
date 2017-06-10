@@ -134,6 +134,17 @@ class AntibodyPair:
     def germline_identity(self):
         return self._germline_identity()
 
+    @property
+    def germline(self):
+
+        heavy_germline = self._heavy_chains.germline
+        light_germline = self._light_chains.germline
+
+        return {name_i: {"Heavy": heavy_germline[heavy_i],
+                         "Light": light_germline[light_i]} for name_i, heavy_i,
+                                                               light_i in zip(self._names, self._internal_heavy_name,
+                                                                              self._internal_light_name)}
+
     def _germline_identity(self):
 
         h_germline_pd = pd.DataFrame(self._heavy_chains.germline_identity).T
