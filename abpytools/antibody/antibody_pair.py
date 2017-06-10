@@ -95,13 +95,12 @@ class AntibodyPair:
 
     def load_imgt_query(self, file_path, chain):
 
-        if chain.lower() not in ['heavy', 'light']:
-            raise ValueError('Specify if the data being loaded is for the heavy or light chain')
-
         if chain.lower() == 'light':
             self._light_chains.load_imgt_query(file_path=file_path)
-        else:
+        elif chain.lower() == 'heavy':
             self._heavy_chains.load_imgt_query(file_path=file_path)
+        else:
+            raise ValueError('Specify if the data being loaded is for the heavy or light chain')
 
     @property
     def numbering_table(self):
@@ -142,6 +141,8 @@ class AntibodyPair:
 
         l_columns = pd.MultiIndex.from_tuples([('Light', x) for x in l_germline_pd.columns], names=['Chain', 'Region'])
         h_columns = pd.MultiIndex.from_tuples([('Heavy', x) for x in h_germline_pd.columns], names=['Chain', 'Region'])
+        average_columns = pd.MultiIndex.from_tuples([('Average', x) for x in l_germline_pd.columns],
+                                                    names=['Chain', 'Region'])
 
         l = pd.DataFrame(index=self._internal_light_name,
                          columns=l_columns)
@@ -151,10 +152,13 @@ class AntibodyPair:
         l = l.apply(lambda x: l_germline_pd.ix[x.name], axis=1)
         h = h.apply(lambda x: h_germline_pd.ix[x.name], axis=1)
 
+        average = (h.as_matrix() + l.as_matrix()) / 2
+
         l.columns = l_columns
         h.columns = h_columns
+        average = pd.DataFrame(average, columns=average_columns, index=self._names)
 
         l.index = self._names
         h.index = self._names
 
-        return pd.concat([h, l], axis=1)
+        return pd.concat([h, l, average], axis=1)
