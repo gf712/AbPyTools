@@ -337,16 +337,19 @@ def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity
 
     # instantiate numpy array (whole sequence includes all the amino acid positions of the VH/VL, even the ones
     # that aren't occupied -> these will be filled with zeros
-    hydrophobicity_matrix = np.zeros(len(whole_sequence))
-
-    # iterate through each position
-    for i, position in enumerate(whole_sequence):
-
-        if position in numbering:
-            position_in_data = numbering.index(position)
-            hydrophobicity_matrix[i] = aa_hydrophobicity_scores[sequence[position_in_data]]
-
-    return hydrophobicity_matrix
+    # hydrophobicity_matrix = np.zeros(len(whole_sequence))
+    #
+    # # iterate through each position
+    # for i, position in enumerate(whole_sequence):
+    #
+    #     if position in numbering:
+    #         position_in_data = numbering.index(position)
+    #         hydrophobicity_matrix[i] = aa_hydrophobicity_scores[sequence[position_in_data]]
+    #
+    # return hydrophobicity_matrix
+    # same thing as above but in a list comprehension
+    return np.array([aa_hydrophobicity_scores[sequence[numbering.index(x)]] if x in numbering
+                     else 0 for x in whole_sequence])
 
 
 def calculate_mw(sequence, mw_data):
