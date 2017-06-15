@@ -6,8 +6,8 @@ from abpytools.utils import PythonConfig
 import json
 from os import path
 import pandas as pd
-from ..utils import DataLoader
 import re
+from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -75,6 +75,7 @@ class AntibodyCollection:
 
     def load(self, show_progressbar=True, n_jobs=-1):
 
+        names = list()
         if self._path is not None:
 
             if self._path.endswith(".json"):
@@ -91,7 +92,7 @@ class AntibodyCollection:
                         antibody_i._numbering_scheme = antibody_dict_i["numbering_scheme"]
                         antibody_i.pI = antibody_dict_i["pI"]
                         antibody_i._loading_status = 'Loaded'
-
+                        names.append(key_i)
                         self.antibody_objects.append(antibody_i)
 
             else:
@@ -156,33 +157,29 @@ class AntibodyCollection:
         """
         return {x.name: {'CDR': x.ab_regions()[0], 'FR': x.ab_regions()[1]} for x in self.antibody_objects}
 
-    def numbering_table(self, as_array=False):
+    def numbering_table(self, as_array=False, region='all'):
 
-        idi = 1
-        names = list()
+        region = numbering_table_region(region)
 
-        for antibody in self.antibody_objects:
-
-            if len(antibody.name) > 0:
-                names.append(antibody.name)
-            else:
-                names.append("ID_{}_{}".format(antibody.chain, idi))
-                idi += 1
-
-        data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[antibody.numbering_scheme, self._chain])
-        whole_sequence_dict = data_loader.get_data()
-
-        whole_sequence = whole_sequence_dict
+        whole_sequence_dict, whole_sequence = numbering_table_sequences(region, self._numbering_scheme, self._chain)
 
         table = np.array(
-            [x.ab_numbering_table(as_array=True) for x, name in zip(self.antibody_objects, names)])
+            [x.ab_numbering_table(as_array=True, region=region) for x, name in zip(self.antibody_objects, self.names)])
 
         if as_array:
             return table
 
         else:
-            return pd.DataFrame(data=table, columns=whole_sequence, index=names)
+            # return the data as a pandas.DataFrame -> it's slower but looks nicer and makes it easier to get
+            # the data of interest
+            multi_index = numbering_table_multiindex(region=region,
+                                                     whole_sequence_dict=whole_sequence_dict)
+
+            # create the DataFrame and assign the columns and index names
+            data = pd.DataFrame(data=table)
+            data.columns = multi_index
+            data.index = self.names
+            return data
 
     def save(self, file_format='FASTA', file_path='./', file_name='Ab_FASTA.txt', information='all'):
 
@@ -262,7 +259,8 @@ class AntibodyCollection:
         try:
             from bs4 import BeautifulSoup
         except ImportError:
-            raise ImportError("Please install bs4 to parse the IGBLAST html file!")
+            raise ImportError("Please install bs4 to parse the IGBLAST html file:"
+                              "pip install beautifulsoup4")
 
         # load in file
         with open(file_path, 'r') as f:
@@ -279,61 +277,47 @@ class AntibodyCollection:
         query_ids = query.findall(results)
 
         # make sure that all the query names in query are in self.names
-        if set(query_ids) != set(self.names):
+        if not set(self.names).issubset(set(query_ids)):
             raise ValueError('Make sure that you gave the same names in AntibodyCollection as you gave'
                              'in the query submitted to IGBLAST')
 
-        # regular expression to get tabular data from each region and the query ID
-        all_regions = re.compile('Query:\s.*|[CDR\d|FR\d].*-IMGT.*|Total\t.*')
+        # regular expression to get tabular data from each region
+        all_queries = re.compile('(Query: .*?)\n\n\n\n', re.DOTALL)
 
-        # parse the results with regex
-        parsed_results = all_regions.findall(results)
+        # parse the results with regex and get a list with each query data
+        parsed_results = all_queries.findall(results)
 
-        # regex to quickly get the key from each line of results (the key is just the region name)
-        key = re.compile('^[CDR\d|FR\d|Total]*')
+        # regex to get the FR and CDR information for each string in parsed results
+        region_finder = re.compile('^([CDR\d|FR\d|Total].*)', re.MULTILINE)
 
-        # allows to skip first Antibody.germline_identiy assignment
-        first = True
+        # iterate over each string in parsed result which contains the result for individual queries
+        for query_result in parsed_results:
 
-        # iterate over each line of the parsed results
-        for i, line in enumerate(parsed_results):
+            # get query name and get the relevant object
+            query_i = query.findall(query_result)[0]
 
-            # is this a new query?
-            if line.startswith('Query'):
+            # check if the query being parsed is part of the object
+            # (not all queries have to be part of the object, but the object names must be a subset of the queries)
 
-                if not first:
-                    # assign query_id_dict_i (which is a dict with the germline identity of each region) to
-                    # Antibody germline_identiy attribute
-                    obj_i.germline_identity = query_id_dict_i
-                # key_i is the query name (Query: XX, here key_i would be XX)
-                key_i = query.findall(line)[0]
-                # get the right object using the get_object method
-                obj_i = self.get_object(name=key_i)
-                # after assigning the query_id_dict_i to previous object can instantiate a new dict
-                query_id_dict_i = dict()
-                # get the top germline assignment
-                v_line_assignment = re.compile('V\s{}\t.*'.format(key_i))
-                # the top germline assignment is at the top
-                germline_result =  v_line_assignment.findall(results)[0].split()
-                # store the germline assignment and the bit score in a tuple as the germline attribute of Antibody
-                obj_i.germline = (germline_result[2], float(germline_result[-2]))
+            if query_i not in set(self.names):
+                continue
 
-            # this is the first line of the stats of the query and has no more information
-            elif line.startswith('Total queries'):
-                break
+            obj_i = self.get_object(name=query_i)
 
-            else:
-                # find out what the line corresponds to: CDR1|CDR2|CDR3|FR1|FR2|FR3
-                key_i = key.findall(line)[0]
+            # list with CDR and FR info for query result
+            region_info = region_finder.findall(query_result)
 
-                # get similarity which is at the end of the string
-                query_id_dict_i[key_i] = float(line.split()[-1])
+            # get the data from region info with dict comprehension
+            obj_i.germline_identity = {x.split()[0].split('-')[0]: float(x.split()[-1]) for x in region_info}
 
-                first = False
+            # get the top germline assignment
+            v_line_assignment = re.compile('V\s{}\t.*'.format(query_i))
 
-            # store the last object when the last line is reached
-            if i == len(parsed_results)-1:
-                obj_i.germline_identity = query_id_dict_i
+            # the top germline assignment is at the top
+            germline_result = v_line_assignment.findall(results)[0].split()
+
+            # store the germline assignment and the bit score in a tuple as the germline attribute of Antibody
+            obj_i.germline = (germline_result[2], float(germline_result[-2]))
 
     @property
     def names(self):
@@ -378,6 +362,7 @@ class AntibodyCollection:
     @property
     def germline(self):
         return {x.name: x.germline for x in self.antibody_objects}
+
 
 def load_antibody_object(antibody_object):
     antibody_object.load()

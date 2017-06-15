@@ -3,6 +3,8 @@ import numpy as np
 from ..utils import DataLoader, Download
 import logging
 import pandas as pd
+import itertools
+from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -15,7 +17,6 @@ available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell"
 
 
 class Antibody:
-
     # TODO: write description
     """
     """
@@ -83,7 +84,7 @@ class Antibody:
         numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
 
         if numbering == ['']:
-            self._loading_status = 'NA'
+            self._loading_status = 'Failed'
             return 'NA'
 
         elif numbering[0][0] == 'H':
@@ -93,41 +94,54 @@ class Antibody:
 
         return numbering
 
-    def ab_numbering_table(self, as_array=False, replacement='-'):
+    def ab_numbering_table(self, as_array=False, replacement='-', region='all'):
 
         """
 
+        :param region: 
         :param as_array: if True returns numpy.array object, if False returns a pandas.DataFrame
         :param replacement: value to replace empty positions
         :return:
         """
 
+        region = numbering_table_region(region=region)
+
+        # if the object has not been loaded successfully yet need to try and get the numbering scheme using
+        # ab_numbering method
         if self._loading_status in ['Not Loaded', 'Failed']:
             self.numbering = self.ab_numbering()
 
-        data_loader = DataLoader(data_type='NumberingSchemes',
-                                 data=[self._numbering_scheme, self._chain])
-        whole_sequence_dict = data_loader.get_data()
+        whole_sequence_dict, whole_sequence = numbering_table_sequences(region=region,
+                                                                        numbering_scheme=self._numbering_scheme,
+                                                                        chain=self._chain)
 
-        whole_sequence = whole_sequence_dict
+        # now that all the prep has been done we can extract the position from each amino acid
+        # according to the numbering scheme
+        data = np.empty((len(whole_sequence)), dtype=str)
+        for i, position in enumerate(whole_sequence):
+            if position in self.numbering:
+                data[i] = self._sequence[self.numbering.index(position)]
+            else:
+                # if there is no amino acid in the sequence that corresponds to position i we just replace it by
+                # the replacement value, which is by default '-'
+                data[i] = replacement
 
         if as_array:
-            data = np.empty((len(whole_sequence)), dtype=str)
-            for i, position in enumerate(whole_sequence):
-                if position in self.numbering:
-                    data[i] = self._sequence[self.numbering.index(position)]
-                else:
-                    data[i] = replacement
-
+            # return the data as numpy.array -> much faster than creating a pandas.DataFrame
             return data
-
         else:
-            data = pd.DataFrame(columns=whole_sequence, index=[self._name])
 
-            for i, position in enumerate(self.numbering):
-                data.ix[0, data.columns == position] = self._sequence[i]
+            # return the data as a pandas.DataFrame -> it's slower but looks nicer and makes it easier to get
+            # the data of interest
 
-            return data.fillna(value=replacement)
+            multi_index = numbering_table_multiindex(region=region,
+                                                     whole_sequence_dict=whole_sequence_dict)
+
+            # create the DataFrame and assign the columns and index names
+            data = pd.DataFrame(data=data).T
+            data.columns = multi_index
+            data.index = [self._name]
+            return data
 
     def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew'):
 
@@ -197,8 +211,6 @@ class Antibody:
 
     def ab_pi(self, pi_database='Wikipedia'):
 
-        available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
-                                  "Grimsley"]
         assert pi_database in available_pi_databases, \
             "Selected pI database {} not available. Available databases: {}".format(pi_database,
                                                                                     ' ,'.join(available_pi_databases))
@@ -263,7 +275,6 @@ class Antibody:
         pka_data = data_loader.get_data()
 
         return calculate_charge(sequence=self._sequence, ph=ph, pka_values=pka_data)
-
 
     @property
     def chain(self):
@@ -334,7 +345,6 @@ def get_ab_numbering(sequence, server, numbering_scheme):
 
 
 def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity_scores, sequence):
-
     # instantiate numpy array (whole sequence includes all the amino acid positions of the VH/VL, even the ones
     # that aren't occupied -> these will be filled with zeros
     # hydrophobicity_matrix = np.zeros(len(whole_sequence))
@@ -444,7 +454,6 @@ def calculate_cdr(numbering, cdr_positions, framework_positions):
 
 
 def amino_acid_charge(amino_acid, ph, pka_values):
-
     if amino_acid in ['D', 'E', 'C', 'Y']:
         return -1 / (1 + 10 ** (pka_values[amino_acid] - ph))
     elif amino_acid in ['K', 'R', 'H']:
@@ -454,7 +463,6 @@ def amino_acid_charge(amino_acid, ph, pka_values):
 
 
 def calculate_charge(sequence, ph, pka_values):
-
     # This calculation would make more sense but is slower (~1.5-2x)
     # cooh = -1 / (1 + 10 ** (pka_values['COOH'] - ph))
     # nh2 = 1 / (1 + 10 ** (ph - pka_values['NH2']))

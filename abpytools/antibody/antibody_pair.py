@@ -102,13 +102,40 @@ class AntibodyPair:
         else:
             raise ValueError('Specify if the data being loaded is for the heavy or light chain')
 
-    @property
-    def numbering_table(self):
+    def numbering_table(self, as_array=False, region='all', chain='both'):
 
-        return pd.DataFrame(np.concatenate((self._heavy_chains.numbering_table(as_array=True),
-                                            self._light_chains.numbering_table(as_array=True)), axis=1),
-                            columns=self._heavy_chains.numbering_table().columns.append(
-                                self._light_chains.numbering_table().columns), index=self.names)
+        if chain == 'both':
+
+            if as_array:
+                t_heavy = self._heavy_chains.numbering_table(as_array=True, region=region)
+                t_light = self._light_chains.numbering_table(as_array=True, region=region)
+
+                data = np.concatenate((t_light, t_heavy), axis=1)
+
+            else:
+                t_heavy = self._heavy_chains.numbering_table(as_array=False, region=region)
+                t_light = self._light_chains.numbering_table(as_array=False, region=region)
+
+                t_heavy.reset_index(drop=True, inplace=True)
+                t_light.reset_index(drop=True, inplace=True)
+
+                data = pd.concat([t_light, t_heavy], axis=1, keys=['Light', 'Heavy'])
+
+        elif chain == 'heavy':
+
+            data = self._heavy_chains.numbering_table(as_array=as_array, region=region)
+
+        elif chain == 'light':
+
+            data = self._light_chains.numbering_table(as_array=as_array, region=region)
+
+        else:
+            raise ValueError("Unknown chain.")
+
+        if not as_array:
+            data.index = self._names
+
+        return data
 
     @property
     def regions(self):
