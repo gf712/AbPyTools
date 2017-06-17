@@ -1,4 +1,4 @@
-from .antibody import Antibody
+from .chain import Chain
 import numpy as np
 import logging
 from joblib import Parallel, delayed
@@ -20,21 +20,21 @@ else:
     from tqdm import tqdm
 
 
-class AntibodyCollection:
+class ChainCollection:
     """
-    Object containing Antibody objects and to perform analysis on the ensemble.
+    Object containing Chain objects and to perform analysis on the ensemble.
 
     Methods:
-        load: parses a FASTA file and creates an Antibody object for each entry, or loads in Antibody objects provided
+        load: parses a FASTA file and creates an Chain object for each entry, or loads in Chain objects provided
         in a list
-        name: returns a list with the names obtained from each Antibody object's name attribute
-        sequence: returns a list with the sequences of all antibodies in this AntibodyCollection object
+        name: returns a list with the names obtained from each Chain object's name attribute
+        sequence: returns a list with the sequences of all antibodies in this ChainCollection object
         hydrophobicity_matrix: returns a numpy array with the hydrophobicity of shape (number of ab, 158/138)
         cdr_lengths: returns a numpy array with the CDR lengths of each antibody
 
     Attributes:
         chain: type of chain inferred form AbNum result
-        n_ab: number of Antibody objects
+        n_ab: number of Chain objects
 
     """
 
@@ -42,7 +42,7 @@ class AntibodyCollection:
 
         """
 
-        :type antibody_objects: list of Antibody objects
+        :type antibody_objects: list of Chain objects
               path:             string to a FASTA format file
         """
 
@@ -52,8 +52,8 @@ class AntibodyCollection:
         if not isinstance(antibody_objects, list):
             raise IOError("Expected a list, instead got object of type {}".format(type(antibody_objects)))
 
-        elif not all(isinstance(obj, Antibody) for obj in antibody_objects) and len(antibody_objects) > 0:
-            raise IOError("Expected a list containing objects of type Antibody")
+        elif not all(isinstance(obj, Chain) for obj in antibody_objects) and len(antibody_objects) > 0:
+            raise IOError("Expected a list containing objects of type Chain")
 
         elif not isinstance(path, str) and path is not None:
             raise IOError("Expected a string containing the path to a FASTA format file")
@@ -84,7 +84,7 @@ class AntibodyCollection:
 
                     for key_i in data.keys():
                         antibody_dict_i = data[key_i]
-                        antibody_i = Antibody(name=key_i, sequence=antibody_dict_i['sequence'])
+                        antibody_i = Chain(name=key_i, sequence=antibody_dict_i['sequence'])
                         antibody_i.numbering = antibody_dict_i['numbering']
                         antibody_i._chain = antibody_dict_i['chain']
                         antibody_i.mw = antibody_dict_i['MW']
@@ -113,7 +113,7 @@ class AntibodyCollection:
                     self.antibody_objects = list()
 
                     for name, sequence in zip(names, sequences):
-                        self.antibody_objects.append(Antibody(name=name, sequence=sequence))
+                        self.antibody_objects.append(Chain(name=name, sequence=sequence))
 
         self.antibody_objects, self._chain = load_from_antibody_object(
             antibody_objects=self.antibody_objects,
@@ -161,10 +161,8 @@ class AntibodyCollection:
 
         region = numbering_table_region(region)
 
-        whole_sequence_dict, whole_sequence = numbering_table_sequences(region, self._numbering_scheme, self._chain)
-
         table = np.array(
-            [x.ab_numbering_table(as_array=True, region=region) for x, name in zip(self.antibody_objects, self.names)])
+            [x.ab_numbering_table(as_array=True, region=region) for x in self.antibody_objects])
 
         if as_array:
             return table
@@ -172,6 +170,8 @@ class AntibodyCollection:
         else:
             # return the data as a pandas.DataFrame -> it's slower but looks nicer and makes it easier to get
             # the data of interest
+            whole_sequence_dict, whole_sequence = numbering_table_sequences(region, self._numbering_scheme, self._chain)
+
             multi_index = numbering_table_multiindex(region=region,
                                                      whole_sequence_dict=whole_sequence_dict)
 
@@ -213,9 +213,9 @@ class AntibodyCollection:
 
         # TODO: complete method
 
-        if isinstance(antibody_obj, Antibody):
+        if isinstance(antibody_obj, Chain):
             self.antibody_objects.append(antibody_obj)
-        elif isinstance(antibody_obj, AntibodyCollection):
+        elif isinstance(antibody_obj, ChainCollection):
             self.antibody_objects.append(antibody_obj.antibody_objects)
 
         self.antibody_objects = load_antibody_object(self.antibody_objects)
@@ -224,10 +224,10 @@ class AntibodyCollection:
 
         # TODO: complete method
 
-        if isinstance(antibody_obj, Antibody):
+        if isinstance(antibody_obj, Chain):
             name = antibody_obj.name
-        elif isinstance(antibody_obj, AntibodyCollection):
-            name = AntibodyCollection.names()
+        elif isinstance(antibody_obj, ChainCollection):
+            name = ChainCollection.names()
         elif antibody_obj is None and len(name) > 0:
             self.antibody_objects.pop([x for x in antibody_obj if x.name == name][0])
 
@@ -278,7 +278,7 @@ class AntibodyCollection:
 
         # make sure that all the query names in query are in self.names
         if not set(self.names).issubset(set(query_ids)):
-            raise ValueError('Make sure that you gave the same names in AntibodyCollection as you gave'
+            raise ValueError('Make sure that you gave the same names in ChainCollection as you gave'
                              'in the query submitted to IGBLAST')
 
         # regular expression to get tabular data from each region
@@ -316,7 +316,7 @@ class AntibodyCollection:
             # the top germline assignment is at the top
             germline_result = v_line_assignment.findall(results)[0].split()
 
-            # store the germline assignment and the bit score in a tuple as the germline attribute of Antibody
+            # store the germline assignment and the bit score in a tuple as the germline attribute of Chain
             obj_i.germline = (germline_result[2], float(germline_result[-2]))
 
     @property

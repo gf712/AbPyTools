@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 import seaborn as sns
-from abpytools import AntibodyCollection
+from abpytools import ChainCollection
 from os import path
 from abpytools.utils import PythonConfig
 from abpytools.metrics import CDR
@@ -12,15 +12,15 @@ class CDRLength:
                  plot_title='CDR Lengths', hist=True, notebook_plot=True):
 
         if path is None and antibody_collection is None:
-            raise IOError("Nothing to work with, please provide a path to a FASTA file or a AntibodyCollection object")
+            raise IOError("Nothing to work with, please provide a path to a FASTA file or a ChainCollection object")
 
         if isinstance(path, str):
             self._path = path
-        elif isinstance(antibody_collection, AntibodyCollection):
+        elif isinstance(antibody_collection, ChainCollection):
             self.antibody_collection = antibody_collection
             self._path = path
         else:
-            raise IOError("Please provide a valid input format for path (str) or obj_list (AntibodyCollection)")
+            raise IOError("Please provide a valid input format for path (str) or obj_list (ChainCollection)")
 
         if isinstance(plot_name, str) and isinstance(plot_path, str):
             self._plot_path = plot_path
@@ -34,7 +34,7 @@ class CDRLength:
     def plot_cdr(self, only_cdr3=True):
 
         if self._path is not None:
-            self.antibody_collection = AntibodyCollection(path=self._path)
+            self.antibody_collection = ChainCollection(path=self._path)
             self.antibody_collection.load()
 
         cdrs = CDR(antibodies=self.antibody_collection)

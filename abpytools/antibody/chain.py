@@ -3,7 +3,6 @@ import numpy as np
 from ..utils import DataLoader, Download
 import logging
 import pandas as pd
-import itertools
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
 
 # setting up debugging messages
@@ -16,7 +15,7 @@ available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell"
                           "Grimsley"]
 
 
-class Antibody:
+class Chain:
     # TODO: write description
     """
     """
@@ -39,7 +38,7 @@ class Antibody:
     def load(self):
         """
         Generates all the data:
-        - Antibody Numbering
+        - Chain Numbering
         - Hydrophobicity matrix
         - Molecular weight
         - pI
@@ -177,7 +176,7 @@ class Antibody:
     def ab_regions(self):
 
         """
-        method to determine Antibody regions (CDR and Framework) of each amino acid in sequence
+        method to determine Chain regions (CDR and Framework) of each amino acid in sequence
 
         :return:
         """

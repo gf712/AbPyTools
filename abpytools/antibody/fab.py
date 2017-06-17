@@ -1,34 +1,34 @@
-from .antibody_collection import AntibodyCollection
+from .antibody_collection import ChainCollection
 import numpy as np
 import pandas as pd
 from .antibody import calculate_charge
 from abpytools.utils import DataLoader
 
 
-class AntibodyPair:
+class Fab:
     def __init__(self, heavy_chains=None, light_chains=None, load=True, names=None):
 
-        # check if it's an Antibody class
+        # check if it's an Chain class
         if heavy_chains is None and light_chains is None:
-            raise IOError('Provide a list of Antibody objects or an AntibodyCollection object')
+            raise IOError('Provide a list of Chain objects or an ChainCollection object')
 
         if isinstance(heavy_chains, list):
-            self._heavy_chains = AntibodyCollection(antibody_objects=heavy_chains)
+            self._heavy_chains = ChainCollection(antibody_objects=heavy_chains)
 
-        elif isinstance(heavy_chains, AntibodyCollection):
+        elif isinstance(heavy_chains, ChainCollection):
             self._heavy_chains = heavy_chains
 
         else:
-            raise IOError('Provide a list of Antibody objects or an AntibodyCollection object')
+            raise IOError('Provide a list of Chain objects or an ChainCollection object')
 
         if isinstance(light_chains, list):
-            self._light_chains = AntibodyCollection(antibody_objects=light_chains)
+            self._light_chains = ChainCollection(antibody_objects=light_chains)
 
-        elif isinstance(light_chains, AntibodyCollection):
+        elif isinstance(light_chains, ChainCollection):
             self._light_chains = light_chains
 
         else:
-            raise IOError('Provide a list of Antibody objects or an AntibodyCollection object')
+            raise IOError('Provide a list of Chain objects or an ChainCollection object')
 
         if self._light_chains.n_ab != self._heavy_chains.n_ab:
             raise ValueError('Number of heavy chains must be the same of light chains')

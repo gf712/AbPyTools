@@ -1,4 +1,4 @@
-from abpytools import AntibodyCollection
+from abpytools import ChainCollection
 from abpytools.metrics import CDR
 from collections import Counter
 import numpy as np
@@ -35,13 +35,13 @@ class AminoAcidFreq:
 
         # expect a string which is a path to a FASTA file
         if isinstance(antibodies, str):
-            self._antibodies = AntibodyCollection(path=antibodies)
+            self._antibodies = ChainCollection(path=antibodies)
             self._antibodies.load()
 
-        # can also be a AntibodyCollection object
-        elif isinstance(antibodies, AntibodyCollection):
+        # can also be a ChainCollection object
+        elif isinstance(antibodies, ChainCollection):
             self._antibodies = antibodies
-            # check if AntibodyCollection has been loaded (should have n_ab > 0)
+            # check if ChainCollection has been loaded (should have n_ab > 0)
             # TODO come up with a more elegant way to check if .load() method has been called
             if self._antibodies.n_ab == 0:
                 self._antibodies.load()

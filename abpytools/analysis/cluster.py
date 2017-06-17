@@ -1,6 +1,6 @@
 from sklearn import cluster, decomposition
 import numpy as np
-from abpytools import AntibodyCollection
+from abpytools import ChainCollection
 from matplotlib import pyplot as plt
 
 
@@ -8,10 +8,10 @@ class Cluster:
 
     def __init__(self, antibodies, metric='hydrophobicity', clustering_method='kmeans', decomposition_method='PCA'):
 
-        if isinstance(antibodies, AntibodyCollection):
+        if isinstance(antibodies, ChainCollection):
             self.antibodies = antibodies
         elif isinstance(antibodies, str):
-            self.antibodies = AntibodyCollection(path=antibodies)
+            self.antibodies = ChainCollection(path=antibodies)
         if self.antibodies.n_ab == 0:
             self.antibodies.load()
 

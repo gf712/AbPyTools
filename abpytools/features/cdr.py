@@ -1,4 +1,4 @@
-from abpytools import AntibodyCollection
+from abpytools import ChainCollection
 import numpy as np
 
 
@@ -7,12 +7,12 @@ class CDR:
     def __init__(self, antibodies=None):
         # expect a string which is a path to a FASTA file
         if isinstance(antibodies, str):
-            self.antibodies = AntibodyCollection(path=antibodies)
+            self.antibodies = ChainCollection(path=antibodies)
             self.antibodies.load()
-        # can also be a AntibodyCollection object
-        elif isinstance(antibodies, AntibodyCollection):
+        # can also be a ChainCollection object
+        elif isinstance(antibodies, ChainCollection):
             self.antibodies = antibodies
-            # check if AntibodyCollection has been loaded (should have n_ab > 0)
+            # check if ChainCollection has been loaded (should have n_ab > 0)
             # TODO come up with a more elegant way to check if .load() method has been called
             if self.antibodies.n_ab == 0:
                 self.antibodies.load()
@@ -27,7 +27,7 @@ class CDR:
     def cdr_length(self):
         """
         method to obtain cdr_lengths
-        :return: m by n matrix with CDR lengths, where m is the number of antibodies in AntibodyCollection and n is
+        :return: m by n matrix with CDR lengths, where m is the number of antibodies in ChainCollection and n is
         three, corresponding to the three CDRs.
         """
         cdr_length_matrix = np.zeros((len(self._cdrs), 3))

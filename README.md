@@ -1,6 +1,6 @@
 # AbPyTools
 AbPyTools is a Python 3 package to extract information from heavy and light antibody chain sequences. Using the built-in
-Antibody and AntibodyCollection it is very easy to manipulate the data and do more specific analysis with custom scripts.
+Antibody and ChainCollection it is very easy to manipulate the data and do more specific analysis with custom scripts.
 
 This package is still in its early days and and lacks detailed documentation...!
 Below are some existing features and some planned future additions.
