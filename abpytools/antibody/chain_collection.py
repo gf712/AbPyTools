@@ -363,6 +363,16 @@ class ChainCollection:
     def germline(self):
         return {x.name: x.germline for x in self.antibody_objects}
 
+    def _string_summary_basic(self):
+        return "abpytools.ChainCollection Chain type: {}, Number of sequences: {}".format(self._chain,
+                                                                                          len(self.antibody_objects))
+
+    def __repr__(self):
+        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
+
+    def __len__(self):
+        return len(self.antibody_objects)
+
 
 def load_antibody_object(antibody_object):
     antibody_object.load()

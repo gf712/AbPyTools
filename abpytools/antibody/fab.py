@@ -172,6 +172,15 @@ class Fab:
                                                                light_i in zip(self._names, self._internal_heavy_name,
                                                                               self._internal_light_name)}
 
+    def _string_summary_basic(self):
+        return "abpytools.Fab Number of sequences: {}".format(len(self._n_ab))
+
+    def __len__(self):
+        return len(self._n_ab)
+
+    def __repr__(self):
+        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
+
     def _germline_identity(self):
 
         h_germline_pd = pd.DataFrame(self._heavy_chains.germline_identity).T

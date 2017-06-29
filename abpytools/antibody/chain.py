@@ -299,6 +299,18 @@ class Chain:
     def insertions(self):
         return [(number, seq) for seq, number in zip(self.sequence, self.numbering) if number[-1].isdigit() is False]
 
+    def _string_summary_basic(self):
+        return "abpytools.Chain Name: {}, Chain type: {}, Sequence length: {}, Status: {}".format(self._name,
+                                                                                                  self._chain,
+                                                                                                  len(self._sequence),
+                                                                                                  self._loading_status)
+
+    def __repr__(self):
+        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
+
+    def __len__(self):
+        return len(self.sequence)
+
 
 def get_ab_numbering(sequence, server, numbering_scheme):
     """
