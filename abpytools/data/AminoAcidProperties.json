@@ -306,5 +306,27 @@
       "Y": 1490,
       "C": 62.5
     }
+  },
+  "type": {
+    "A": "Non-polar",
+    "C": "Polar",
+    "D": "Acidic",
+    "E": "Acidic",
+    "F": "Non-polar",
+    "G": "Polar",
+    "H": "Basic",
+    "I": "Non-polar",
+    "K": "Basic",
+    "L": "Non-polar",
+    "M": "Non-polar",
+    "N": "Polar",
+    "P": "Non-polar",
+    "Q": "Polar",
+    "R": "Basic",
+    "S": "Polar",
+    "T": "Polar",
+    "V": "Non-polar",
+    "W": "Non-polar",
+    "Y": "Polar"
   }
 }

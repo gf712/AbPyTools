@@ -1,7 +1,7 @@
-from .antibody_collection import ChainCollection
+from .chain_collection import ChainCollection
 import numpy as np
 import pandas as pd
-from .antibody import calculate_charge
+from .chain import calculate_charge
 from abpytools.utils import DataLoader
 
 

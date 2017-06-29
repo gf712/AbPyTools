@@ -20,7 +20,7 @@ class DataLoader:
 
         if data_type not in self.data_types:
             raise ValueError("{} is not a valid data type. Available data types: {}".format(
-                data_type, ' ,'.join(self.data_types)))
+                data_type, ', '.join(self.data_types)))
         else:
             self.data_type = data_type
 
