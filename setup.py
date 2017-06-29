@@ -5,7 +5,7 @@ setup(
     name='AbPyTools',
     version='0.1',
     package_dir={'abpytools': 'abpytools'},
-    packages=['abpytools', 'abpytools.utils', 'abpytools.antibody', 'abpytools.analysis', 'abpytools.features'],
+    packages=['abpytools', 'abpytools.utils', 'abpytools.core', 'abpytools.analysis', 'abpytools.features'],
     package_data={'abpytools': ['data/*.json']},
     url='https://github.com/gf712/AbPyTools',
     license='MIT',
