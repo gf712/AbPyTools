@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from .chain import calculate_charge
 from abpytools.utils import DataLoader
+from operator import itemgetter
 
 
 class Fab:
@@ -180,6 +181,16 @@ class Fab:
 
     def __repr__(self):
         return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
+
+    def __getitem__(self, indices):
+        if isinstance(indices, int):
+            return Fab(heavy_chains=list(self._heavy_chains[indices]),
+                       light_chains=list(self._light_chains[indices]),
+                       names=list(self.names[indices]), load=False)
+        else:
+            return Fab(heavy_chains=list(itemgetter(*indices)(self._heavy_chains)),
+                       light_chains=list(itemgetter(*indices)(self._light_chains)),
+                       names=list(itemgetter(*indices)(self._names)), load=False)
 
     def _germline_identity(self):
 

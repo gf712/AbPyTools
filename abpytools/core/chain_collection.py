@@ -8,6 +8,7 @@ from os import path
 import pandas as pd
 import re
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
+from operator import itemgetter
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -372,6 +373,12 @@ class ChainCollection:
 
     def __len__(self):
         return len(self.antibody_objects)
+
+    def __getitem__(self, indices):
+        if isinstance(indices, int):
+            return self.antibody_objects[indices]
+        else:
+            return itemgetter(*indices)(self.antibody_objects)
 
 
 def load_antibody_object(antibody_object):
