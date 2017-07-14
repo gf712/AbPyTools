@@ -220,7 +220,7 @@ class Chain:
 
         return calculate_pi(sequence=self._sequence, pi_data=pi_data)
 
-    def ab_ec(self, extinction_coefficient_database='Standard', reduced=False):
+    def ab_ec(self, extinction_coefficient_database='Standard', reduced=False, normalise=False, **kwargs):
 
         if reduced:
             extinction_coefficient_database += '_reduced'
@@ -230,7 +230,10 @@ class Chain:
 
         ec_data = data_loader.get_data()
 
-        return calculate_ec(sequence=self._sequence, ec_data=ec_data)
+        if normalise:
+            return calculate_ec(sequence=self._sequence, ec_data=ec_data) / self.ab_molecular_weight(**kwargs)
+        else:
+            return calculate_ec(sequence=self._sequence, ec_data=ec_data)
 
     def ab_format(self):
         return {"name": self._name, "sequence": self._sequence, "numbering": self.numbering, "chain": self._chain,
