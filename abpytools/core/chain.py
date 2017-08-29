@@ -50,8 +50,9 @@ class Chain:
         """
         if self._loading_status in ['Failed', 'Not Loaded']:
             try:
-                self.numbering, self._chain = self.ab_numbering()
+                self.numbering = self.ab_numbering()
                 self._loading_status = 'Loaded'
+                self.load()
 
             except ValueError:
                 self._loading_status = 'Failed'
