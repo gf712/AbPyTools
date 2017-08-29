@@ -9,6 +9,7 @@ import pandas as pd
 import re
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
 from operator import itemgetter
+from urllib import parse
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -210,115 +211,88 @@ class ChainCollection:
                         data[key_i] = antibody_dict
                     json.dump(data, f, indent=2)
 
-    def append(self, antibody_obj):
-
-        # TODO: complete method
-
-        if isinstance(antibody_obj, Chain):
-            self.antibody_objects.append(antibody_obj)
-        elif isinstance(antibody_obj, ChainCollection):
-            self.antibody_objects.append(antibody_obj.antibody_objects)
-
-        self.antibody_objects = load_antibody_object(self.antibody_objects)
-
-    def remove(self, antibody_obj=None, name=''):
-
-        # TODO: complete method
-
-        if isinstance(antibody_obj, Chain):
-            name = antibody_obj.name
-        elif isinstance(antibody_obj, ChainCollection):
-            name = ChainCollection.names()
-        elif antibody_obj is None and len(name) > 0:
-            self.antibody_objects.pop([x for x in antibody_obj if x.name == name][0])
-
-        self._update_obj()
-
-    def filter(self):
-
-        # TODO: complete method
-        pass
-
-    def _update_obj(self, index='all'):
-
-        # TODO: write method
-        if index == 'all':
-            self.antibody_objects = load_from_antibody_object(self.antibody_objects, show_progressbar=True,
-                                                              n_jobs=-1)
-
-    def load_imgt_query(self, file_path):
-
-        # TODO: Work on method to query IGBLAST directly using abpytools
-
+    def imgt_server_query(self, **kwargs):
         """
-        Method to load in additional data from an IGBLAST file.
-        Note for this to work properly you need to choose to get the data in tabular format and download the html
-        Calling this method will give access to the germline identity of individual regions of the Fab
-
-        :return: self
+        
+        :param kwargs: keyword arguments to pass to imgt_options
+        :return: 
         """
+        # prepare raw data
+        fasta_query = make_fasta(names=self.names, sequences=self.sequences)
+
+        # get url with imgt options
+        url = imgt_options(sequences=fasta_query, **kwargs)
+
+        # send and download query
+        query = Download(url, verbose=False)
+
         try:
-            from bs4 import BeautifulSoup
-        except ImportError:
-            raise ImportError("Please install bs4 to parse the IGBLAST html file:"
-                              "pip install beautifulsoup4")
+            query.download()
+        except ValueError:
+            raise ValueError("Check the internet connection.")
+
+        imgt_result = query.html
+        imgt_result_dict = load_imgt_query(imgt_result, self.names)
+
+        # unpack results
+        for name in self.names:
+            obj_i = self.get_object(name=name)
+            obj_i.germline = imgt_result_dict[name][0]
+            obj_i.germline_identity = imgt_result_dict[name][1]
+
+        del imgt_result_dict
+
+    def imgt_local_query(self, file_path):
 
         # load in file
         with open(file_path, 'r') as f:
-            file = f.readlines()
+            imgt_result = f.readlines()
 
-        # instantiate BeautifulSoup object to make life easier with the html text!
-        soup = BeautifulSoup(''.join(file), "lxml")
+        imgt_result_dict = load_imgt_query(imgt_result, self.names)
 
-        # get the results found in <div id="content"> and return the text as a string
-        results = soup.find(attrs={'id': "content"}).text
+        # unpack results
+        for name in self.names:
+            obj_i = self.get_object(name=name)
+            obj_i.germline = imgt_result_dict[name][0]
+            obj_i.germline_identity = imgt_result_dict[name][1]
 
-        # get query names
-        query = re.compile('Query: (.*)')
-        query_ids = query.findall(results)
+        del imgt_result_dict
 
-        # make sure that all the query names in query are in self.names
-        if not set(self.names).issubset(set(query_ids)):
-            raise ValueError('Make sure that you gave the same names in ChainCollection as you gave'
-                             'in the query submitted to IGBLAST')
-
-        # regular expression to get tabular data from each region
-        all_queries = re.compile('(Query: .*?)\n\n\n\n', re.DOTALL)
-
-        # parse the results with regex and get a list with each query data
-        parsed_results = all_queries.findall(results)
-
-        # regex to get the FR and CDR information for each string in parsed results
-        region_finder = re.compile('^([CDR\d|FR\d|Total].*)', re.MULTILINE)
-
-        # iterate over each string in parsed result which contains the result for individual queries
-        for query_result in parsed_results:
-
-            # get query name and get the relevant object
-            query_i = query.findall(query_result)[0]
-
-            # check if the query being parsed is part of the object
-            # (not all queries have to be part of the object, but the object names must be a subset of the queries)
-
-            if query_i not in set(self.names):
-                continue
-
-            obj_i = self.get_object(name=query_i)
-
-            # list with CDR and FR info for query result
-            region_info = region_finder.findall(query_result)
-
-            # get the data from region info with dict comprehension
-            obj_i.germline_identity = {x.split()[0].split('-')[0]: float(x.split()[-1]) for x in region_info}
-
-            # get the top germline assignment
-            v_line_assignment = re.compile('V\s{}\t.*'.format(query_i))
-
-            # the top germline assignment is at the top
-            germline_result = v_line_assignment.findall(results)[0].split()
-
-            # store the germline assignment and the bit score in a tuple as the germline attribute of Chain
-            obj_i.germline = (germline_result[2], float(germline_result[-2]))
+    # def append(self, antibody_obj):
+    #
+    #     # TODO: complete method
+    #
+    #     if isinstance(antibody_obj, Chain):
+    #         self.antibody_objects.append(antibody_obj)
+    #     elif isinstance(antibody_obj, ChainCollection):
+    #         self.antibody_objects.append(antibody_obj.antibody_objects)
+    #
+    #     self.antibody_objects = load_antibody_object(self.antibody_objects)
+    #
+    # def remove(self, antibody_obj=None, name=''):
+    #
+    #     # TODO: complete method
+    #
+    #     if isinstance(antibody_obj, Chain):
+    #         name = antibody_obj.name
+    #     elif isinstance(antibody_obj, ChainCollection):
+    #         name = ChainCollection.names()
+    #     if antibody_obj is None and len(name) > 0:
+    #         self.antibody_objects.pop([x for x in antibody_obj if x.name == name][0])
+    #
+    #     self._update_obj()
+    #
+    # def filter(self):
+    #
+    #     # TODO: complete method
+    #     pass
+    #
+    # def _update_obj(self, index='all'):
+    #
+    #     # TODO: write method
+    #     if index == 'all':
+    #         self.antibody_objects = load_from_antibody_object(self.antibody_objects, show_progressbar=True,
+    #                                                           n_jobs=-1)
 
     @property
     def names(self):
@@ -443,3 +417,107 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
         raise IOError("Could not find any heavy or light chains in provided file or list of objects")
 
     return antibody_objects, chain
+
+
+def load_imgt_query(imgt_result, names):
+
+    """
+    
+    :param imgt_result: 
+    :return: 
+    """
+
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:
+        raise ImportError("Please install bs4 to parse the IGBLAST html file:"
+                          "pip install beautifulsoup4")
+
+    # instantiate BeautifulSoup object to make life easier with the html text!
+    if isinstance(imgt_result, list):
+        soup = BeautifulSoup(''.join(imgt_result), "lxml")
+    else:
+        soup = BeautifulSoup(imgt_result, "lxml")
+
+    # get the results found in <div id="content"> and return the text as a string
+    results = soup.find(attrs={'id': "content"}).text
+
+    # get query names
+    query = re.compile('Query: (.*)')
+    query_ids = query.findall(results)
+
+    # make sure that all the query names in query are in self.names
+    if not set(names).issubset(set(query_ids)):
+        raise ValueError('Make sure that you gave the same names in ChainCollection as you gave'
+                         'in the query submitted to IGBLAST')
+
+    # regular expression to get tabular data from each region
+    all_queries = re.compile('(Query: .*?)\n\n\n\n', re.DOTALL)
+
+    # parse the results with regex and get a list with each query data
+    parsed_results = all_queries.findall(results)
+
+    # regex to get the FR and CDR information for each string in parsed results
+    region_finder = re.compile('^([CDR\d|FR\d|Total].*)', re.MULTILINE)
+
+    result_dict = {}
+
+    # iterate over each string in parsed result which contains the result for individual queries
+    for query_result in parsed_results:
+
+        # get query name and get the relevant object
+        query_i = query.findall(query_result)[0]
+
+        # check if the query being parsed is part of the object
+        # (not all queries have to be part of the object, but the object names must be a subset of the queries)
+
+        if query_i not in set(names):
+            continue
+
+        # list with CDR and FR info for query result
+        region_info = region_finder.findall(query_result)
+
+        # get the data from region info with dict comprehension
+        germline_identity = {x.split()[0].split('-')[0]: float(x.split()[-1]) for x in region_info}
+
+        # get the top germline assignment
+        v_line_assignment = re.compile('V\s{}\t.*'.format(query_i))
+
+        # the top germline assignment is at the top (index 0)
+        germline_result = v_line_assignment.findall(results)[0].split()
+
+        # store the germline assignment and the bit score in a tuple as the germline attribute of Chain
+        germline = (germline_result[2], float(germline_result[-2]))
+
+        result_dict[query_i] = (germline_identity, germline)
+
+    return result_dict
+
+
+def make_fasta(names, sequences):
+
+    file_string = ''
+    for name, sequence in zip(names, sequences):
+        file_string += '>{}\n'.format(name)
+        file_string += '{}\n'.format(sequence)
+
+    return file_string
+
+
+def imgt_options(sequences, **kwargs):
+
+    values = {"queryseq": sequences,
+              "germline_db_V": "IG_DB/imgt.Homo_sapiens.V.f.orf.p",
+              "germline_db_D": "IG_DB/imgt.Homo_sapiens.D.f.orf",
+              "germline_db_J": "IG_DB/imgt.Homo_sapiens.J.f.orf",
+              "num_alignments_V": "1",
+              "num_alignments_D": "1",
+              "num_alignments_J": "1",
+              "outfmt": "7",
+              "domain": "imgt",
+              "program": "blastp"}
+
+    url = "http://www.ncbi.nlm.nih.gov/igblast/igblast.cgi?"
+    url += parse.urlencode(values)
+
+    return url
