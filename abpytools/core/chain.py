@@ -185,7 +185,7 @@ class Chain:
             self.numbering, self._chain = self.ab_numbering()
 
         if self.numbering == 'NA':
-            raise ValueError("Cannot return CDR length without the antibody numbering information")
+            raise ValueError("Cannot return CDR positions without the antibody numbering information")
 
         data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self._chain])
         cdr_positions = data_loader.get_data()

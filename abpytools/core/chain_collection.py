@@ -75,7 +75,7 @@ class ChainCollection:
             self._path = path
             self._numbering_scheme = numbering_scheme
 
-    def load(self, show_progressbar=True, n_jobs=-1):
+    def load(self, n_jobs=-1, verbose=True, show_progressbar=True, **kwargs):
 
         names = list()
         if self._path is not None:
@@ -120,7 +120,7 @@ class ChainCollection:
         self.antibody_objects, self._chain = load_from_antibody_object(
             antibody_objects=self.antibody_objects,
             show_progressbar=show_progressbar,
-            n_jobs=n_jobs)
+            n_jobs=n_jobs, verbose=verbose, **kwargs)
 
     def molecular_weights(self, monoisotopic=False):
         return [x.ab_molecular_weight(monoisotopic=monoisotopic) for x in self.antibody_objects]
@@ -183,18 +183,16 @@ class ChainCollection:
             data.index = self.names
             return data
 
-    def save(self, file_format='FASTA', file_path='./', file_name='Ab_FASTA.txt', information='all'):
+    def save(self, file_format='FASTA', file_path='./', file_name='Ab_collection', information='all'):
 
         if file_format == 'FASTA':
-            with open(path.join((file_path, file_name)), 'w') as f:
-                for antibody in self.antibody_objects:
-                    f.write('>{}\n'.format(antibody.name))
-                    f.write('{}\n'.format(antibody.sequence))
+            with open(os.path.join((file_path, file_name + '.fasta')), 'w') as f:
+                f.writelines(make_fasta(self.names, self.sequences))
 
         if file_format == 'json':
             if information == 'all':
 
-                with open(path.join(file_path, file_name), 'w') as f:
+                with open(os.path.join(file_path, file_name + '.json'), 'w') as f:
                     # if antibody does not have name, generate name:
                     # ID_chain_idi, where chain is heavy/light, idi is i = [1,..,N]
                     idi = 1
@@ -382,13 +380,14 @@ def parallelexecutor(use_bar='tqdm', **joblib_args):
     return aprun
 
 
-def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1):
-    print("Loading in antibody objects")
+def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1, verbose=True, timeout=5):
+    if verbose:
+        print("Loading in antibody objects")
 
     if show_progressbar:
-        aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs)
+        aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs, timeout=timeout)
     else:
-        aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs)
+        aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs, timeout=timeout)
 
     # load in objects in parallel
     antibody_objects = aprun(total=len(antibody_objects))(
@@ -404,7 +403,8 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
         i = status.index('Not Loaded')
         del antibody_objects[i], status[i]
 
-    print("Failed to load {} objects in list".format(failed))
+    if verbose:
+        print("Failed to load {} objects in list".format(failed))
 
     if len(set(loaded_obj_chains)) == 1:
         chain = loaded_obj_chains[0]

@@ -16,7 +16,7 @@ class Download:
             self.html = download(self.url, self.verbose, user_agent=user_agent, num_retries=num_retries,
                                  timeout=self.timeout)
         except IOError:
-            raise ValueError("Could not download url.")
+            raise ValueError("Could not download requested page.")
 
 
 def download(url, verbose, user_agent='wswp', num_retries=2, decoding_format='utf-8', timeout=5):
