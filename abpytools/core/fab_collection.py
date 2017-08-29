@@ -76,7 +76,8 @@ class FabCollection:
         return [heavy + light for heavy, light in zip(self._heavy_chains.molecular_weights(monoisotopic=monoisotopic),
                                                       self._light_chains.molecular_weights(monoisotopic=monoisotopic))]
 
-    def extinction_coefficient(self, extinction_coefficient_database='Standard', reduced=False):
+    def extinction_coefficient(self, extinction_coefficient_database='Standard', reduced=False, normalise=False,
+                               **kwargs):
 
         heavy_ec = self._heavy_chains.extinction_coefficients(
             extinction_coefficient_database=extinction_coefficient_database,
@@ -84,7 +85,12 @@ class FabCollection:
         light_ec = self._light_chains.extinction_coefficients(
             extinction_coefficient_database=extinction_coefficient_database,
             reduced=reduced)
-        return [heavy + light for heavy, light in zip(heavy_ec, light_ec)]
+
+        if normalise:
+            return [(heavy + light) / mw for heavy, light, mw in
+                    zip(heavy_ec, light_ec, self.molecular_weight(**kwargs))]
+        else:
+            return [heavy + light for heavy, light in zip(heavy_ec, light_ec)]
 
     def hydrophobicity_matrix(self):
 
