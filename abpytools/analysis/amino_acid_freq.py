@@ -1,5 +1,5 @@
 from abpytools import ChainCollection
-from abpytools.metrics import CDR
+from abpytools.features.cdr import CDR
 from collections import Counter
 import numpy as np
 from matplotlib import pyplot as plt

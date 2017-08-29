@@ -1,9 +1,9 @@
 from matplotlib import pyplot as plt
 import seaborn as sns
 from abpytools import ChainCollection
-from os import path
+import os
 from abpytools.utils import PythonConfig
-from abpytools.metrics import CDR
+from abpytools.features.cdr import CDR
 
 
 class CDRLength:
@@ -68,5 +68,5 @@ class CDRLength:
         if ipython_config.backend == 'notebook' and self._notebook_plot:
             plt.plot()
         else:
-            plt.savefig(path.join(self._plot_path, self._plot_name))
+            plt.savefig(os.path.join(self._plot_path, self._plot_name))
             plt.close()

@@ -2,9 +2,9 @@ from .chain import Chain
 import numpy as np
 import logging
 from joblib import Parallel, delayed
-from abpytools.utils import PythonConfig
+from abpytools.utils import PythonConfig, Download
 import json
-from os import path
+import os
 import pandas as pd
 import re
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
