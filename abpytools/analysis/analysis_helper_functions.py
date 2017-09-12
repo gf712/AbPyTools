@@ -2,6 +2,8 @@ import warnings
 import _pickle as cPickle
 from abpytools.home import Home
 
+SUPPORTED_SUBSITUTION_MATRICES = ['BLOSUM45', 'BLOSUM62', 'BLOSUM80']
+
 
 def load_alignment_algorithm(algorithm):
     if algorithm.lower() == 'needleman_wunsch':
@@ -15,10 +17,9 @@ def load_substitution_matrix(substitution_matrix):
 
     abpytools_directory = Home().homedir
 
-    if substitution_matrix == 'BLOSUM62':
+    if substitution_matrix in SUPPORTED_SUBSITUTION_MATRICES:
         with open('{}/data/{}.txt'.format(abpytools_directory, substitution_matrix), 'rb') as f:
             matrix = cPickle.load(f)
-
     else:
         raise ValueError("Unknown substitution matrix")
 
