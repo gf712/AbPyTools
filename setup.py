@@ -3,7 +3,14 @@ from setuptools import setup
 
 setup(
     name='AbPyTools',
-    version='0.1',
+    classifiers=['Development Status :: 2 - Pre-Alpha',
+                 'Intended Audience :: Science/Research',
+                 'License :: OSI Approved :: MIT License',
+                 'Natural Language :: English',
+                 'Programming Language :: Python :: 3 :: Only',
+                 'Topic :: Scientific/Engineering :: Bio-Informatics'],
+    keywords='antibody-analysis bioinformatics data-processing',
+    version='0.1.1',
     package_dir={'abpytools': 'abpytools'},
     packages=['abpytools',
               'abpytools.utils',

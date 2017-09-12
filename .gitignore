@@ -1,6 +1,10 @@
 .idea/
 *.ipynb
 __pycache__/
-*.py[cod]
 .ipynb_checkpoints
 build/
+AbPyTools.egg-info/
+MANIFEST
+Manifest.in
+dist/
+setup.cfg
