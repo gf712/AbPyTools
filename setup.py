@@ -29,6 +29,7 @@ setup(
                       'tqdm>=4.15',
                       'seaborn',
                       'matplotlib',
-                      'beautifulsoup4'],
+                      'beautifulsoup4',
+                      'lxml'],
     test_suite="tests"
 )
