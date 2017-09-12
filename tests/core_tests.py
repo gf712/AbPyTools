@@ -109,7 +109,7 @@ class AntibodyCollectionCore(unittest.TestCase):
     def test_Chain_abysis_parser_chothia(self):
         antibody = ChainCollection(path='./tests/chain_collection_fasta_test.fasta', numbering_scheme='chothia')
         antibody.load(verbose=False, show_progressbar=False)
-        self.assertEqual(antibody.numbering_table(as_array=True)[0][-1], 'S')
+        self.assertEqual(antibody.numbering_table(as_array=True)[0][-1], '-')
 
     @unittest.skipUnless(check_connection(URL=url), 'No internet connection, skipping test.')
     def test_Chain_abysis_parser_kabat(self):
