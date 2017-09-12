@@ -85,14 +85,14 @@ class AntibodyCollectionCore(unittest.TestCase):
     def test_ChainCollection_igblast_parser_germline(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        antibody_collection_1.load_imgt_query('tests/chain_collection_1_igblast.html')
-        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][0], 'IGHV4-34*01')
+        antibody_collection_1.imgt_local_query('tests/chain_collection_1_igblast.html')
+        self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name][0], 'IGHV4-34*01')
 
     def test_ChainCollection_igblast_parser_germline_score(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        antibody_collection_1.load_imgt_query('tests/chain_collection_1_igblast.html')
-        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69)
+        antibody_collection_1.imgt_local_query('tests/chain_collection_1_igblast.html')
+        self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name][1], 9.11e-69)
 
     def test_ChainCollection_(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
