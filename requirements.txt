@@ -4,3 +4,4 @@ pandas
 tqdm >= 4.15
 seaborn
 matplotlib
+beautifulsoup4

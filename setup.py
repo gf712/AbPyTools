@@ -28,6 +28,7 @@ setup(
                       'pandas',
                       'tqdm>=4.15',
                       'seaborn',
-                      'matplotlib'],
+                      'matplotlib',
+                      'beautifulsoup4'],
     test_suite="tests"
 )
