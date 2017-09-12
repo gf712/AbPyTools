@@ -1,4 +1,9 @@
-# AbPyTools
+AbPyTools
+=========
+
+[![Coverage Status](https://coveralls.io/repos/github/gf712/AbPyTools/badge.svg?branch=master)](https://coveralls.io/github/gf712/AbPyTools?branch=master)
+[![Build Status](https://travis-ci.org/gf712/AbPyTools.svg?branch=master)](https://travis-ci.org/gf712/AbPyTools)
+
 AbPyTools is a Python 3 package to extract information from heavy and light antibody chain sequences. Using the built-in
 Antibody and ChainCollection it is very easy to manipulate the data and do more specific analysis with custom scripts.
 
@@ -23,10 +28,8 @@ AbPyTools features:
 Stuff that will be added/ worked on next:
 - 
 - Add remaining antibody numbering schemes
-- Currently working on log-odds scores
 - write tutorials
 - adding some useful functions, such as comparing sequence with available datasets
-- write tests
 - write high level code for more specific analysis
   - plot CDR lengths of antibodies
 
