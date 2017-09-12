@@ -1,6 +1,6 @@
-numpy >= 1.13
-joblib >= 0.11
-pandas >= 0.19
+numpy
+joblib
+pandas
 tqdm >= 4.15
-seaborn >= 0.7
-matplotlib >= 1.5
+seaborn
+matplotlib

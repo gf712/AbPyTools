@@ -23,11 +23,11 @@ setup(
     author='Gil Ferreira Hoben',
     author_email='gil.hoben.16@ucl.ac.uk',
     description='Python package for antibody analysis',
-    install_requires=['numpy>=1.13',
-                      'joblib>=0.11',
-                      'pandas>=0.19',
+    install_requires=['numpy',
+                      'joblib',
+                      'pandas',
                       'tqdm>=4.15',
-                      'seaborn>=0.7',
-                      'matplotlib>=1.5'],
+                      'seaborn',
+                      'matplotlib'],
     test_suite="tests"
 )
