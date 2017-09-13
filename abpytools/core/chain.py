@@ -20,7 +20,7 @@ class Chain:
     """
     """
 
-    def __init__(self, sequence='', name='', numbering=None, numbering_scheme='chothia'):
+    def __init__(self, sequence='', name='Chain1', numbering=None, numbering_scheme='chothia'):
         self._raw_sequence = sequence.upper()
         self._sequence = self._raw_sequence.replace('-', '')
         self._name = name
