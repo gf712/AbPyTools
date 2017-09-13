@@ -52,13 +52,24 @@ class ChainCollection:
             antibody_objects = []
 
         if not isinstance(antibody_objects, list):
-            raise IOError("Expected a list, instead got object of type {}".format(type(antibody_objects)))
+            raise ValueError("Expected a list, instead got object of type {}".format(type(antibody_objects)))
 
         elif not all(isinstance(obj, Chain) for obj in antibody_objects) and len(antibody_objects) > 0:
-            raise IOError("Expected a list containing objects of type Chain")
+            raise ValueError("Expected a list containing objects of type Chain")
 
+        # check if path is a string
         elif not isinstance(path, str) and path is not None:
-            raise IOError("Expected a string containing the path to a FASTA format file")
+            raise ValueError("Path expected a str, instead got object of type {}".format(type(path)))
+
+        elif isinstance(path, str) and path is not None:
+            # check if path exists
+            if not os.path.isfile(path):
+                raise ValueError("The provided file path does not exist."
+                                 "Expected a string containing the path to a FASTA or JSON format file")
+            # check if it has the right extentions
+            # TODO: additional checks to see if file has right format (not only right extension)
+            elif not path.endswith('.json') and not path.endswith('.fasta'):
+                raise ValueError("Expected the path to a FASTA or JSON format file")
 
         self.antibody_objects = antibody_objects
 
@@ -110,7 +121,7 @@ class ChainCollection:
                         else:
                             sequences.append(line.replace("\n", ""))
                     if len(names) != len(sequences):
-                        raise IOError("Error reading file: make sure it is FASTA format")
+                        raise ValueError("Error reading file: make sure it is FASTA format")
 
                     self.antibody_objects = list()
 
