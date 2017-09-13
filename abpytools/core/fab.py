@@ -14,27 +14,32 @@ class Fab:
 
         # check if it's an Chain class
         if heavy_chain is None and light_chain is None:
-            raise IOError('Provide a list of Chain objects or an ChainCollection object')
+            raise ValueError('heavy_chain and light_chain must be provided')
 
         if isinstance(heavy_chain, Chain):
             self._heavy_chain = heavy_chain
 
         else:
-            raise ValueError('Provide a list of Chain objects or an ChainCollection object')
+            raise ValueError('heavy_chain must be a Chain object, but got {} instead'.format(type(heavy_chain)))
 
         if isinstance(light_chain, Chain):
             self._light_chain = light_chain
 
         else:
-            raise ValueError('Provide a list of Chain objects or an ChainCollection object')
+            raise ValueError('light_chain must be a Chain object, but got {} instead'.format(type(light_chain)))
 
         # load data
         if load:
             self._heavy_chain.load()
             self._light_chain.load()
 
-        # self._pair_sequence = self._heavy_chain.sequence + self._light_chain.sequence
-        self._pair_sequence = self[0].sequence + self[1].sequence
+        if self._heavy_chain.chain != 'heavy':
+            raise ValueError("heavy_chain is not a heavy chain, it is {}".format(self._heavy_chain.chain))
+        if self._light_chain.chain != 'light':
+            raise ValueError("light_chain is not a light chain, it is {}".format(self._light_chain.chain))
+
+        self._pair_sequence = self._heavy_chain.sequence + self._light_chain.sequence
+        # self._pair_sequence = self[0].sequence + self[1].sequence
 
         if isinstance(name, str):
             self._name = name
