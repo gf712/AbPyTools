@@ -299,10 +299,6 @@ class Chain:
     def numbering_scheme(self):
         return self._numbering_scheme
 
-    @property
-    def insertions(self):
-        return [(number, seq) for seq, number in zip(self.sequence, self.numbering) if number[-1].isdigit() is False]
-
     def _string_summary_basic(self):
         return "abpytools.Chain Name: {}, Chain type: {}, Sequence length: {}, Status: {}".format(self._name,
                                                                                                   self._chain,
