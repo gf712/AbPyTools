@@ -6,6 +6,7 @@ abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
 imgt_url = 'https://www.ncbi.nlm.nih.gov/igblast/'
 
 
+# Helper functions
 def check_connection(URL, timeout=5):
     try:
         request.urlopen(url=URL, timeout=timeout)
@@ -14,10 +15,17 @@ def check_connection(URL, timeout=5):
         return False
 
 
+def read_sequence(path):
+    with open(path, 'r') as f:
+        data = f.readlines()[1]
+    return data
+
+
 class ChainCollectionCore(unittest.TestCase):
 
     def setUp(self):
         self.antibody_collection_1_name = 'test'
+        self.chain_test_sequence = read_sequence('./tests/chain_collection_fasta_test.fasta')
 
     def test_ChainCollection_length_0(self):
         antibody_collection = ChainCollection()
@@ -27,10 +35,56 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection = ChainCollection()
         self.assertIsNone(antibody_collection._path)
 
+    def test_ChainCollection_input_exception_1(self):
+        # when ChainCollection.object_list is instantiated with
+        # something other than a list it throws an error
+        self.assertRaises(ValueError, ChainCollection, 0)
+
+    def test_ChainCollection_input_exception_2(self):
+        # when ChainCollection.object_list is instantiated with
+        #  a list with non Chain objects it throws an error
+        self.assertRaises(ValueError, ChainCollection, [Chain(), 0])
+
+    def test_ChainCollection_input_exception_3(self):
+        # when ChainCollection is instantiated with an invalid
+        # file path it throws an error
+        self.assertRaises(ValueError, ChainCollection, None, './NonExistentFile.fasta')
+
+    def test_ChainCollection_input_exception_4(self):
+        # when ChainCollection is instantiated with path to a
+        # file that does not have a .fasta or .json extension
+        # it throws an error
+        self.assertRaises(ValueError, ChainCollection, None, './__init__.py')
+
+    def test_ChainCollection_input_1(self):
+        # instantiate ChainCollection with a Chain (empty) object
+        test_collection = ChainCollection(antibody_objects=[Chain()])
+        self.assertIsInstance(test_collection, ChainCollection)
+
+    def test_ChainCollection_input_2(self):
+        # instantiate ChainCollection with a loaded Chain object
+        test_chain = Chain(sequence=self.chain_test_sequence)
+        test_collection = ChainCollection(antibody_objects=[test_chain])
+        self.assertIsInstance(test_collection, ChainCollection)
+
+    def test_ChainCollection_load_fasta_exception(self):
+        # throws error when reading a file with fasta extention,
+        # but with the wrong format
+        antibody_collection_1 = ChainCollection(path='./tests/NotAFASTAFile.fasta')
+        self.assertRaises(ValueError, antibody_collection_1.load)
+
     def test_ChainCollection_chain(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertEqual(antibody_collection_1.chain, 'heavy')
+
+    @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
+    def test_ChainCollection_chain_2(self):
+        # checks if the chain type is read properly from a Chain object
+        test_chain = Chain(sequence=self.chain_test_sequence)
+        test_chain.load()
+        test_collection = ChainCollection(antibody_objects=[test_chain])
+        self.assertEqual(test_collection.chain, 'heavy')
 
     def test_ChainCollection_n_ab(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
@@ -69,6 +123,12 @@ class ChainCollectionCore(unittest.TestCase):
         # if returning a single chain abpytools automatically creates a new Chain object
         self.assertIsInstance(antibody_collection_1[0], Chain)
 
+    def test_ChainCollection_slicing_1_obj(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        # if returning a single chain abpytools automatically creates a new Chain object
+        self.assertIsInstance(antibody_collection_1[0], Chain)
+
     def test_ChainCollection_cdr_regions_part1(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
@@ -93,7 +153,7 @@ class ChainCollectionCore(unittest.TestCase):
         self.assertCountEqual(antibody_collection_1.ab_region_index()[self.antibody_collection_1_name]['FR'],
                               ['FR1', 'FR2', 'FR3', 'FR4'])
 
-    def test_ChainCollection_charge(self):
+    def test_ChainCollection_total_charge(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertAlmostEqual(antibody_collection_1.total_charge[self.antibody_collection_1_name], 1.3278508)
@@ -209,3 +269,30 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertAlmostEqual(antibody_collection_1.charge.sum(), 1.7497642167513607)
+
+    def test_ChainCollection_get_object_exception(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        self.assertRaises(ValueError, antibody_collection_1.get_object, 'foo')
+
+    def test_ChainCollection_get_object_1(self):
+        # check if get_object returns a Chain object
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        self.assertIsInstance(antibody_collection_1.get_object('test'), Chain)
+
+    def test_ChainCollection_get_object_2(self):
+        # check if get_object returns a Chain object and keeps the information (i.e. name)
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        self.assertEqual(antibody_collection_1.get_object('test').name, 'test')
+
+    def test_ChainCollection_add(self):
+        # check if adding two ChainCollection objects with one sequence each
+        # results in a ChainCollection object with two sequences
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        antibody_collection_2 = ChainCollection(path='./tests/chain_collection_2.json')
+        antibody_collection_2.load(show_progressbar=False, verbose=False)
+        antibody_collection_3 = antibody_collection_1 + antibody_collection_2
+        self.assertEqual(antibody_collection_3.n_ab, 2)
