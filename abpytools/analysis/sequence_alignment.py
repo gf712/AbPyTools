@@ -7,7 +7,7 @@ class SequenceAlignment:
     Sequence alignment with two chain objects   
     """
 
-    def __init__(self, chain_1, collection, algorithm, substitution_matrix):
+    def __init__(self, target, collection, algorithm, substitution_matrix):
 
         """
         
@@ -19,7 +19,7 @@ class SequenceAlignment:
 
         self._algorithm = algorithm
         self._substitution_matrix = load_substitution_matrix(substitution_matrix)
-        self._chain_1 = chain_1
+        self.target = target
         self._collection = collection
         self._aligned_collection = dict()
         self._alignment_scores = dict()
@@ -29,7 +29,7 @@ class SequenceAlignment:
         # perform the alignment for each chain object in collection and store results in dictionaries with keys
         # corresponding to names of the sequence to be aligned
         for seq in self._collection.antibody_objects:
-            result = self._align(self._chain_1, seq, **kwargs)
+            result = self._align(self.target, seq, **kwargs)
             self._aligned_collection[seq.name] = result[0]
             self._alignment_scores[seq.name] = result[1]
 
@@ -44,7 +44,7 @@ class SequenceAlignment:
     def print_aligned_sequences(self):
 
         # find longest name of target sequence and aligned sequences (for display purposes)
-        max_name = max(len(self._chain_1.name), max(len(x) for x in self._collection.names))
+        max_name = max(len(self.target.name), max(len(x) for x in self._collection.names))
 
         f = '{:>%d}: {}' % max_name
         f_score = '{:>%d}: {} (Score: {})' % max_name
@@ -52,7 +52,7 @@ class SequenceAlignment:
         # store the final string in a list so that everything is printed at the end in one go
         final_string = list()
 
-        final_string.append(f.format(self._chain_1.name, self._chain_1.sequence))
+        final_string.append(f.format(self.target.name, self.target.sequence))
         final_string.append('-'*len(f))
 
         for seq in self._collection.names:
@@ -62,7 +62,7 @@ class SequenceAlignment:
 
     @property
     def target_sequence(self):
-        return self._chain_1.sequence
+        return self.target.sequence
 
     @property
     def aligned_sequences(self):
