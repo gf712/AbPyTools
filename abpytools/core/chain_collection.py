@@ -363,6 +363,26 @@ class ChainCollection:
         else:
             return itemgetter(*indices)(self.antibody_objects)
 
+    def __add__(self, other):
+        if isinstance(other, ChainCollection):
+            if self.numbering_scheme != other.numbering_scheme:
+                raise ValueError("Concatenation requires ChainCollection "
+                                 "objects to use the same numbering scheme.")
+            else:
+                new_object_list = self.antibody_objects + other.antibody_objects
+
+        elif isinstance(other, Chain):
+            if self.numbering_scheme != other.numbering_scheme:
+                raise ValueError("Concatenation requires Chain object to use "
+                                 "the same numbering scheme as ChainCollection.")
+            else:
+                new_object_list = self.antibody_objects + [other]
+
+        else:
+            raise ValueError("Concatenation requires other to be of type "
+                             "ChainCollection, got {} instead".format(type(other)))
+        return ChainCollection(antibody_objects=new_object_list)
+
 
 def load_antibody_object(antibody_object):
     antibody_object.load()
