@@ -67,3 +67,33 @@ def numbering_table_multiindex(region, whole_sequence_dict):
     multi_index = pd.MultiIndex.from_tuples(tuples=region_map, names=['Region', 'Numbering'])
 
     return multi_index
+
+
+def germline_identity_pd(heavy_name, light_name, heavy_identity, light_identity, names):
+
+    h_germline_pd = pd.DataFrame({heavy_name: heavy_identity}).T
+    l_germline_pd = pd.DataFrame({light_name: light_identity}).T
+
+    l_columns = pd.MultiIndex.from_tuples([('Light', x) for x in l_germline_pd.columns], names=['Chain', 'Region'])
+    h_columns = pd.MultiIndex.from_tuples([('Heavy', x) for x in h_germline_pd.columns], names=['Chain', 'Region'])
+    average_columns = pd.MultiIndex.from_tuples([('Average', x) for x in l_germline_pd.columns],
+                                                names=['Chain', 'Region'])
+
+    l = pd.DataFrame(index=[light_name],
+                     columns=l_columns)
+    h = pd.DataFrame(index=[heavy_name],
+                     columns=h_columns)
+
+    l = l.apply(lambda x: l_germline_pd.loc[x.name], axis=1)
+    h = h.apply(lambda x: h_germline_pd.loc[x.name], axis=1)
+
+    average = (h.as_matrix() + l.as_matrix()) / 2
+
+    l.columns = l_columns
+    h.columns = h_columns
+    average = pd.DataFrame(average, columns=average_columns, index=names)
+
+    l.index = [names]
+    h.index = [names]
+
+    return pd.concat([h, l, average], axis=1)
