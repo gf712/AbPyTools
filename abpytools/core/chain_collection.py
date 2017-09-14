@@ -197,7 +197,7 @@ class ChainCollection:
     def save(self, file_format='FASTA', file_path='./', file_name='Ab_collection', information='all'):
 
         if file_format == 'FASTA':
-            with open(os.path.join((file_path, file_name + '.fasta')), 'w') as f:
+            with open(os.path.join(file_path, file_name + '.fasta'), 'w') as f:
                 f.writelines(make_fasta(self.names, self.sequences))
 
         if file_format == 'json':
