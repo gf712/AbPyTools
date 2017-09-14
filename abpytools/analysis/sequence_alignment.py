@@ -23,6 +23,7 @@ class SequenceAlignment:
         self._collection = collection
         self._aligned_collection = dict()
         self._alignment_scores = dict()
+        self._aligned = False
 
     def align_sequences(self, **kwargs):
 
@@ -33,30 +34,14 @@ class SequenceAlignment:
             self._aligned_collection[seq.name] = result[0]
             self._alignment_scores[seq.name] = result[1]
 
-    def _align(self, seq_1, seq_2, **kwargs):
-
-        # loads the function object that is then called
-        self._algorithm_function = load_alignment_algorithm(self._algorithm)
-
-        return self._algorithm_function(seq_1.sequence, seq_2.sequence,
-                                        self._substitution_matrix, **kwargs)
+        self._aligned = True
 
     def print_aligned_sequences(self):
 
-        # find longest name of target sequence and aligned sequences (for display purposes)
-        max_name = max(len(self.target.name), max(len(x) for x in self._collection.names))
+        if not self._aligned:
+            raise ValueError("Method align_sequences must be called first to perform alignment.")
 
-        f = '{:>%d}: {}' % max_name
-        f_score = '{:>%d}: {} (Score: {})' % max_name
-
-        # store the final string in a list so that everything is printed at the end in one go
-        final_string = list()
-
-        final_string.append(f.format(self.target.name, self.target.sequence))
-        final_string.append('-'*len(f))
-
-        for seq in self._collection.names:
-            final_string.append(f_score.format(seq, self._aligned_collection[seq], self._alignment_scores[seq]))
+        final_string = self._aligned_sequences_string()
 
         print(*final_string, sep='\n')
 
@@ -71,3 +56,30 @@ class SequenceAlignment:
     @property
     def score(self):
         return self._alignment_scores
+
+    def _align(self, seq_1, seq_2, **kwargs):
+
+        # loads the function object that is then called
+        self._algorithm_function = load_alignment_algorithm(self._algorithm)
+
+        return self._algorithm_function(seq_1.sequence, seq_2.sequence,
+                                        self._substitution_matrix, **kwargs)
+
+    def _aligned_sequences_string(self):
+
+        # find longest name of target sequence and aligned sequences (for display purposes)
+        max_name = max(len(self.target.name), max(len(x) for x in self._collection.names))
+
+        f = '{:>%d}: {}' % max_name
+        f_score = '{:>%d}: {} (Score: {})' % max_name
+
+        # store the final string in a list so that everything is printed at the end in one go
+        final_string = list()
+
+        final_string.append(f.format(self.target.name, self.target.sequence))
+        final_string.append('-'*(len(self.target.name)+len(self.target.sequence)))
+
+        for seq in self._collection.names:
+            final_string.append(f_score.format(seq, self._aligned_collection[seq], self._alignment_scores[seq]))
+
+        return final_string
