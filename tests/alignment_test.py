@@ -2,6 +2,12 @@ import unittest
 from abpytools import ChainCollection, SequenceAlignment
 
 
+def read_sequence_from_file(file):
+    with open(file, 'r') as f:
+        data = f.readlines()[0]
+    return data
+
+
 class SequenceAlignmentTests(unittest.TestCase):
 
     def setUp(self):
@@ -11,7 +17,7 @@ class SequenceAlignmentTests(unittest.TestCase):
         self.ab_collection_1.load(show_progressbar=False, verbose=False)
         self.ab_collection_2.load(show_progressbar=False, verbose=False)
 
-        self.seq2_aligned = self.read_sequence_from_file('./tests/BLOSUM62_aligned_sequence')
+        self.seq2_aligned = read_sequence_from_file('./tests/BLOSUM62_aligned_sequence')
 
     def test_sequence_alignment_target(self):
         sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM62')
@@ -38,7 +44,7 @@ class SequenceAlignmentTests(unittest.TestCase):
         self.assertEqual(sa.aligned_sequences[self.ab_collection_2.names[0]], self.seq2_aligned)
 
     def test_alignment_exception_1(self):
-        # catch exception when subsitution matrix is not known
+        # catch exception when substitution matrix is not known
         self.assertRaises(ValueError, SequenceAlignment, self.ab_collection_1[0],
                           self.ab_collection_2, 'needleman_wunsch', 'foo')
 
@@ -46,6 +52,11 @@ class SequenceAlignmentTests(unittest.TestCase):
         # catch exception when algorithm is not known
         sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'foo', 'BLOSUM62')
         self.assertRaises(ValueError, sa.align_sequences)
+
+    def test_alignment_exception_3(self):
+        # catch error when user tries to print alignment before calling .align_sequences()
+        sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'foo', 'BLOSUM62')
+        self.assertRaises(ValueError, sa.print_aligned_sequences)
 
     def test_alignment_indel_sign(self):
         # if indel is positive the user receives a warning and indel will be set to -indel
@@ -60,7 +71,7 @@ class SequenceAlignmentTests(unittest.TestCase):
         # with the same params again and will get the same scores
         self.assertEqual(sa_score_1, sa_score_2)
 
-    def read_sequence_from_file(self, file):
-        with open(file, 'r') as f:
-            data = f.readlines()[0]
-        return data
+    def test_alignment_print_string(self):
+        sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM62')
+        sa.align_sequences()
+        self.assertEqual(len(sa._aligned_sequences_string()), 3)
