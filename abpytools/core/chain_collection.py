@@ -246,8 +246,8 @@ class ChainCollection:
         # unpack results
         for name in self.names:
             obj_i = self.get_object(name=name)
-            obj_i.germline = imgt_result_dict[name][0]
-            obj_i.germline_identity = imgt_result_dict[name][1]
+            obj_i.germline = imgt_result_dict[name][1]
+            obj_i.germline_identity = imgt_result_dict[name][0]
 
         del imgt_result_dict
 
@@ -262,8 +262,8 @@ class ChainCollection:
         # unpack results
         for name in self.names:
             obj_i = self.get_object(name=name)
-            obj_i.germline = imgt_result_dict[name][0]
-            obj_i.germline_identity = imgt_result_dict[name][1]
+            obj_i.germline = imgt_result_dict[name][1]
+            obj_i.germline_identity = imgt_result_dict[name][0]
 
         del imgt_result_dict
 
