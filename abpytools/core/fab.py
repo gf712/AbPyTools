@@ -1,8 +1,9 @@
-from .chain_collection import Chain
+from .chain_collection import Chain, ChainCollection
 import numpy as np
 import pandas as pd
 from .chain import calculate_charge
 from abpytools.utils import DataLoader
+from .helper_functions import germline_identity_pd
 
 
 class Fab:
@@ -38,8 +39,7 @@ class Fab:
         if self._light_chain.chain != 'light':
             raise ValueError("light_chain is not a light chain, it is {}".format(self._light_chain.chain))
 
-        self._pair_sequence = self._heavy_chain.sequence + self._light_chain.sequence
-        # self._pair_sequence = self[0].sequence + self[1].sequence
+        self._pair_sequence = self[0].sequence + self[1].sequence
 
         if isinstance(name, str):
             self._name = name
@@ -105,7 +105,7 @@ class Fab:
                 t_heavy = self[1].ab_numbering_table(as_array=True, region=region)
                 t_light = self[0].ab_numbering_table(as_array=True, region=region)
 
-                data = np.concatenate((t_light, t_heavy), axis=1)
+                data = np.concatenate((t_light, t_heavy))
 
             else:
                 t_heavy = self[1].ab_numbering_table(as_array=False, region=region)
@@ -131,14 +131,6 @@ class Fab:
             data.index = [self._name]
 
         return data
-
-    # @property
-    # def regions(self):
-    #     heavy_regions = self._heavy_chain.ab_region_index()
-    #     light_regions = self._light_chain.ab_region_index()
-    #
-    #     return {name: {'Heavy': heavy_regions[heavy], 'Light': light_regions[light]} for name, heavy, light in
-    #             zip(self.names, self._internal_heavy_name, self._internal_light_name)}
 
     @property
     def name(self):
