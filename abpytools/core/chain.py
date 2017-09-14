@@ -325,8 +325,10 @@ def get_ab_numbering(sequence, server, numbering_scheme):
             scheme = '-c'
         elif numbering_scheme.lower() == 'chotia_ext':
             scheme = '-a'
-        else:
+        elif numbering_scheme.lower() == 'kabat':
             scheme = '-k'
+        else:
+            raise ValueError("{} numbering scheme is unknown.".format(numbering_scheme.capitalize()))
 
         # prepare the url string to query server
         url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
