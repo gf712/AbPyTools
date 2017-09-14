@@ -1,6 +1,8 @@
 import unittest
 from abpytools import ChainCollection, Chain
 from urllib import request
+import operator
+import os
 
 abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
 imgt_url = 'https://www.ncbi.nlm.nih.gov/igblast/'
@@ -23,9 +25,10 @@ def read_sequence(path):
 
 class ChainCollectionCore(unittest.TestCase):
 
-    def setUp(self):
-        self.antibody_collection_1_name = 'test'
-        self.chain_test_sequence = read_sequence('./tests/chain_collection_fasta_test.fasta')
+    @classmethod
+    def setUpClass(cls):
+        cls.antibody_collection_1_name = 'test'
+        cls.chain_test_sequence = read_sequence('./tests/chain_collection_fasta_test.fasta')
 
     def test_ChainCollection_length_0(self):
         antibody_collection = ChainCollection()
@@ -48,13 +51,17 @@ class ChainCollectionCore(unittest.TestCase):
     def test_ChainCollection_input_exception_3(self):
         # when ChainCollection is instantiated with an invalid
         # file path it throws an error
-        self.assertRaises(ValueError, ChainCollection, None, './NonExistentFile.fasta')
+        self.assertRaises(ValueError, ChainCollection, None, './tests/NonExistentFile.fasta')
 
     def test_ChainCollection_input_exception_4(self):
         # when ChainCollection is instantiated with path to a
         # file that does not have a .fasta or .json extension
         # it throws an error
-        self.assertRaises(ValueError, ChainCollection, None, './__init__.py')
+        self.assertRaises(ValueError, ChainCollection, None, './tests/__init__.py')
+
+    def test_ChainCollection_input_exception_5(self):
+        # check if throws error when path is not a string
+        self.assertRaises(ValueError, ChainCollection, None, 10)
 
     def test_ChainCollection_input_1(self):
         # instantiate ChainCollection with a Chain (empty) object
@@ -107,6 +114,13 @@ class ChainCollectionCore(unittest.TestCase):
         # if this fails it means that abysis has been updated
         self.assertEqual(antibody_collection_1.hydrophobicity_matrix().shape, (1, 158))
 
+    @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
+    def test_ChainCollection_Hmatrix_calculation(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_fasta_test.fasta')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        # if this fails it means that abysis has been updated
+        self.assertEqual(antibody_collection_1.hydrophobicity_matrix().shape, (1, 158))
+
     def test_ChainCollection_sequence_length(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
@@ -124,10 +138,10 @@ class ChainCollectionCore(unittest.TestCase):
         self.assertIsInstance(antibody_collection_1[0], Chain)
 
     def test_ChainCollection_slicing_1_obj(self):
-        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_heavy_2_sequences.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        # if returning a single chain abpytools automatically creates a new Chain object
-        self.assertIsInstance(antibody_collection_1[0], Chain)
+        # slicing including multiple sequences returns a ChainCollection object
+        self.assertIsInstance(antibody_collection_1[[0,1]], ChainCollection)
 
     def test_ChainCollection_cdr_regions_part1(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
@@ -162,34 +176,34 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         antibody_collection_1.imgt_local_query('tests/chain_collection_1_igblast.html')
-        self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name][0], 'IGHV4-34*01')
+        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][0], 'IGHV4-34*01')
 
     def test_ChainCollection_igblast_parser_germline_score(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         antibody_collection_1.imgt_local_query('tests/chain_collection_1_igblast.html')
-        self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name][1], 9.11e-69)
+        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69)
 
     @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
     def test_ChainCollection_imgt_server_query(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         antibody_collection_1.imgt_server_query()
-        self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name][0], 'IGHV4-34*01')
+        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][0], 'IGHV4-34*01')
 
     @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
     def test_ChainCollection_imgt_server_query(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         antibody_collection_1.imgt_server_query()
-        self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name][1], 9.11e-69)
+        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69)
 
     @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
     def test_ChainCollection_imgt_server_query(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         antibody_collection_1.imgt_server_query()
-        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name]['Total'], 96.9)
+        self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name]['Total'], 96.9)
 
     def test_ChainCollection_slicing(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
@@ -296,3 +310,68 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_2.load(show_progressbar=False, verbose=False)
         antibody_collection_3 = antibody_collection_1 + antibody_collection_2
         self.assertEqual(antibody_collection_3.n_ab, 2)
+
+    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    def test_ChainCollection_add_exception_1(self):
+        # check if adding two ChainCollection objects with one sequence each
+        # results in a ChainCollection object with two sequences
+        antibody_chothia = ChainCollection(path='./tests/chain_collection_fasta_test.fasta', numbering_scheme='chothia')
+        antibody_chothia.load(show_progressbar=False, verbose=False)
+        antibody_kabat = ChainCollection(path='./tests/chain_collection_fasta_test.fasta', numbering_scheme='kabat')
+        antibody_kabat.load(show_progressbar=False, verbose=False)
+        self.assertRaises(ValueError, operator.add, antibody_chothia, antibody_kabat)
+
+    def test_ChainCollection_add_exception_2(self):
+        # check if adding two ChainCollection objects with one sequence each
+        # results in a ChainCollection object with two sequences
+        antibody_chothia = ChainCollection(path='./tests/chain_collection_fasta_test.fasta', numbering_scheme='chothia')
+        antibody_chothia.load(show_progressbar=False, verbose=False)
+        antibody_kabat = Chain(sequence=read_sequence('./tests/chain_collection_fasta_test.fasta'),
+                               numbering_scheme='kabat')
+        antibody_kabat.load()
+        self.assertRaises(ValueError, operator.add, antibody_chothia, antibody_kabat)
+
+    def test_ChainCollection_add_exception_3(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        self.assertRaises(ValueError, operator.add, antibody_collection_1, 0)
+
+    def test_ChainCollection_fasta(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        antibody_collection_1.save(file_format='FASTA', file_path='./tests', file_name='SaveTest')
+        antibody_collection_2 = ChainCollection(path='./tests/SaveTest.fasta')
+        antibody_collection_2.load()
+        self.assertEqual(antibody_collection_1.sequences[0], antibody_collection_2.sequences[0])
+
+    def test_ChainCollection_json(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        antibody_collection_1.save(file_format='json', file_path='./tests', file_name='SaveTest')
+        antibody_collection_2 = ChainCollection(path='./tests/SaveTest.json')
+        antibody_collection_2.load()
+        self.assertEqual(antibody_collection_1.sequences[0], antibody_collection_2.sequences[0])
+
+    def test_ChainCollection_append_1(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        antibody_collection_2 = ChainCollection(path='./tests/chain_collection_2_heavy.json')
+        antibody_collection_2.load(show_progressbar=False, verbose=False)
+        antibody_collection_1.append(antibody_collection_2)
+        self.assertEqual(antibody_collection_1.n_ab, 2)
+
+    def test_ChainCollection_append_2(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        antibody_collection_2 = ChainCollection(path='./tests/chain_collection_2_heavy.json')
+        antibody_collection_2.load(show_progressbar=False, verbose=False)
+        antibody_collection_1.append(antibody_collection_2)
+        self.assertEqual(antibody_collection_1.hydrophobicity_matrix().shape, (2, 158))
+
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists('./tests/SaveTest.fasta'):
+            os.remove('./tests/SaveTest.fasta')
+
+        if os.path.exists('./tests/SaveTest.json'):
+            os.remove('./tests/SaveTest.json')
