@@ -16,7 +16,7 @@ class FabCollection:
 
         # check if it's a Chain object
         if heavy_chains is None and light_chains is None and fab is None:
-            raise IOError('Provide a list of Chain objects or an ChainCollection object')
+            raise ValueError('Provide a list of Chain objects or an ChainCollection object')
 
         # check if fab object is a list and if all object are abpytools.Fab objects
         if isinstance(fab, list) and all(isinstance(fab_i, Fab) for fab_i in fab):
@@ -33,7 +33,7 @@ class FabCollection:
                 self._heavy_chains = heavy_chains
 
             else:
-                raise IOError('Provide a list of Chain objects or an ChainCollection object')
+                raise ValueError('Provide a list of Chain objects or an ChainCollection object')
 
             if isinstance(light_chains, list):
                 self._light_chains = ChainCollection(antibody_objects=light_chains)
@@ -42,7 +42,7 @@ class FabCollection:
                 self._light_chains = light_chains
 
             else:
-                raise IOError('Provide a list of Chain objects or an ChainCollection object')
+                raise ValueError('Provide a list of Chain objects or an ChainCollection object')
 
             if self._light_chains.n_ab != self._heavy_chains.n_ab:
                 raise ValueError('Number of heavy chains must be the same of light chains')
