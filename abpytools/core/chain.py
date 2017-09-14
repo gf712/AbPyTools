@@ -153,7 +153,7 @@ class Chain:
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
                 )
 
-        if self._chain == '':
+        if self._loading_status == 'Not Loaded':
             self._chain, self.numbering = self.ab_numbering()
         if self._chain == 'NA':
             raise ValueError("Could not determine chain type")
@@ -182,7 +182,7 @@ class Chain:
         :return:
         """
 
-        if self.numbering is None:
+        if self._loading_status == 'Not Loaded':
             self.numbering, self._chain = self.ab_numbering()
 
         if self.numbering == 'NA':
