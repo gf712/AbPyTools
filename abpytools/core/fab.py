@@ -148,10 +148,10 @@ class Fab:
     def sequence(self):
         return self._pair_sequence
 
-    # @property
-    # def germline_identity(self):
-    #     return self._germline_identity()
-    #
+    @property
+    def germline_identity(self):
+        return self._germline_identity()
+
     # @property
     # def germline(self):
     #
@@ -183,29 +183,15 @@ class Fab:
 
     def _germline_identity(self):
 
-        h_germline_pd = pd.DataFrame(self[1].germline_identity).T
-        l_germline_pd = pd.DataFrame(self[0].germline_identity).T
+        # empty dictionaries return false
+        if bool(self[1].germline_identity) is False:
+            # this means there is no information about the germline,
+            # by default it will run a web query
+            # this is a very lazy fix to to do a web query using a Chain object...
+            ChainCollection(antibody_objects=[self[1]]).imgt_server_query()
+        if bool(self[0].germline_identity) is False:
+            ChainCollection(antibody_objects=[self[0]]).imgt_server_query()
 
-        l_columns = pd.MultiIndex.from_tuples([('Light', x) for x in l_germline_pd.columns], names=['Chain', 'Region'])
-        h_columns = pd.MultiIndex.from_tuples([('Heavy', x) for x in h_germline_pd.columns], names=['Chain', 'Region'])
-        average_columns = pd.MultiIndex.from_tuples([('Average', x) for x in l_germline_pd.columns],
-                                                    names=['Chain', 'Region'])
-
-        l = pd.DataFrame(index=self._internal_light_name,
-                         columns=l_columns)
-        h = pd.DataFrame(index=self._internal_heavy_name,
-                         columns=h_columns)
-
-        l = l.apply(lambda x: l_germline_pd.ix[x.name], axis=1)
-        h = h.apply(lambda x: h_germline_pd.ix[x.name], axis=1)
-
-        average = (h.as_matrix() + l.as_matrix()) / 2
-
-        l.columns = l_columns
-        h.columns = h_columns
-        average = pd.DataFrame(average, columns=average_columns, index=self._names)
-
-        l.index = self._name
-        h.index = self._name
-
-        return pd.concat([h, l, average], axis=1)
+        return germline_identity_pd(self._internal_heavy_name, self._internal_heavy_name,
+                                    self[0].germline_identity, self[1].germline_identity,
+                                    [self._name])
