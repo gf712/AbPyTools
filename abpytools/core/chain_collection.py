@@ -354,7 +354,7 @@ class ChainCollection:
         if isinstance(indices, int):
             return self.antibody_objects[indices]
         else:
-            return itemgetter(*indices)(self.antibody_objects)
+            return ChainCollection(antibody_objects=list(itemgetter(*indices)(self.antibody_objects)))
 
     def __add__(self, other):
         if isinstance(other, ChainCollection):
