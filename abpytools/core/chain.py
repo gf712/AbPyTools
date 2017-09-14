@@ -48,6 +48,7 @@ class Chain:
         :return:
 
         """
+
         if self._loading_status in ['Failed', 'Not Loaded']:
             try:
                 self.numbering = self.ab_numbering()
@@ -67,21 +68,21 @@ class Chain:
             # this should never happen...
             raise ValueError("Unknown loading status")
 
-    def ab_numbering(self, server='abysis', numbering_scheme='chothia'):
+    def ab_numbering(self, server='abysis'):
 
-        assert numbering_scheme.lower() in available_numbering_schemes, \
-            "Unknown Numbering scheme: {}. \
-            Numbering schemes available: {}".format(numbering_scheme,
-                                                    ', '.join(available_numbering_schemes))
-
-        assert server in available_servers, "Unknown server: {}. \
-            Available servers: {}".format(server, ' ,'.join(available_servers))
-
-        # store the numbering scheme used for reference in other methods
-        self._numbering_scheme = numbering_scheme
+        # assert numbering_scheme.lower() in available_numbering_schemes, \
+        #     "Unknown Numbering scheme: {}. \
+        #     Numbering schemes available: {}".format(numbering_scheme,
+        #                                             ', '.join(available_numbering_schemes))
+        #
+        # assert server in available_servers, "Unknown server: {}. \
+        #     Available servers: {}".format(server, ' ,'.join(available_servers))
+        #
+        # # store the numbering scheme used for reference in other methods
+        # self._numbering_scheme = numbering_scheme
 
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
-        numbering = get_ab_numbering(self._sequence, server, numbering_scheme)
+        numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme)
 
         if numbering == ['']:
             self._loading_status = 'Failed'
