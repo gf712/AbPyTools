@@ -267,16 +267,9 @@ class ChainCollection:
 
         del imgt_result_dict
 
-    # def append(self, antibody_obj):
-    #
-    #     # TODO: complete method
-    #
-    #     if isinstance(antibody_obj, Chain):
-    #         self.antibody_objects.append(antibody_obj)
-    #     elif isinstance(antibody_obj, ChainCollection):
-    #         self.antibody_objects.append(antibody_obj.antibody_objects)
-    #
-    #     self.antibody_objects = load_antibody_object(self.antibody_objects)
+    def append(self, antibody_obj):
+
+        self.antibody_objects += antibody_obj
     #
     # def remove(self, antibody_obj=None, name=''):
     #
