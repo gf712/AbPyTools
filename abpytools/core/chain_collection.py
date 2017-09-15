@@ -528,17 +528,21 @@ def make_fasta(names, sequences):
     return file_string
 
 
-def imgt_options(sequences, **kwargs):
+def igblast_options(sequences, domain='imgt',
+                    germline_db_V='IG_DB/imgt.Homo_sapiens.V.f.orf.p',
+                    germline_db_D='IG_DB/imgt.Homo_sapiens.D.f.orf',
+                    germline_db_J='IG_DB / imgt.Homo_sapiens.J.f.orf',
+                    num_alignments_V=1, num_alignments_D=1, num_alignments_J=1):
 
     values = {"queryseq": sequences,
-              "germline_db_V": "IG_DB/imgt.Homo_sapiens.V.f.orf.p",
-              "germline_db_D": "IG_DB/imgt.Homo_sapiens.D.f.orf",
-              "germline_db_J": "IG_DB/imgt.Homo_sapiens.J.f.orf",
-              "num_alignments_V": "1",
-              "num_alignments_D": "1",
-              "num_alignments_J": "1",
+              "germline_db_V": germline_db_V,
+              "germline_db_D": germline_db_D,
+              "germline_db_J": germline_db_J,
+              "num_alignments_V": str(num_alignments_V),
+              "num_alignments_D": str(num_alignments_D),
+              "num_alignments_J": str(num_alignments_J),
               "outfmt": "7",
-              "domain": "imgt",
+              "domain": domain,
               "program": "blastp"}
 
     url = "http://www.ncbi.nlm.nih.gov/igblast/igblast.cgi?"
