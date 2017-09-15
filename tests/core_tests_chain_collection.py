@@ -85,7 +85,7 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertEqual(antibody_collection_1.chain, 'heavy')
 
-    @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
     def test_ChainCollection_chain_2(self):
         # checks if the chain type is read properly from a Chain object
         test_chain = Chain(sequence=self.chain_test_sequence)
@@ -114,7 +114,7 @@ class ChainCollectionCore(unittest.TestCase):
         # if this fails it means that abysis has been updated
         self.assertEqual(antibody_collection_1.hydrophobicity_matrix().shape, (1, 158))
 
-    @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
     def test_ChainCollection_Hmatrix_calculation(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_fasta_test.fasta')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
@@ -175,34 +175,34 @@ class ChainCollectionCore(unittest.TestCase):
     def test_ChainCollection_igblast_parser_germline(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        antibody_collection_1.imgt_local_query('tests/chain_collection_1_igblast.html')
+        antibody_collection_1.igblast_local_query('tests/chain_collection_1_igblast.html')
         self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][0], 'IGHV4-34*01')
 
     def test_ChainCollection_igblast_parser_germline_score(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        antibody_collection_1.imgt_local_query('tests/chain_collection_1_igblast.html')
+        antibody_collection_1.igblast_local_query('tests/chain_collection_1_igblast.html')
         self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69)
 
-    @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
-    def test_ChainCollection_imgt_server_query(self):
+    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
+    def test_ChainCollection_igblast_server_query(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        antibody_collection_1.imgt_server_query()
+        antibody_collection_1.igblast_server_query()
         self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][0], 'IGHV4-34*01')
 
-    @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
-    def test_ChainCollection_imgt_server_query(self):
+    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
+    def test_ChainCollection_igblast_server_query(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        antibody_collection_1.imgt_server_query()
+        antibody_collection_1.igblast_server_query()
         self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69)
 
-    @unittest.skipUnless(check_connection(URL=imgt_url), 'No internet connection, skipping test.')
-    def test_ChainCollection_imgt_server_query(self):
+    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
+    def test_ChainCollection_igblast_server_query(self):
         antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
-        antibody_collection_1.imgt_server_query()
+        antibody_collection_1.igblast_server_query()
         self.assertEqual(antibody_collection_1.germline_identity[self.antibody_collection_1_name]['Total'], 96.9)
 
     def test_ChainCollection_slicing(self):
