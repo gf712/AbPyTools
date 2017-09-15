@@ -20,8 +20,8 @@ class FabCollectionCore(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.light_chain_collection = ChainCollection(path='./tests/chain_collection_light_2_sequences.json')
-        cls.heavy_chain_collection = ChainCollection(path='./tests/chain_collection_heavy_2_sequences.json')
+        cls.light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_light_2_sequences.json')
+        cls.heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_heavy_2_sequences.json')
 
         cls.light_chain_collection.load(verbose=False, show_progressbar=False)
         cls.heavy_chain_collection.load(verbose=False, show_progressbar=False)
@@ -89,7 +89,7 @@ class FabCollectionCore(unittest.TestCase):
     def test_FabCollection_name_4(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
-        self.assertEqual(fab_collection._light_chains.names[0], 'LightSeq2')
+        self.assertEqual(fab_collection._light_chains.names[1], 'LightSeq2')
 
     @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):

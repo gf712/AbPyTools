@@ -20,8 +20,8 @@ class FabCore(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.light_chain_collection = ChainCollection(path='./tests/chain_collection_1_light.json')
-        cls.heavy_chain_collection = ChainCollection(path='./tests/chain_collection_1_heavy.json')
+        cls.light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_1_light.json')
+        cls.heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
 
         cls.light_chain_collection.load(verbose=False, show_progressbar=False)
         cls.heavy_chain_collection.load(verbose=False, show_progressbar=False)

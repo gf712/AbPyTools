@@ -11,13 +11,13 @@ def read_sequence_from_file(file):
 class SequenceAlignmentTests(unittest.TestCase):
 
     def setUp(self):
-        self.ab_collection_1 = ChainCollection(path='./tests/sequence_alignment_seq_1.fasta')
-        self.ab_collection_2 = ChainCollection(path='./tests/sequence_alignment_seq_2.fasta')
+        self.ab_collection_1 = ChainCollection(path='./tests/Data/sequence_alignment_seq_1.fasta')
+        self.ab_collection_2 = ChainCollection(path='./tests/Data/sequence_alignment_seq_2.fasta')
 
         self.ab_collection_1.load(show_progressbar=False, verbose=False)
         self.ab_collection_2.load(show_progressbar=False, verbose=False)
 
-        self.seq2_aligned = read_sequence_from_file('./tests/BLOSUM62_aligned_sequence')
+        self.seq2_aligned = read_sequence_from_file('./tests/Data/BLOSUM62_aligned_sequence')
 
     def test_sequence_alignment_target(self):
         sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM62')
