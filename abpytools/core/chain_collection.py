@@ -10,6 +10,7 @@ import re
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
 from operator import itemgetter
 from urllib import parse
+from math import ceil
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -226,46 +227,61 @@ class ChainCollection:
         :param kwargs: keyword arguments to pass to igblast_options
         :return: 
         """
-        # prepare raw data
-        fasta_query = make_fasta(names=self.names, sequences=self.sequences)
 
-        # get url with imgt options
-        url = imgt_options(sequences=fasta_query, **kwargs)
+        # check if query is larger than 50 sequences
+        # if so split into several queries
+        query_list = self._split_to_chunks(chunk_size=chunk_size)
+        n_chunks = ceil(len(self) / chunk_size) - 1
+
+        if show_progressbar:
+            for query in tqdm(query_list, total=n_chunks):
+                self._igblast_server_query(query, **kwargs)
+
+        else:
+            for query in query_list:
+                self._igblast_server_query(query, **kwargs)
+
+    @staticmethod
+    def _igblast_server_query(query, **kwargs):
+
+        # prepare raw data
+        fasta_query = make_fasta(names=query.names, sequences=query.sequences)
+
+        # get url with igblast options
+        url = igblast_options(sequences=fasta_query, **kwargs)
 
         # send and download query
-        query = Download(url, verbose=False)
+        q = Download(url, verbose=False)
 
         try:
-            query.download()
+            q.download()
         except ValueError:
             raise ValueError("Check the internet connection.")
 
-        imgt_result = query.html
-        imgt_result_dict = load_imgt_query(imgt_result, self.names)
+        igblast_result = q.html
+        igblast_result_dict = load_igblast_query(igblast_result, query.names)
 
         # unpack results
-        for name in self.names:
-            obj_i = self.get_object(name=name)
-            obj_i.germline = imgt_result_dict[name][1]
-            obj_i.germline_identity = imgt_result_dict[name][0]
+        for name in query.names:
+            obj_i = query.get_object(name=name)
+            obj_i.germline = igblast_result_dict[name][1]
+            obj_i.germline_identity = igblast_result_dict[name][0]
 
-        del imgt_result_dict
-
-    def imgt_local_query(self, file_path):
+    def igblast_local_query(self, file_path):
 
         # load in file
         with open(file_path, 'r') as f:
-            imgt_result = f.readlines()
+            igblast_result = f.readlines()
 
-        imgt_result_dict = load_imgt_query(imgt_result, self.names)
+        igblast_result_dict = load_igblast_query(igblast_result, self.names)
 
         # unpack results
         for name in self.names:
             obj_i = self.get_object(name=name)
-            obj_i.germline = imgt_result_dict[name][1]
-            obj_i.germline_identity = imgt_result_dict[name][0]
+            obj_i.germline = igblast_result_dict[name][1]
+            obj_i.germline_identity = igblast_result_dict[name][0]
 
-        del imgt_result_dict
+        del igblast_result_dict
 
     def append(self, antibody_obj):
 
@@ -375,6 +391,24 @@ class ChainCollection:
             raise ValueError("Concatenation requires other to be of type "
                              "ChainCollection, got {} instead".format(type(other)))
         return ChainCollection(antibody_objects=new_object_list)
+
+    def _split_to_chunks(self, chunk_size=50):
+        """
+        Helper function to split ChainCollection into size chunk_size and returns generator
+        :param chunks:
+        :return:
+        """
+
+        start = 0
+
+        if self.n_ab > chunk_size:
+
+            for x in range(chunk_size, self.n_ab, chunk_size):
+                yield self[range(start, x)]
+                start = x
+
+        else:
+            yield self
 
 
 def load_antibody_object(antibody_object):

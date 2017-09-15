@@ -236,8 +236,8 @@ class FabCollection:
         h = pd.DataFrame(index=self._internal_heavy_name,
                          columns=h_columns)
 
-        l = l.apply(lambda x: l_germline_pd.ix[x.name], axis=1)
-        h = h.apply(lambda x: h_germline_pd.ix[x.name], axis=1)
+        l = l.apply(lambda x: l_germline_pd.loc[x.name], axis=1)
+        h = h.apply(lambda x: h_germline_pd.loc[x.name], axis=1)
 
         average = (h.as_matrix() + l.as_matrix()) / 2
 
