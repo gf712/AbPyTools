@@ -96,7 +96,9 @@ class ChainCollection:
                 with open(self._path, 'r') as f:
                     data = json.load(f)
 
-                    for key_i in data.keys():
+                    ordered_names = data.pop('ordered_names')
+
+                    for key_i in ordered_names:
                         antibody_dict_i = data[key_i]
                         antibody_i = Chain(name=key_i, sequence=antibody_dict_i['sequence'])
                         antibody_i.numbering = antibody_dict_i['numbering']
@@ -133,6 +135,37 @@ class ChainCollection:
             antibody_objects=self.antibody_objects,
             show_progressbar=show_progressbar,
             n_jobs=n_jobs, verbose=verbose, **kwargs)
+
+    def save(self, file_format='FASTA', file_path='./', file_name='Ab_collection', information='all'):
+
+        if file_format == 'FASTA':
+            with open(os.path.join(file_path, file_name + '.fasta'), 'w') as f:
+                f.writelines(make_fasta(self.names, self.sequences))
+
+        if file_format == 'json':
+            if information == 'all':
+
+                with open(os.path.join(file_path, file_name + '.json'), 'w') as f:
+                    # if antibody does not have name, generate name:
+                    # ID_chain_idi, where chain is heavy/light, idi is i = [1,..,N]
+                    idi = 1
+                    data = dict()
+                    ordered_names = []
+                    for antibody in self.antibody_objects:
+
+                        ordered_names.append(antibody.name)
+
+                        antibody_dict = antibody.ab_format()
+                        if len(antibody_dict['name']) > 0:
+                            key_i = antibody_dict['name']
+                        else:
+                            key_i = "ID_{}_{}".format(antibody.chain, idi)
+                            idi += 1
+                        antibody_dict.pop("name")
+                        data[key_i] = antibody_dict
+
+                    data['ordered_names'] = ordered_names
+                    json.dump(data, f, indent=2)
 
     def molecular_weights(self, monoisotopic=False):
         return [x.ab_molecular_weight(monoisotopic=monoisotopic) for x in self.antibody_objects]
@@ -194,32 +227,6 @@ class ChainCollection:
             data.columns = multi_index
             data.index = self.names
             return data
-
-    def save(self, file_format='FASTA', file_path='./', file_name='Ab_collection', information='all'):
-
-        if file_format == 'FASTA':
-            with open(os.path.join(file_path, file_name + '.fasta'), 'w') as f:
-                f.writelines(make_fasta(self.names, self.sequences))
-
-        if file_format == 'json':
-            if information == 'all':
-
-                with open(os.path.join(file_path, file_name + '.json'), 'w') as f:
-                    # if antibody does not have name, generate name:
-                    # ID_chain_idi, where chain is heavy/light, idi is i = [1,..,N]
-                    idi = 1
-                    data = dict()
-                    for antibody in self.antibody_objects:
-
-                        antibody_dict = antibody.ab_format()
-                        if len(antibody_dict['name']) > 0:
-                            key_i = antibody_dict['name']
-                        else:
-                            key_i = "ID_{}_{}".format(antibody.chain, idi)
-                            idi += 1
-                        antibody_dict.pop("name")
-                        data[key_i] = antibody_dict
-                    json.dump(data, f, indent=2)
 
     def igblast_server_query(self, chunk_size=50, show_progressbar = True, **kwargs):
         """
