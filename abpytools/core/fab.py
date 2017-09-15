@@ -184,6 +184,6 @@ class Fab:
         if bool(self[0].germline_identity) is False:
             ChainCollection(antibody_objects=[self[0]]).igblast_server_query()
 
-        return germline_identity_pd(self._internal_heavy_name, self._internal_heavy_name,
-                                    self[0].germline_identity, self[1].germline_identity,
+        return germline_identity_pd({self._internal_heavy_name: self[0].germline_identity},
+                                    {self._internal_light_name: self[1].germline_identity},
                                     [self._name])

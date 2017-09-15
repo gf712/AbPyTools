@@ -69,31 +69,31 @@ def numbering_table_multiindex(region, whole_sequence_dict):
     return multi_index
 
 
-def germline_identity_pd(heavy_name, light_name, heavy_identity, light_identity, names):
+def germline_identity_pd(heavy_identity, light_identity, names):
 
-    h_germline_pd = pd.DataFrame({heavy_name: heavy_identity}).T
-    l_germline_pd = pd.DataFrame({light_name: light_identity}).T
+    h_germline_pd = pd.DataFrame(heavy_identity).T
+    l_germline_pd = pd.DataFrame(light_identity).T
 
     l_columns = pd.MultiIndex.from_tuples([('Light', x) for x in l_germline_pd.columns], names=['Chain', 'Region'])
     h_columns = pd.MultiIndex.from_tuples([('Heavy', x) for x in h_germline_pd.columns], names=['Chain', 'Region'])
     average_columns = pd.MultiIndex.from_tuples([('Average', x) for x in l_germline_pd.columns],
                                                 names=['Chain', 'Region'])
 
-    l = pd.DataFrame(index=[light_name],
-                     columns=l_columns)
-    h = pd.DataFrame(index=[heavy_name],
-                     columns=h_columns)
+    # h = pd.DataFrame(index=h_germline_pd.index.tolist(),
+    #                  columns=l_columns)
+    # l = pd.DataFrame(index=l_germline_pd.index.tolist(),
+    #                  columns=h_columns)
+    #
+    # l = l.apply(lambda x: l_germline_pd.loc[x.name], axis=1)
+    # h = h.apply(lambda x: h_germline_pd.loc[x.name], axis=1)
 
-    l = l.apply(lambda x: l_germline_pd.loc[x.name], axis=1)
-    h = h.apply(lambda x: h_germline_pd.loc[x.name], axis=1)
+    average = (h_germline_pd.as_matrix() + l_germline_pd.as_matrix()) / 2
 
-    average = (h.as_matrix() + l.as_matrix()) / 2
-
-    l.columns = l_columns
-    h.columns = h_columns
+    l_germline_pd.columns = l_columns
+    h_germline_pd.columns = h_columns
     average = pd.DataFrame(average, columns=average_columns, index=names)
 
-    l.index = [names]
-    h.index = [names]
+    l_germline_pd.index = names
+    h_germline_pd.index = names
 
-    return pd.concat([h, l, average], axis=1)
+    return pd.concat([l_germline_pd, h_germline_pd, average], axis=1)

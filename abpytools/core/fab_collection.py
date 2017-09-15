@@ -5,6 +5,7 @@ from .chain import calculate_charge
 from abpytools.utils import DataLoader
 from operator import itemgetter
 from .fab import Fab
+from .helper_functions import germline_identity_pd
 
 
 class FabCollection:
@@ -223,29 +224,13 @@ class FabCollection:
 
     def _germline_identity(self):
 
-        h_germline_pd = pd.DataFrame(self._heavy_chains.germline_identity).T
-        l_germline_pd = pd.DataFrame(self._light_chains.germline_identity).T
+        # empty dictionaries return false, so this condition checks if any of the values are False
+        if all([x for x in self._light_chains.germline_identity.values()]) is False:
+            # this means there is no information about the germline,
+            # by default it will run a web query
+            self._light_chains.igblast_server_query()
+        if all([x for x in self._heavy_chains.germline_identity.values()]) is False:
+            self._heavy_chains.igblast_server_query()
 
-        l_columns = pd.MultiIndex.from_tuples([('Light', x) for x in l_germline_pd.columns], names=['Chain', 'Region'])
-        h_columns = pd.MultiIndex.from_tuples([('Heavy', x) for x in h_germline_pd.columns], names=['Chain', 'Region'])
-        average_columns = pd.MultiIndex.from_tuples([('Average', x) for x in l_germline_pd.columns],
-                                                    names=['Chain', 'Region'])
-
-        l = pd.DataFrame(index=self._internal_light_name,
-                         columns=l_columns)
-        h = pd.DataFrame(index=self._internal_heavy_name,
-                         columns=h_columns)
-
-        l = l.apply(lambda x: l_germline_pd.loc[x.name], axis=1)
-        h = h.apply(lambda x: h_germline_pd.loc[x.name], axis=1)
-
-        average = (h.as_matrix() + l.as_matrix()) / 2
-
-        l.columns = l_columns
-        h.columns = h_columns
-        average = pd.DataFrame(average, columns=average_columns, index=self._names)
-
-        l.index = self._names
-        h.index = self._names
-
-        return pd.concat([h, l, average], axis=1)
+        return germline_identity_pd(self._heavy_chains.germline_identity, self._light_chains.germline_identity,
+                                    self._names)
