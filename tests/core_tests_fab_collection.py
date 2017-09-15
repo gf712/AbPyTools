@@ -71,6 +71,26 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection)
         self.assertAlmostEqual(fab_collection.total_charge()[0], 3.3658691836339365)
 
+    def test_FabCollection_name_1(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection)
+        self.assertEqual(fab_collection._heavy_chains.names[0], 'Seq1')
+
+    def test_FabCollection_name_2(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection)
+        self.assertEqual(fab_collection._heavy_chains.names[1], 'Seq2')
+
+    def test_FabCollection_name_3(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection)
+        self.assertEqual(fab_collection._light_chains.names[0], 'LightSeq1')
+
+    def test_FabCollection_name_4(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection)
+        self.assertEqual(fab_collection._light_chains.names[0], 'LightSeq2')
+
     @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
