@@ -5,7 +5,7 @@ import operator
 import os
 
 abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
-imgt_url = 'https://www.ncbi.nlm.nih.gov/igblast/'
+igblast_url = 'https://www.ncbi.nlm.nih.gov/igblast/'
 
 
 # Helper functions

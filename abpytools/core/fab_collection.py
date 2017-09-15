@@ -113,18 +113,18 @@ class FabCollection:
 
         return [calculate_charge(sequence=seq, ph=ph, pka_values=pka_data) for seq in self.sequences]
 
-    def imgt_local_query(self, file_path, chain):
+    def igblast_local_query(self, file_path, chain):
 
         if chain.lower() == 'light':
-            self._light_chains.imgt_local_query(file_path=file_path)
+            self._light_chains.igblast_local_query(file_path=file_path)
         elif chain.lower() == 'heavy':
-            self._heavy_chains.imgt_local_query(file_path=file_path)
+            self._heavy_chains.igblast_local_query(file_path=file_path)
         else:
             raise ValueError('Specify if the data being loaded is for the heavy or light chain')
 
-    def imgt_server_query(self, **kwargs):
-        self._light_chains.imgt_server_query(**kwargs)
-        self._heavy_chains.imgt_server_query(**kwargs)
+    def igblast_server_query(self, **kwargs):
+        self._light_chains.igblast_server_query(**kwargs)
+        self._heavy_chains.igblast_server_query(**kwargs)
 
     def numbering_table(self, as_array=False, region='all', chain='both'):
 

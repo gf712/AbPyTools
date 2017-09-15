@@ -88,12 +88,12 @@ class Fab:
 
         return calculate_charge(sequence=self.sequence, ph=ph, pka_values=pka_data)
 
-    # def load_imgt_query(self, file_path, chain):
+    # def load_igblast_query(self, file_path, chain):
     #
     #     if chain.lower() == 'light':
-    #         self._light_chains.load_imgt_query(file_path=file_path)
+    #         self._light_chains.load_igblast_query(file_path=file_path)
     #     elif chain.lower() == 'heavy':
-    #         self._heavy_chains.load_imgt_query(file_path=file_path)
+    #         self._heavy_chains.load_igblast_query(file_path=file_path)
     #     else:
     #         raise ValueError('Specify if the data being loaded is for the heavy or light chain')
 
@@ -180,9 +180,9 @@ class Fab:
             # this means there is no information about the germline,
             # by default it will run a web query
             # this is a very lazy fix to to do a web query using a Chain object...
-            ChainCollection(antibody_objects=[self[1]]).imgt_server_query()
+            ChainCollection(antibody_objects=[self[1]]).igblast_server_query()
         if bool(self[0].germline_identity) is False:
-            ChainCollection(antibody_objects=[self[0]]).imgt_server_query()
+            ChainCollection(antibody_objects=[self[0]]).igblast_server_query()
 
         return germline_identity_pd(self._internal_heavy_name, self._internal_heavy_name,
                                     self[0].germline_identity, self[1].germline_identity,

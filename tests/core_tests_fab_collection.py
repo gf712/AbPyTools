@@ -72,25 +72,25 @@ class FabCollectionCore(unittest.TestCase):
         self.assertAlmostEqual(fab_collection.total_charge()[0], 3.3658691836339365)
 
     @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
-    def test_FabCollection_imgt_query_1(self):
+    def test_FabCollection_igblast_query_1(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
-        fab_collection.imgt_server_query()
+        fab_collection.igblast_server_query()
         self.assertAlmostEqual(fab_collection.germline_identity['Heavy', 'Total'].iloc[0], 93.8)
 
     @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
-    def test_FabCollection_imgt_query_1(self):
+    def test_FabCollection_igblast_query_1(self):
         # check germline assignment
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
-        fab_collection.imgt_server_query()
+        fab_collection.igblast_server_query()
         self.assertEqual(fab_collection.germline['Seq1 - LightSeq1']['Heavy'][0], 'IGHV1-8*01')
 
     @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
-    def test_FabCollection_imgt_query_1(self):
+    def test_FabCollection_igblast_query_1(self):
         # check germline assignment score
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
-        fab_collection.imgt_server_query()
+        fab_collection.igblast_server_query()
         self.assertEqual(fab_collection.germline['Seq1 - LightSeq1']['Heavy'][1], 1.82e-66)
 

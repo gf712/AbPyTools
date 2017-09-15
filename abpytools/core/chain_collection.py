@@ -220,10 +220,10 @@ class ChainCollection:
                         data[key_i] = antibody_dict
                     json.dump(data, f, indent=2)
 
-    def imgt_server_query(self, **kwargs):
+    def igblast_server_query(self, chunk_size=50, show_progressbar = True, **kwargs):
         """
         
-        :param kwargs: keyword arguments to pass to imgt_options
+        :param kwargs: keyword arguments to pass to igblast_options
         :return: 
         """
         # prepare raw data
@@ -443,11 +443,11 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
     return antibody_objects, chain
 
 
-def load_imgt_query(imgt_result, names):
+def load_igblast_query(igblast_result, names):
 
     """
     
-    :param imgt_result: 
+    :param igblast_result: 
     :return: 
     """
 
@@ -458,10 +458,10 @@ def load_imgt_query(imgt_result, names):
                           "pip install beautifulsoup4")
 
     # instantiate BeautifulSoup object to make life easier with the html text!
-    if isinstance(imgt_result, list):
-        soup = BeautifulSoup(''.join(imgt_result), "lxml")
+    if isinstance(igblast_result, list):
+        soup = BeautifulSoup(''.join(igblast_result), "lxml")
     else:
-        soup = BeautifulSoup(imgt_result, "lxml")
+        soup = BeautifulSoup(igblast_result, "lxml")
 
     # get the results found in <div id="content"> and return the text as a string
     results = soup.find(attrs={'id': "content"}).text
