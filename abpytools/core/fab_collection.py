@@ -22,8 +22,8 @@ class FabCollection:
         # check if fab object is a list and if all object are abpytools.Fab objects
         if isinstance(fab, list) and all(isinstance(fab_i, Fab) for fab_i in fab):
             self._fab = fab
-            self._light_chains = [x[0] for x in self._fab]
-            self._heavy_chains = [x[1] for x in self._fab]
+            self._light_chains = ChainCollection([x[0] for x in self._fab])
+            self._heavy_chains = ChainCollection([x[1] for x in self._fab])
 
         if fab is None and (heavy_chains is not None and light_chains is not None):
 
@@ -48,16 +48,19 @@ class FabCollection:
             if self._light_chains.n_ab != self._heavy_chains.n_ab:
                 raise ValueError('Number of heavy chains must be the same of light chains')
 
-            if isinstance(names, list):
-                if len(names) == self._heavy_chains.n_ab:
-                    self._names = names
-                else:
-                    raise ValueError(
-                        'Length of name list must be the same as length of heavy_chains/light chains lists')
+        if isinstance(names, list) and all(isinstance(name, str) for name in names):
+            if len(names) == self._heavy_chains.n_ab:
+                self._names = names
+            else:
+                raise ValueError(
+                    'Length of name list must be the same as length of heavy_chains/light chains lists')
 
-            if names is None:
-                self._names = ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names,
-                                                                                      self._light_chains.names)]
+        elif names is None:
+            self._names = ['{} - {}'.format(heavy, light) for heavy, light in zip(self._heavy_chains.names,
+                                                                                  self._light_chains.names)]
+
+        else:
+            raise ValueError("Names expected a list of strings, instead got {}".format(type(names)))
 
         self._n_ab = self._light_chains.n_ab
         self._pair_sequences = [heavy + light for heavy, light in zip(self._heavy_chains.sequences,
