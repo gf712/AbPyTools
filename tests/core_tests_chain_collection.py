@@ -244,7 +244,7 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertEqual(antibody_collection_1.numbering_table(as_array=False).shape, (1,158))
 
-    def test_ChainCollecction_numbering_table_region_pd(self):
+    def test_ChainCollection_numbering_table_region_pd(self):
         antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertEqual(

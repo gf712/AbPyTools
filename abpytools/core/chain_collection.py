@@ -228,9 +228,11 @@ class ChainCollection:
             data.index = self.names
             return data
 
-    def igblast_server_query(self, chunk_size=50, show_progressbar = True, **kwargs):
+    def igblast_server_query(self, chunk_size=50, show_progressbar=True, **kwargs):
         """
         
+        :param show_progressbar:
+        :param chunk_size:
         :param kwargs: keyword arguments to pass to igblast_options
         :return: 
         """
