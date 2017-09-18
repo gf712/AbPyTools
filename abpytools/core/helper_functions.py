@@ -1,6 +1,7 @@
 from ..utils import DataLoader
 import itertools
 import pandas as pd
+import numpy as np
 
 
 available_regions = ['FR1', 'CDR1', 'FR2', 'CDR2', 'FR3', 'CDR3', 'FR4']
@@ -79,14 +80,6 @@ def germline_identity_pd(heavy_identity, light_identity, names):
     average_columns = pd.MultiIndex.from_tuples([('Average', x) for x in l_germline_pd.columns],
                                                 names=['Chain', 'Region'])
 
-    # h = pd.DataFrame(index=h_germline_pd.index.tolist(),
-    #                  columns=l_columns)
-    # l = pd.DataFrame(index=l_germline_pd.index.tolist(),
-    #                  columns=h_columns)
-    #
-    # l = l.apply(lambda x: l_germline_pd.loc[x.name], axis=1)
-    # h = h.apply(lambda x: h_germline_pd.loc[x.name], axis=1)
-
     average = (h_germline_pd.as_matrix() + l_germline_pd.as_matrix()) / 2
 
     l_germline_pd.columns = l_columns
@@ -97,3 +90,40 @@ def germline_identity_pd(heavy_identity, light_identity, names):
     h_germline_pd.index = names
 
     return pd.concat([l_germline_pd, h_germline_pd, average], axis=1)
+
+
+def to_numbering_table(as_array, region, chain, heavy_chains_numbering_table,
+                       light_chains_numbering_table, names, **kwargs):
+
+    if chain == 'both':
+
+        if as_array:
+            t_heavy = heavy_chains_numbering_table(as_array=True, region=region, **kwargs)
+            t_light = light_chains_numbering_table(as_array=True, region=region, **kwargs)
+
+            data = np.concatenate((t_light, t_heavy), axis=1)
+
+        else:
+            t_heavy = heavy_chains_numbering_table(as_array=False, region=region, **kwargs)
+            t_light = light_chains_numbering_table(as_array=False, region=region, **kwargs)
+
+            t_heavy.reset_index(drop=True, inplace=True)
+            t_light.reset_index(drop=True, inplace=True)
+
+            data = pd.concat([t_light, t_heavy], axis=1, keys=['Light', 'Heavy'])
+
+    elif chain == 'heavy':
+
+        data = heavy_chains_numbering_table(as_array=as_array, region=region, **kwargs)
+
+    elif chain == 'light':
+
+        data = light_chains_numbering_table(as_array=as_array, region=region, **kwargs)
+
+    else:
+        raise ValueError("Unknown chain.")
+
+    if not as_array:
+        data.index = names
+
+    return data

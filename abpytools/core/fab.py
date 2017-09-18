@@ -1,9 +1,8 @@
 from .chain_collection import Chain, ChainCollection
 import numpy as np
-import pandas as pd
 from .chain import calculate_charge
 from abpytools.utils import DataLoader
-from .helper_functions import germline_identity_pd
+from .helper_functions import germline_identity_pd, to_numbering_table
 
 
 class Fab:
@@ -99,38 +98,10 @@ class Fab:
 
     def numbering_table(self, as_array=False, region='all', chain='both'):
 
-        if chain == 'both':
-
-            if as_array:
-                t_heavy = self[1].ab_numbering_table(as_array=True, region=region)
-                t_light = self[0].ab_numbering_table(as_array=True, region=region)
-
-                data = np.concatenate((t_light, t_heavy))
-
-            else:
-                t_heavy = self[1].ab_numbering_table(as_array=False, region=region)
-                t_light = self[0].ab_numbering_table(as_array=False, region=region)
-
-                t_heavy.reset_index(drop=True, inplace=True)
-                t_light.reset_index(drop=True, inplace=True)
-
-                data = pd.concat([t_light, t_heavy], axis=1, keys=['Light', 'Heavy'])
-
-        elif chain == 'heavy':
-
-            data = self[1].ab_numbering_table(as_array=as_array, region=region)
-
-        elif chain == 'light':
-
-            data = self[0].ab_numbering_table(as_array=as_array, region=region)
-
-        else:
-            raise ValueError("Unknown chain.")
-
-        if not as_array:
-            data.index = [self._name]
-
-        return data
+        return to_numbering_table(as_array=as_array, region=region, chain=chain,
+                                  heavy_chains_numbering_table=self._heavy_chain.ab_numbering_table,
+                                  light_chains_numbering_table=self._light_chain.ab_numbering_table,
+                                  names=[self.name])
 
     @property
     def name(self):
