@@ -131,7 +131,7 @@ class FabCore(unittest.TestCase):
 
     def test_Fab_numbering_table_6(self):
         fab = Fab(heavy_chain=self.heavy_chain, light_chain=self.light_chain, load=False)
-        self.assertEqual(fab.numbering_table(as_array=True, region='CDR3', chain='both')[25], 'L')
+        self.assertEqual(fab.numbering_table(as_array=True, region='CDR3', chain='both')[0][25], 'L')
 
     def test_Fab_numbering_table_exception(self):
         fab = Fab(heavy_chain=self.heavy_chain, light_chain=self.light_chain, load=False)

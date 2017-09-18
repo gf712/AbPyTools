@@ -208,7 +208,7 @@ class ChainCollection:
 
         region = numbering_table_region(region)
 
-        table = np.array(
+        table = np.row_stack(
             [x.ab_numbering_table(as_array=True, region=region) for x in self.antibody_objects])
 
         if as_array:

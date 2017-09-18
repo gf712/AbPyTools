@@ -129,7 +129,7 @@ class Chain:
 
         if as_array:
             # return the data as numpy.array -> much faster than creating a pandas.DataFrame
-            return data
+            return data.reshape(1, -1)
         else:
 
             # return the data as a pandas.DataFrame -> it's slower but looks nicer and makes it easier to get
@@ -262,7 +262,8 @@ class Chain:
         pka_data = data_loader.get_data()
 
         if align:
-            sequence = self.ab_numbering_table(as_array=True)
+            # get the first (and only) row
+            sequence = self.ab_numbering_table(as_array=True)[0]
         else:
             sequence = list(self.sequence)
 
@@ -371,7 +372,7 @@ def calculate_hydrophobicity_matrix(whole_sequence, numbering, aa_hydrophobicity
     #         hydrophobicity_matrix[i] = aa_hydrophobicity_scores[sequence[position_in_data]]
     #
     # return hydrophobicity_matrix
-    # same thing as above but in a list comprehension
+    # same thing as above but in a comprehension list
     return np.array([aa_hydrophobicity_scores[sequence[numbering.index(x)]] if x in numbering
                      else 0 for x in whole_sequence])
 
