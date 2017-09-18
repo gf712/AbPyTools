@@ -1,6 +1,5 @@
 import unittest
 from abpytools import FabCollection, ChainCollection, Fab
-from operator import itemgetter
 from urllib import request
 
 
@@ -172,3 +171,33 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection,
                                        names=['Fab1', 'Fab2'])
         self.assertAlmostEqual(fab_collection.germline_identity['Average']['CDR3'].loc['Fab1'], 78.55)
+
+    def test_FabCollection_slicing_1(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        self.assertIsInstance(fab_collection[0], Fab)
+
+    def test_FabCollection_slicing_2(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        self.assertEqual(fab_collection[0].name, 'Fab1')
+
+    def test_FabCollection_slicing_3(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        self.assertEqual(fab_collection[[0, 1]].names, ['Fab1', 'Fab2'])
+
+    def test_FabCollection_slicing_4(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        self.assertEqual(fab_collection[[0, 1]]._heavy_chains.names, ['Seq1', 'Seq2'])
+
+    def test_FabCollection_slicing_5(self):
+        fab_collection = FabCollection(light_chains=self.light_chain_collection,
+                                       heavy_chains=self.heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        self.assertEqual(fab_collection[[0, 1]]._light_chains.names, ['LightSeq1', 'LightSeq2'])
