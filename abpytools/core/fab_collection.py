@@ -13,7 +13,7 @@ class FabCollection:
 
     """
 
-    def __init__(self, fab=None, heavy_chains=None, light_chains=None, load=True, names=None):
+    def __init__(self, fab=None, heavy_chains=None, light_chains=None, names=None):
 
         # check if it's a Chain object
         if heavy_chains is None and light_chains is None and fab is None:
@@ -45,6 +45,12 @@ class FabCollection:
             else:
                 raise ValueError('Provide a list of Chain objects or an ChainCollection object')
 
+            if len(self._light_chains.loading_status()) == 0:
+                self._light_chains.load()
+
+            if len(self._heavy_chains.loading_status()) == 0:
+                self._heavy_chains.load()
+
             if self._light_chains.n_ab != self._heavy_chains.n_ab:
                 raise ValueError('Number of heavy chains must be the same of light chains')
 
@@ -63,7 +69,7 @@ class FabCollection:
             raise ValueError("Names expected a list of strings, instead got {}".format(type(names)))
 
         self._n_ab = self._light_chains.n_ab
-        self._pair_sequences = [heavy + light for heavy, light in zip(self._heavy_chains.sequences,
+        self._pair_sequences = [heavy + light for light, heavy in zip(self._heavy_chains.sequences,
                                                                       self._light_chains.sequences)]
 
         # keep the name of the heavy and light chains internally to keep everything in the right order
@@ -189,7 +195,7 @@ class FabCollection:
         else:
             return FabCollection(heavy_chains=list(itemgetter(*indices)(self._heavy_chains)),
                                  light_chains=list(itemgetter(*indices)(self._light_chains)),
-                                 names=list(itemgetter(*indices)(self._names)), load=False)
+                                 names=list(itemgetter(*indices)(self._names)))
         # if isinstance(indices, int):
         #     indices = [indices]
         #

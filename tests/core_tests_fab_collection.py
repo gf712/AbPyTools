@@ -77,6 +77,14 @@ class FabCollectionCore(unittest.TestCase):
                                             light_chains=[self.light_chain_1, self.light_chain_2]),
                               FabCollection)
 
+    def test_FabCollection_input4(self):
+        light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        fab_collection = FabCollection(light_chains=light_chain_collection,
+                                       heavy_chains=heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        self.assertEqual(fab_collection.numbering_table()['Light']['CDR3']['L89'].loc['Fab1'], 'Q')
+
     def test_FabCollection_MW(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
