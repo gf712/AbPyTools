@@ -55,11 +55,11 @@ class FabCollectionCore(unittest.TestCase):
 
     def test_FabCollection_input_exception_7(self):
         # instantiation of FabCollection checks if there are as many names as fabs
-        self.assertRaises(ValueError, FabCollection, [self.fab_1], None, None, True, ['foo', 'bar'])
+        self.assertRaises(ValueError, FabCollection, [self.fab_1], None, None, ['foo', 'bar'])
 
     def test_FabCollection_input_exception_8(self):
         # instantiation of FabCollection checks if names is a list of strings
-        self.assertRaises(ValueError, FabCollection, [self.fab_1], None, None, True, [1])
+        self.assertRaises(ValueError, FabCollection, [self.fab_1], None, None, [1])
 
     def test_FabCollection_input_1(self):
         self.assertIsInstance(FabCollection(light_chains=self.light_chain_collection,

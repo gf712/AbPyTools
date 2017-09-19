@@ -250,8 +250,7 @@ class ChainCollection:
             for query in query_list:
                 self._igblast_server_query(query, **kwargs)
 
-    @staticmethod
-    def _igblast_server_query(query, **kwargs):
+    def _igblast_server_query(self, query, **kwargs):
 
         # prepare raw data
         fasta_query = make_fasta(names=query.names, sequences=query.sequences)
@@ -268,13 +267,8 @@ class ChainCollection:
             raise ValueError("Check the internet connection.")
 
         igblast_result = q.html
-        igblast_result_dict = load_igblast_query(igblast_result, query.names)
 
-        # unpack results
-        for name in query.names:
-            obj_i = query.get_object(name=name)
-            obj_i.germline = igblast_result_dict[name][1]
-            obj_i.germline_identity = igblast_result_dict[name][0]
+        self._parse_igblast_query(igblast_result)
 
     def igblast_local_query(self, file_path):
 
@@ -282,15 +276,7 @@ class ChainCollection:
         with open(file_path, 'r') as f:
             igblast_result = f.readlines()
 
-        igblast_result_dict = load_igblast_query(igblast_result, self.names)
-
-        # unpack results
-        for name in self.names:
-            obj_i = self.get_object(name=name)
-            obj_i.germline = igblast_result_dict[name][1]
-            obj_i.germline_identity = igblast_result_dict[name][0]
-
-        del igblast_result_dict
+        self._parse_igblast_query(igblast_result)
 
     def append(self, antibody_obj):
 
@@ -418,6 +404,19 @@ class ChainCollection:
 
         else:
             yield self
+
+    def _parse_igblast_query(self, igblast_result):
+
+        igblast_result_dict = load_igblast_query(igblast_result, self.names)
+
+        # unpack results
+        for name in self.names:
+            obj_i = self.get_object(name=name)
+            obj_i.germline = igblast_result_dict[name][1]
+            obj_i.germline_identity = igblast_result_dict[name][0]
+
+    def loading_status(self):
+        return [x.status for x in self.antibody_objects]
 
 
 def load_antibody_object(antibody_object):
