@@ -28,11 +28,6 @@ class Fab:
         else:
             raise ValueError('light_chain must be a Chain object, but got {} instead'.format(type(light_chain)))
 
-        # load data
-        if load:
-            self._heavy_chain.load()
-            self._light_chain.load()
-
         if self._heavy_chain.chain != 'heavy':
             raise ValueError("heavy_chain is not a heavy chain, it is {}".format(self._heavy_chain.chain))
         if self._light_chain.chain != 'light':
@@ -49,6 +44,10 @@ class Fab:
         # keep the name of the heavy and light chains internally to keep everything in the right order
         self._internal_heavy_name = self[1].name
         self._internal_light_name = self[0].name
+
+    def load(self):
+        self._heavy_chain.load()
+        self._light_chain.load()
 
     def molecular_weight(self, monoisotopic=False):
 
