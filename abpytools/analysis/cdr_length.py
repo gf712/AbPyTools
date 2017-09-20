@@ -3,7 +3,7 @@ import seaborn as sns
 from abpytools import ChainCollection
 import os
 from abpytools.utils import PythonConfig
-from abpytools.features.cdr import CDR
+from abpytools.features.regions import ChainRegions
 
 
 class CDRLength:
@@ -37,8 +37,8 @@ class CDRLength:
             self.antibody_collection = ChainCollection(path=self._path)
             self.antibody_collection.load()
 
-        cdrs = CDR(antibodies=self.antibody_collection)
-        cdr_lengths = cdrs.cdr_length()
+        cdrs = ChainRegions(antibody_objects=self.antibody_collection)
+        cdr_lengths = cdrs.cdr_lengths()
 
         if only_cdr3:
             plt.title('CDR3 Length', size=18)
