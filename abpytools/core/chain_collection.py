@@ -81,12 +81,12 @@ class ChainCollection(CollectionBase):
                 self._chain = antibody_objects[0].chain
             else:
                 self._chain = ''
-                self._path = path
                 self._numbering_scheme = numbering_scheme
         else:
             self._chain = ''
-            self._path = path
             self._numbering_scheme = numbering_scheme
+
+        self._path = path
 
     def load(self, n_jobs=-1, verbose=True, show_progressbar=True, **kwargs):
 
