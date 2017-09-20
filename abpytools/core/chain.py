@@ -4,6 +4,7 @@ from ..utils import DataLoader, Download
 import logging
 import pandas as pd
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
+from .cache import Cache
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -34,6 +35,7 @@ class Chain:
         self._loading_status = 'Not Loaded'
         self.germline_identity = dict()
         self.germline = tuple()
+        self._cache = Cache(max_cache_size=10)
 
     def load(self):
         """
@@ -183,20 +185,26 @@ class Chain:
         :return:
         """
 
-        if self._loading_status == 'Not Loaded':
-            self.numbering, self._chain = self.ab_numbering()
+        if 'cdrs' not in self._cache:
 
-        if self.numbering == 'NA':
-            raise ValueError("Cannot return CDR positions without the antibody numbering information")
+            if self._loading_status == 'Not Loaded':
+                self.numbering, self._chain = self.ab_numbering()
 
-        data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self._chain])
-        cdr_positions = data_loader.get_data()
+            if self.numbering == 'NA':
+                raise ValueError("Cannot return CDR positions without the antibody numbering information")
 
-        data_loader = DataLoader(data_type='Framework_positions', data=[self._numbering_scheme, self._chain])
-        framework_position = data_loader.get_data()
+            data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self._chain])
+            cdr_positions = data_loader.get_data()
 
-        return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
-                             framework_positions=framework_position)
+            data_loader = DataLoader(data_type='Framework_positions', data=[self._numbering_scheme, self._chain])
+            framework_position = data_loader.get_data()
+
+            cdrs = calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
+                                 framework_positions=framework_position)
+
+            self._cache.update('cdrs', cdrs)
+
+        return self._cache['cdrs']
 
     def ab_molecular_weight(self, monoisotopic=False):
 
