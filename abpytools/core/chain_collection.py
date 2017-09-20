@@ -11,6 +11,7 @@ from .helper_functions import numbering_table_sequences, numbering_table_region,
 from operator import itemgetter
 from urllib import parse
 from math import ceil
+from .base import CollectionBase
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -23,7 +24,7 @@ else:
     from tqdm import tqdm
 
 
-class ChainCollection:
+class ChainCollection(CollectionBase):
     """
     Object containing Chain objects and to perform analysis on the ensemble.
 

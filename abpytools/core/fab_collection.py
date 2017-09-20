@@ -6,9 +6,10 @@ from abpytools.utils import DataLoader
 from operator import itemgetter
 from .fab import Fab
 from .helper_functions import germline_identity_pd, to_numbering_table
+from .base import CollectionBase
 
 
-class FabCollection:
+class FabCollection(CollectionBase):
     """
 
     """
@@ -81,13 +82,13 @@ class FabCollection:
     # in all the methods
     # in essence the abpytools.Fab object is just a representative building block that could in future just
     # cache data and would then represent a speed up in the calculations
-    def molecular_weight(self, monoisotopic=False):
+    def molecular_weights(self, monoisotopic=False):
 
         return [heavy + light for heavy, light in zip(self._heavy_chains.molecular_weights(monoisotopic=monoisotopic),
                                                       self._light_chains.molecular_weights(monoisotopic=monoisotopic))]
 
-    def extinction_coefficient(self, extinction_coefficient_database='Standard', reduced=False, normalise=False,
-                               **kwargs):
+    def extinction_coefficients(self, extinction_coefficient_database='Standard', reduced=False, normalise=False,
+                                **kwargs):
 
         heavy_ec = self._heavy_chains.extinction_coefficients(
             extinction_coefficient_database=extinction_coefficient_database,
@@ -98,7 +99,7 @@ class FabCollection:
 
         if normalise:
             return [(heavy + light) / mw for heavy, light, mw in
-                    zip(heavy_ec, light_ec, self.molecular_weight(**kwargs))]
+                    zip(heavy_ec, light_ec, self.molecular_weights(**kwargs))]
         else:
             return [heavy + light for heavy, light in zip(heavy_ec, light_ec)]
 
@@ -163,6 +164,14 @@ class FabCollection:
         df = df.convert_objects(convert_numeric=True)
 
         return df
+
+    def save(self):
+        # TODO
+        pass
+
+    def load(self):
+        # TODO
+        pass
 
     @property
     def regions(self):
