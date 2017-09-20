@@ -156,4 +156,6 @@ class Fab:
 
         return germline_identity_pd({self._internal_heavy_name: self[0].germline_identity},
                                     {self._internal_light_name: self[1].germline_identity},
+                                    [self._internal_heavy_name],
+                                    [self._internal_light_name],
                                     [self._name])

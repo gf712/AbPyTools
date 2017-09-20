@@ -70,26 +70,33 @@ def numbering_table_multiindex(region, whole_sequence_dict):
     return multi_index
 
 
-def germline_identity_pd(heavy_identity, light_identity, names):
+def germline_identity_pd(heavy_identity, light_identity, internal_heavy, internal_light, names):
 
-    h_germline_pd = pd.DataFrame(heavy_identity).T
-    l_germline_pd = pd.DataFrame(light_identity).T
+    regions = ['CDR1', 'CDR2', 'CDR3', 'FR1', 'FR2', 'FR3', 'Total']
 
-    l_columns = pd.MultiIndex.from_tuples([('Light', x) for x in l_germline_pd.columns], names=['Chain', 'Region'])
-    h_columns = pd.MultiIndex.from_tuples([('Heavy', x) for x in h_germline_pd.columns], names=['Chain', 'Region'])
-    average_columns = pd.MultiIndex.from_tuples([('Average', x) for x in l_germline_pd.columns],
-                                                names=['Chain', 'Region'])
+    columns = pd.MultiIndex.from_tuples([('Light', x) for x in regions] +
+                                        [('Heavy', x) for x in regions] +
+                                        [('Average', x) for x in regions],
+                                        names=['Chain', 'Region'])
 
-    average = (h_germline_pd.as_matrix() + l_germline_pd.as_matrix()) / 2
+    df = pd.DataFrame(columns=columns, index=names)
 
-    l_germline_pd.columns = l_columns
-    h_germline_pd.columns = h_columns
-    average = pd.DataFrame(average, columns=average_columns, index=names)
+    for column in columns:
 
-    l_germline_pd.index = names
-    h_germline_pd.index = names
+        if column[0] == 'Light':
+            df[column] = [light_identity[x][column[1]] if column[1] in light_identity[x] else np.NaN
+                          for x in internal_light]
+            # df[column] = list(map(lambda x: light_identity[x][column[1]] if column[1] in light_identity[x] else np.NaN,
+            #                       internal_light))
+        elif column[0] == 'Heavy':
+            df[column] = [heavy_identity[x][column[1]] if column[1] in heavy_identity[x] else np.NaN
+                          for x in internal_heavy]
+            # df[column] = list(map(lambda x: heavy_identity[x][column[1]] if column[1] in heavy_identity[x] else np.NaN,
+            #                       internal_heavy))
+        else:
+            df[column] = (df[('Light', column[1])] + df[('Heavy', column[1])]) / 2
 
-    return pd.concat([l_germline_pd, h_germline_pd, average], axis=1)
+    return df
 
 
 def to_numbering_table(as_array, region, chain, heavy_chains_numbering_table,
