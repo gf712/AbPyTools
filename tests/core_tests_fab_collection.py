@@ -141,17 +141,19 @@ class FabCollectionCore(unittest.TestCase):
     def test_FabCollection_igblast_query_1(self):
         # check germline assignment
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
-                                       heavy_chains=self.heavy_chain_collection)
+                                       heavy_chains=self.heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
         fab_collection.igblast_server_query()
-        self.assertEqual(fab_collection.germline['Seq1 - LightSeq1']['Heavy'][0], 'IGHV1-8*01')
+        self.assertEqual(fab_collection.germline['Heavy', 'Assignment']['Fab1'], 'IGHV1-8*01')
 
     @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         # check germline assignment score
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
-                                       heavy_chains=self.heavy_chain_collection)
+                                       heavy_chains=self.heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
         fab_collection.igblast_server_query()
-        self.assertEqual(fab_collection.germline['Seq1 - LightSeq1']['Heavy'][1], 1.82e-66)
+        self.assertAlmostEqual(fab_collection.germline['Heavy', 'Score'].loc['Fab1'], 1.82e-66)
 
     def test_FabCollection_HMatrix(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
