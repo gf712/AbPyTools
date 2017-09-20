@@ -143,6 +143,27 @@ class FabCollection:
                                   light_chains_numbering_table=self._light_chains.numbering_table,
                                   names=self.names, **kwargs)
 
+    def _germline_pd(self):
+
+        heavy_chain_germlines = self._heavy_chains.germline
+        light_chain_germlines = self._light_chains.germline
+
+        data = np.array([[heavy_chain_germlines[x][0] for x in self._internal_heavy_name],
+                         [heavy_chain_germlines[x][1] for x in self._internal_heavy_name],
+                         [light_chain_germlines[x][0] for x in self._internal_light_name],
+                         [light_chain_germlines[x][1] for x in self._internal_light_name]]).T
+
+        df = pd.DataFrame(data=data,
+                          columns=pd.MultiIndex.from_tuples([('Heavy', 'Assignment'),
+                                                             ('Heavy', 'Score'),
+                                                             ('Light', 'Assignment'),
+                                                             ('Light', 'Score')]),
+                          index=self.names)
+
+        df = df.convert_objects(convert_numeric=True)
+
+        return df
+
     @property
     def regions(self):
         heavy_regions = self._heavy_chains.ab_region_index()
@@ -169,14 +190,7 @@ class FabCollection:
 
     @property
     def germline(self):
-
-        heavy_germline = self._heavy_chains.germline
-        light_germline = self._light_chains.germline
-
-        return {name_i: {"Heavy": heavy_germline[heavy_i],
-                         "Light": light_germline[light_i]} for name_i, heavy_i,
-                                                               light_i in zip(self._names, self._internal_heavy_name,
-                                                                              self._internal_light_name)}
+        return self._germline_pd()
 
     def _string_summary_basic(self):
         return "abpytools.FabCollection Number of sequences: {}".format(self._n_ab)
@@ -213,5 +227,8 @@ class FabCollection:
         if all([x for x in self._heavy_chains.germline_identity.values()]) is False:
             self._heavy_chains.igblast_server_query()
 
-        return germline_identity_pd(self._heavy_chains.germline_identity, self._light_chains.germline_identity,
+        return germline_identity_pd(self._heavy_chains.germline_identity,
+                                    self._light_chains.germline_identity,
+                                    self._internal_heavy_name,
+                                    self._internal_light_name,
                                     self._names)
