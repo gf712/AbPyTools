@@ -1,5 +1,9 @@
 from setuptools import setup
 
+about = {}
+with open('./abpytools/__about__.py', 'r') as f:
+    exec(f.read(), about)
+
 setup(
     name='AbPyTools',
     classifiers=['Development Status :: 2 - Pre-Alpha',
@@ -9,7 +13,7 @@ setup(
                  'Programming Language :: Python :: 3 :: Only',
                  'Topic :: Scientific/Engineering :: Bio-Informatics'],
     keywords='antibody-analysis bioinformatics data-processing',
-    version='0.1.1',
+    version=about['__version__'],
     package_dir={'abpytools': 'abpytools'},
     packages=['abpytools',
               'abpytools.utils',
@@ -18,9 +22,9 @@ setup(
               'abpytools.features'],
     package_data={'abpytools': ['data/*.json']},
     url='https://github.com/gf712/AbPyTools',
-    license='MIT',
-    author='Gil Ferreira Hoben',
-    author_email='gil.hoben.16@ucl.ac.uk',
+    license=about['__license__'],
+    author=about['__author__'],
+    author_email=about['__author_email__'],
     description='Python package for antibody analysis',
     install_requires=['numpy',
                       'joblib',
