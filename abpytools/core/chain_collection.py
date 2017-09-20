@@ -268,7 +268,7 @@ class ChainCollection:
 
         igblast_result = q.html
 
-        self._parse_igblast_query(igblast_result)
+        self._parse_igblast_query(igblast_result, query.names)
 
     def igblast_local_query(self, file_path):
 
@@ -276,7 +276,7 @@ class ChainCollection:
         with open(file_path, 'r') as f:
             igblast_result = f.readlines()
 
-        self._parse_igblast_query(igblast_result)
+        self._parse_igblast_query(igblast_result, self.names)
 
     def append(self, antibody_obj):
 
@@ -405,12 +405,12 @@ class ChainCollection:
         else:
             yield self
 
-    def _parse_igblast_query(self, igblast_result):
+    def _parse_igblast_query(self, igblast_result, names):
 
-        igblast_result_dict = load_igblast_query(igblast_result, self.names)
+        igblast_result_dict = load_igblast_query(igblast_result, names)
 
         # unpack results
-        for name in self.names:
+        for name in names:
             obj_i = self.get_object(name=name)
             obj_i.germline = igblast_result_dict[name][1]
             obj_i.germline_identity = igblast_result_dict[name][0]
