@@ -15,17 +15,22 @@ class Cache:
                              "remove items from cache or allow override")
 
         if key not in self:
-            self.cache[key] = data
-            self._cache_keys.append(key)
+            self.add(key, data)
 
     def _clear_cache(self):
         while self._cache_size >= self.max_cache_size:
             # clear up cache until reaching max_cache_size - 1
-            self.remove_key(self._cache_keys[0])
+            self.remove(self._cache_keys[0])
 
-    def remove_key(self, key):
+    def remove(self, key):
         self.cache.pop(key)
-        self._cache_keys = self._cache_keys.pop(self._cache_keys.index(key))
+        self._cache_keys.pop(self._cache_keys.index(key))
+        self._cache_size -= 1
+
+    def add(self, key, data):
+        self.cache[key] = data
+        self._cache_keys.append(key)
+        self._cache_size += 1
 
     def empty_cache(self):
         self.cache = {}
@@ -40,3 +45,6 @@ class Cache:
             return True
         else:
             return False
+
+    def __len__(self):
+        return self._cache_size
