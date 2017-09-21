@@ -1,5 +1,5 @@
 from abpytools import ChainCollection
-from abpytools.features.regions import ChainRegions
+from abpytools.features.regions import ChainDomains
 from collections import Counter
 import numpy as np
 from matplotlib import pyplot as plt
@@ -50,7 +50,7 @@ class AminoAcidFreq:
         if region in regions:
             # get the sequence for the specified region
             self.region = region
-            self._region_assignment = ChainRegions(antibody_objects=self._antibodies)
+            self._region_assignment = ChainDomains(antibody_objects=self._antibodies)
 
             if self.region.startswith('CDR'):
                 self._sequences = [x[self.region] for x in self._region_assignment.cdr_sequences()]
