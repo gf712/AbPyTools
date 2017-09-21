@@ -10,17 +10,14 @@ class CDRLength(ChainDomains):
 
     def __init__(self, path=None, antibody_objects=None, load=True):
 
-        super().__init__(path=path, antibody_objects=antibody_objects)
-        if load:
-            self.load()
+        super().__init__(path=path, antibody_objects=antibody_objects, load=load)
 
     def plot_cdr(self, only_cdr3=True, save=False, plot_path='./', plot_name='CDR_length',
                  plot_title=None, hist=True, ax=None, **kwargs):
 
         ipython_config = PythonConfig()
-        ipython_config.get_ipython_info()
-        if ipython_config.backend == 'notebook' and save is False:
-            if plt.isinteractive() is False:
+        if ipython_config.ipython_info == 'notebook' and save is False:
+            if ipython_config.matplotlib_interactive is False:
                 # turns on interactive mode
                 plt.ion()
 
@@ -61,8 +58,8 @@ class CDRLength(ChainDomains):
             plt.tight_layout()
             plt.subplots_adjust(top=0.85)
 
-        if ipython_config.backend == 'notebook' and save is False:
+        if ipython_config.ipython_info == 'notebook' and save is False:
             plt.plot()
         else:
-            plt.savefig(os.path.join(plot_path, plot_name))
+            plt.savefig(os.path.join(plot_path, plot_name), format='png')
             plt.close()

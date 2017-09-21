@@ -1,15 +1,22 @@
 import sys
+from matplotlib import pyplot as plt
 
 
 class PythonConfig:
     def __init__(self):
-        self.backend = None
+        self._backend = get_ipython_info()
+        self._matplotlib_interactive = plt.isinteractive()
 
-    def get_ipython_info(self):
-        self.backend = ipython_info()
+    @property
+    def ipython_info(self):
+        return self._backend
+
+    @property
+    def matplotlib_interactive(self):
+        return self._matplotlib_interactive
 
 
-def ipython_info():
+def get_ipython_info():
     # code obtained from stackoverflow forum:
     # http://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook
     ip = 'other'
