@@ -46,7 +46,7 @@ class ChainDomains(ChainCollection):
         return cdr_sequences
 
     def framework_length(self):
-        framework_length_matrix = np.zeros((self.n_ab, 4))
+        framework_length_matrix = np.zeros((self.n_ab, 4), dtype=np.int)
         fr_sequences = self.framework_sequences()
         for m, antibody in enumerate(self.antibody_objects):
             for n, framework in enumerate(['FR1', 'FR2', 'FR3', 'FR4']):
