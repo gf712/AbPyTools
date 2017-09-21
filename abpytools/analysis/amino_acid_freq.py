@@ -1,10 +1,9 @@
-from abpytools import ChainCollection
 from abpytools.features.regions import ChainDomains
 from collections import Counter
 import numpy as np
 from matplotlib import pyplot as plt
 from abpytools.utils.data_loader import DataLoader
-from os import path
+import os
 from abpytools.utils import PythonConfig
 
 amino_acid_index = {"R": 0,
@@ -29,40 +28,27 @@ amino_acid_index = {"R": 0,
                     "Y": 19}
 
 
-class AminoAcidFreq:
+class AminoAcidFreq(ChainDomains):
 
-    def __init__(self, antibodies, region='CDR3'):
-
-        # expect a string which is a path to a FASTA file
-        if isinstance(antibodies, str):
-            self._antibodies = ChainCollection(path=antibodies)
-            self._antibodies.load()
-
-        # can also be a ChainCollection object
-        elif isinstance(antibodies, ChainCollection):
-            self._antibodies = antibodies
-            # check if ChainCollection has been loaded (should have n_ab > 0)
-            # TODO come up with a more elegant way to check if .load() method has been called
-            if self._antibodies.n_ab == 0:
-                self._antibodies.load()
+    def __init__(self, antibody_objects=None, path=None, region='CDR3'):
+        super(AminoAcidFreq, self).__init__(antibody_objects=antibody_objects, path=path)
 
         regions = ['all', 'CDRs', 'FRs', 'FR1', 'FR2', 'FR3', 'FR4', 'CDR1', 'CDR2', 'CDR3']
         if region in regions:
             # get the sequence for the specified region
             self.region = region
-            self._region_assignment = ChainDomains(antibody_objects=self._antibodies)
 
             if self.region.startswith('CDR'):
-                self._sequences = [x[self.region] for x in self._region_assignment.cdr_sequences()]
-                data_loader = DataLoader(data_type='CDR_positions', data=['chothia', self._antibodies.chain])
+                self._sequences = [self.cdr_sequences()[name][self.region] for name in self.names]
+                data_loader = DataLoader(data_type='CDR_positions', data=['chothia', self.chain])
                 self._numbering = data_loader.get_data()[self.region]
 
             elif self.region.startswith('FR'):
-                self._sequences = [x[self.region] for x in self._region_assignment.framework_sequences()]
+                self._sequences = [self.framework_sequences()[name][self.region] for name in self.names]
 
             # TODO: implement 'all'
             elif self.region == 'all':
-                self._sequences = [x.sequence for x in self._antibodies]
+                raise NotImplemented("This is not the code you're looking for.")
         else:
             raise ValueError('Parameter region must be either: {}. Not {}'.format(' ,'.join(regions), region))
 
@@ -127,6 +113,10 @@ class AminoAcidFreq:
     def plot(self, sort_by='name', normalize=True, display_count=True, plot_path='./',
              plot_name='AminoAcidFrequency.png', notebook_plot=True):
 
+        ipython_config = PythonConfig()
+        if ipython_config.matplotlib_interactive is False and ipython_config.ipython_info == 'notebook':
+            plt.ion()
+
         if sort_by not in ['name', 'hydropathy', 'charge']:
             raise ValueError("Argument for sort_by not valid. Valid arguments are name, hydrophobicity and charge")
 
@@ -144,12 +134,13 @@ class AminoAcidFreq:
             colors = ["#023fa5", "#7d87b9", "#bec1d4", "#d6bcc0", "#bb7784", "#8e063b", "#4a6fe3", "#8595e1",
                       "#b5bbe3", "#e6afb9", "#e07b91", "#d33f6a", "#11c638", "#8dd593", "#c6dec7", "#ead3c6",
                       "#f0b98d", "#ef9708", "#0fcfc0", "#9cded6"]
+
             if sort_by == 'name':
                 ax.set_title(self.region + ' amino acids', size=20)
                 for i, amino_acid in enumerate(sorted(amino_acid_index.keys())):
                     c = colors[i]
                     ax.bar(position, aa[amino_acid_index[amino_acid], position], bottom=previous,
-                           label=amino_acid, color=c)
+                           label=amino_acid, color=c, align='center')
                     previous += aa[amino_acid_index[amino_acid], position]
                 lgd = ax.legend(sorted(amino_acid_index.keys()), loc='center left', bbox_to_anchor=(1, 0.5),
                                 prop={"size": 16})
@@ -159,7 +150,7 @@ class AminoAcidFreq:
                 ax.set_title(self.region + ' amino acid hydropathy', size=20)
                 for i, prop_i in enumerate(['Hydrophilic', 'Moderate', 'Hydrophobic']):
                     c = colors[i]
-                    ax.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c)
+                    ax.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c, align='center')
                     previous += hyd[i, position]
                 lgd = ax.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5),
                                 prop={"size": 16})
@@ -169,63 +160,31 @@ class AminoAcidFreq:
                 ax.set_title(self.region + ' amino acid charge', size=20)
                 for i, prop_i in enumerate(['Negative', 'Positive', 'Neutral']):
                     c = colors[i]
-                    ax.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c)
+                    ax.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c, align='center')
                     previous += chg[i, position]
                 lgd = ax.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
                                 prop={"size": 16})
 
         if display_count:
-
-            if self._aa_count.sum(0).max() < 99:
-
-                # so that the text is always at the same distance of the bar
-                if aa.max() > 1:
-                    shift = aa.max() * 0.05
-                else:
-                    shift = 0.02
-
-                for position in range(aa.shape[1]):
-                    if self._aa_count[:, position].sum() > 9:
-                        ax.text(x=position, y=aa[:, position].sum()+2*shift,
-                                s=str(int(self._aa_count[:, position].sum())), rotation=45)
-                    else:
-                        ax.text(x=position, y=aa[:, position].sum()+shift,
-                                s=str(int(self._aa_count[:, position].sum())), rotation=45)
-
-            else:
-
-                if aa.max() > 1:
-                    shift = aa.max() * 0.075
-                else:
-                    shift = 0.02
-
-                for position in range(aa.shape[1]):
-                    if self._aa_count[:, position].sum() < 99:
-                        ax.text(x=position-0.2, y=aa[:, position].sum() + shift, rotation=45,
-                                s=str(int(self._aa_count[:, position].sum())))
-                    elif 99 < self._aa_count[:, position].sum() < 999:
-                        ax.text(x=position-0.2, y=aa[:, position].sum() + 2 * shift, rotation=45,
-                                s=str(int(self._aa_count[:, position].sum())))
-                    else:
-                        ax.text(x=position-0.2, y=aa[:, position].sum() + 4 * shift, rotation=45,
-                                s=str(int(self._aa_count[:, position].sum())))
+            for position in range(aa.shape[1]):
+                ax.text(x=position, y=aa[:, position].sum(),
+                        s=str(int(self._aa_count[:, position].sum())),
+                        rotation=45, ha='center', va='bottom')
 
         if normalize:
             ax.set_ylabel('Frequency', size=16)
         else:
             ax.set_ylabel('Count', size=16)
 
-        ax.set_xticks(np.arange(len(self._numbering)) + 0.3)
+        ax.set_xticks(np.arange(len(self._numbering)))
         ax.set_xticklabels(self._numbering, rotation=60)
         ax.set_xlabel('Position', size=16)
         ax.set_ylim([0, aa.sum(0).max()*1.1])
         ax.margins(0.02)
         ax.grid(axis='x')
 
-        ipython_config = PythonConfig()
-        ipython_config.get_ipython_info()
-        if ipython_config.backend == 'notebook' and notebook_plot:
+        if ipython_config.ipython_info == 'notebook' and notebook_plot:
             ax.plot()
         else:
-            fig.savefig(path.join(plot_path, plot_name), bbox_extra_artists=(lgd,), bbox_inches='tight')
+            fig.savefig(os.path.join(plot_path, plot_name), bbox_extra_artists=(lgd,), bbox_inches='tight')
             plt.close(fig)
