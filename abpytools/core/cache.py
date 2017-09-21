@@ -7,10 +7,10 @@ class Cache:
 
     def update(self, key, data, override=True):
         # make space if the cache is full and override is True
-        if self._cache_size >= self.max_cache_size and override:
+        if len(self) >= self.max_cache_size and override:
             self._clear_cache()
 
-        if self._cache_size >= self.max_cache_size and not override:
+        if len(self) >= self.max_cache_size and not override:
             raise ValueError("Cache is full, either increase the size of cache, "
                              "remove items from cache or allow override")
 
@@ -18,7 +18,7 @@ class Cache:
             self.add(key, data)
 
     def _clear_cache(self):
-        while self._cache_size >= self.max_cache_size:
+        while len(self) >= self.max_cache_size:
             # clear up cache until reaching max_cache_size - 1
             self.remove(self._cache_keys[0])
 
@@ -37,6 +37,9 @@ class Cache:
         self._cache_keys = []
         self._cache_size = 0
 
+    def _string_summary_basic(self):
+        return "abpytools.Cache size: {}".format(len(self))
+
     def __getitem__(self, item):
         return self.cache[item]
 
@@ -48,3 +51,6 @@ class Cache:
 
     def __len__(self):
         return self._cache_size
+
+    def __repr__(self):
+        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
