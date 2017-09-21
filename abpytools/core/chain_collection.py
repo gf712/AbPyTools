@@ -53,7 +53,9 @@ class ChainCollection(CollectionBase):
         if antibody_objects is None:
             antibody_objects = []
 
-        if not isinstance(antibody_objects, list):
+        if isinstance(antibody_objects, ChainCollection):
+            antibody_objects = antibody_objects.antibody_objects
+        elif not isinstance(antibody_objects, list):
             raise ValueError("Expected a list, instead got object of type {}".format(type(antibody_objects)))
 
         elif not all(isinstance(obj, Chain) for obj in antibody_objects) and len(antibody_objects) > 0:
