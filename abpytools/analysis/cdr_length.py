@@ -2,11 +2,11 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import os
 from abpytools.utils import PythonConfig
-from abpytools.features.regions import ChainRegions
+from abpytools.features.regions import ChainDomains
 from matplotlib.ticker import MaxNLocator
 
 
-class CDRLength(ChainRegions):
+class CDRLength(ChainDomains):
 
     def __init__(self, path=None, antibody_objects=None, load=True):
 

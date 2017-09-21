@@ -2,7 +2,7 @@ from abpytools import ChainCollection
 import numpy as np
 
 
-class ChainRegions(ChainCollection):
+class ChainDomains(ChainCollection):
 
     def __init__(self, antibody_objects=None, path=None, load=True, verbose=True, show_progressbar=True, n_jobs=-1):
         # expect a string which is a path to a FASTA file
@@ -16,7 +16,7 @@ class ChainRegions(ChainCollection):
         :return: m by n matrix with CDR lengths, where m is the number of antibodies in ChainCollection and n is
         three, corresponding to the three CDRs.
         """
-        cdr_length_matrix = np.zeros((self.n_ab, 3))
+        cdr_length_matrix = np.zeros((self.n_ab, 3), dtype=np.int)
         cdr_sequences = self.cdr_sequences()
 
         for m, antibody in enumerate(self.antibody_objects):
