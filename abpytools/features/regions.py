@@ -1,5 +1,6 @@
 from abpytools import ChainCollection
 import numpy as np
+from abpytools.core import Cache
 
 
 class ChainDomains(ChainCollection):
@@ -10,20 +11,27 @@ class ChainDomains(ChainCollection):
         if load:
             self.load(verbose=verbose, show_progressbar=show_progressbar, n_jobs=n_jobs)
 
+        self._cache = Cache(max_cache_size=5)
+
     def cdr_lengths(self):
         """
         method to obtain cdr_lengths
         :return: m by n matrix with CDR lengths, where m is the number of antibodies in ChainCollection and n is
         three, corresponding to the three CDRs.
         """
-        cdr_length_matrix = np.zeros((self.n_ab, 3), dtype=np.int)
-        cdr_sequences = self.cdr_sequences()
 
-        for m, antibody in enumerate(self.antibody_objects):
-            for n, cdr in enumerate(['CDR1', 'CDR2', 'CDR3']):
-                cdr_length_matrix[m, n] = len(cdr_sequences[antibody.name][cdr])
+        if 'cdr_lengths' not in self._cache:
 
-        return cdr_length_matrix
+            cdr_length_matrix = np.zeros((self.n_ab, 3), dtype=np.int)
+            cdr_sequences = self.cdr_sequences()
+
+            for m, antibody in enumerate(self.antibody_objects):
+                for n, cdr in enumerate(['CDR1', 'CDR2', 'CDR3']):
+                    cdr_length_matrix[m, n] = len(cdr_sequences[antibody.name][cdr])
+
+            self._cache.update(key='cdr_lengths', data=cdr_length_matrix)
+
+        return self._cache['cdr_lengths']
 
     def cdr_sequences(self):
         """
@@ -31,19 +39,24 @@ class ChainDomains(ChainCollection):
         :return: list of dictionaries with keys 'CDR1', 'CDR2' and 'CDR3' containing a string with the respective amino
         acid sequence
         """
-        cdr_sequences = dict()
 
-        for antibody in self.antibody_objects:
-            dict_i = dict()
-            for cdr in ['CDR1', 'CDR2', 'CDR3']:
-                seq_i = list()
-                indices = antibody.ab_regions()[0][cdr]
-                for i in indices:
-                    seq_i.append(antibody.sequence[i])
-                dict_i[cdr] = ''.join(seq_i)
-            cdr_sequences[antibody.name] = dict_i
+        if 'cdr_sequences' not in self._cache:
 
-        return cdr_sequences
+            cdr_sequences = dict()
+
+            for antibody in self.antibody_objects:
+                dict_i = dict()
+                for cdr in ['CDR1', 'CDR2', 'CDR3']:
+                    seq_i = list()
+                    indices = antibody.ab_regions()[0][cdr]
+                    for i in indices:
+                        seq_i.append(antibody.sequence[i])
+                    dict_i[cdr] = ''.join(seq_i)
+                cdr_sequences[antibody.name] = dict_i
+
+            self._cache.update(key='cdr_sequences', data=cdr_sequences)
+
+        return self._cache['cdr_sequences']
 
     def framework_length(self):
         framework_length_matrix = np.zeros((self.n_ab, 4), dtype=np.int)
