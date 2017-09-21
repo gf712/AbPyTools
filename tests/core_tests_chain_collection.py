@@ -3,7 +3,6 @@ from abpytools import ChainCollection, Chain
 from urllib import request
 import operator
 import os
-import time
 
 abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
 igblast_url = 'https://www.ncbi.nlm.nih.gov/igblast/'
