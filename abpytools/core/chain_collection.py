@@ -396,13 +396,10 @@ class ChainCollection(CollectionBase):
         :return:
         """
 
-        start = 0
-
         if self.n_ab > chunk_size:
 
-            for x in range(chunk_size, self.n_ab, chunk_size):
-                yield self[range(start, x)]
-                start = x
+            for x in range(0, self.n_ab, chunk_size):
+                yield self[range(x, min(x + chunk_size, self.n_ab))]
 
         else:
             yield self
