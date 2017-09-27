@@ -1,5 +1,5 @@
 import unittest
-from abpytools.features import ChainDomains
+from abpytools.features.regions import ChainDomains
 
 
 class AbDomainTest(unittest.TestCase):
