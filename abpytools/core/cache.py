@@ -54,3 +54,6 @@ class Cache:
 
     def __repr__(self):
         return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
+
+    def __setitem__(self, key, value):
+        self.update(key, value)
