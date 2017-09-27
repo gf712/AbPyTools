@@ -13,13 +13,13 @@ class CDRLengthTest(unittest.TestCase):
         cdr_length = CDRLength(path=self.ab_file, load=True)
         self.assertIsInstance(cdr_length, CDRLength)
 
-    def test_CDRLength_plot(self):
+    def test_CDRLength_plot_1(self):
         # cannot test if plot works but can check if there is a file that is created
         cdr_length = CDRLength(path=self.ab_file, load=True)
         cdr_length.plot_cdr(save=True, plot_path='./tests', plot_name='TestCDR.png')
         self.assertTrue(os.path.isfile('./tests/TestCDR.png'), True)
 
-    def test_CDRLength_plot(self):
+    def test_CDRLength_plot_2(self):
         # cannot test if plot works but can check if there is a file that is created
         cdr_length = CDRLength(path=self.ab_file, load=True)
         cdr_length.plot_cdr(only_cdr3=False, save=True, plot_path='./tests', plot_name='TestCDR2.png')

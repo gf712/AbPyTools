@@ -33,6 +33,7 @@ setup(
                       'seaborn',
                       'matplotlib',
                       'beautifulsoup4',
-                      'lxml'],
+                      'lxml',
+                      'scipy'],
     test_suite="tests"
 )

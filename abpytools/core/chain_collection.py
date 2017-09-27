@@ -283,7 +283,7 @@ class ChainCollection(CollectionBase):
     def append(self, antibody_obj):
 
         self.antibody_objects += antibody_obj
-    #
+
     # def remove(self, antibody_obj=None, name=''):
     #
     #     # TODO: complete method

@@ -30,8 +30,8 @@ amino_acid_index = {"R": 0,
 
 class AminoAcidFreq(ChainDomains):
 
-    def __init__(self, antibody_objects=None, path=None, region='CDR3'):
-        super(AminoAcidFreq, self).__init__(antibody_objects=antibody_objects, path=path)
+    def __init__(self, antibody_objects=None, path=None, region='CDR3', load=False):
+        super(AminoAcidFreq, self).__init__(antibody_objects=antibody_objects, path=path, load=load)
 
         regions = ['all', 'CDRs', 'FRs', 'FR1', 'FR2', 'FR3', 'FR4', 'CDR1', 'CDR2', 'CDR3']
         if region in regions:
@@ -181,7 +181,7 @@ class AminoAcidFreq(ChainDomains):
         ax.set_xlabel('Position', size=16)
         ax.set_ylim([0, aa.sum(0).max()*1.1])
         ax.margins(0.02)
-        ax.grid(axis='x')
+        ax.grid(axis='y')
 
         if ipython_config.ipython_info == 'notebook' and notebook_plot:
             ax.plot()

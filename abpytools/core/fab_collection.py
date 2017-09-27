@@ -167,11 +167,11 @@ class FabCollection(CollectionBase):
 
     def save(self):
         # TODO
-        pass
+        raise NotImplementedError("This is not the code you are looking for.")
 
     def load(self):
         # TODO
-        pass
+        raise NotImplementedError("This is not the code you are looking for.")
 
     @property
     def regions(self):
