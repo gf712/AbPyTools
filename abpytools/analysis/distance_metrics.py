@@ -1,6 +1,5 @@
 from ..utils.math_utils import dot_product, magnitude
 from math import acos
-from ..core.cache import Cache
 from .analysis_helper_functions import init_score_matrix
 
 
@@ -47,8 +46,11 @@ def levenshtein_distance(seq1, seq2):
 
     dist = init_score_matrix(seq_1=seq1, seq_2=seq2, indel=1)
 
-    for col in range(1, len(dist[0])):
-        for row in range(1, len(dist)):
+    cols = len(dist[0])
+    rows = len(dist)
+
+    for col in range(1, cols):
+        for row in range(1, rows):
             if seq2[row - 1] == seq1[col - 1]:
                 cost = 0
             else:
