@@ -12,6 +12,9 @@ from operator import itemgetter
 from urllib import parse
 from math import ceil
 from .base import CollectionBase
+from ..features.composition import chou_pseudo_aa_composition, order_seq, aa_composition, aa_frequency
+from ..analysis.distance_metrics import cosine_distance, cosine_similarity, hamming_distance, levenshtein_distance
+from ..core.cache import Cache
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -417,6 +420,69 @@ class ChainCollection(CollectionBase):
     def loading_status(self):
         return [x.status for x in self.antibody_objects]
 
+    def composition(self, method='count'):
+        """
+        Amino acid composition of each sequence. Each resulting list is organised alphabetically (see composition.py)
+        :param method:
+        :return:
+        """
+        if method == 'count':
+            return [order_seq(aa_composition(seq)) for seq in self.sequences]
+        elif method == 'freq':
+            return [order_seq(aa_frequency(seq)) for seq in self.sequences]
+        elif method == 'chou':
+            return chou_pseudo_aa_composition(self.sequences)
+        else:
+            raise ValueError("Unknown method")
+
+    def distance_matrix(self, feature='chou', metric='cosine_similarity'):
+        transformed_data = self.composition(method=feature)
+
+        if metric == 'cosine_similarity':
+            distances = self._distance_matrix(transformed_data, cosine_similarity)
+
+        elif metric == 'cosine_distance':
+            distances = self._distance_matrix(transformed_data, cosine_distance)
+
+        elif metric == 'hamming_distance':
+            # be careful hamming distance only works when all sequences have the same length
+            distances = self._distance_matrix(self.sequences, hamming_distance)
+
+        elif metric == 'levenshtein_distance':
+            distances = self._distance_matrix(self.sequences, levenshtein_distance)
+
+        else:
+            raise ValueError("Unknown distance metric.")
+
+        return distances
+
+    @staticmethod
+    def _distance_matrix(data, metric):
+
+        cache = Cache(max_cache_size=(len(data) * (len(data) - 1)) / 2)
+        matrix = list()
+        for i, seq_1 in enumerate(data):
+            row = []
+            for j, seq_2 in enumerate(data):
+
+                if i == j:
+                    row.append(0)
+                    continue
+
+                keys = ('{}-{}'.format(i, j), '{}-{}'.format(j, i))
+                if keys[0] not in cache or keys[1] not in cache:
+                    cache.update('{}-{}'.format(i, j), metric(seq_1, seq_2))
+                if keys[0] in cache:
+                    row.append(cache[keys[0]])
+                elif keys[1] in cache:
+                    row.append(cache[keys[0]])
+                else:
+                    raise ValueError("What happened??")
+
+            matrix.append(row)
+
+        return matrix
+
 
 def load_antibody_object(antibody_object):
     antibody_object.load()
@@ -488,7 +554,8 @@ def load_igblast_query(igblast_result, names):
 
     """
     
-    :param igblast_result: 
+    :param names:
+    :param igblast_result:
     :return: 
     """
 
