@@ -15,6 +15,7 @@ from .base import CollectionBase
 from ..features.composition import chou_pseudo_aa_composition, order_seq, aa_composition, aa_frequency
 from ..analysis.distance_metrics import cosine_distance, cosine_similarity, hamming_distance, levenshtein_distance
 from ..core.cache import Cache
+from multiprocessing import Manager, Process
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -435,53 +436,77 @@ class ChainCollection(CollectionBase):
         else:
             raise ValueError("Unknown method")
 
-    def distance_matrix(self, feature='chou', metric='cosine_similarity'):
+    def distance_matrix(self, feature='chou', metric='cosine_similarity', multiprocessing=False):
         transformed_data = self.composition(method=feature)
 
         if metric == 'cosine_similarity':
-            distances = self._distance_matrix(transformed_data, cosine_similarity)
+            distances = self.run_distance_matrix(transformed_data, cosine_similarity, multiprocessing=multiprocessing)
 
         elif metric == 'cosine_distance':
-            distances = self._distance_matrix(transformed_data, cosine_distance)
+            distances = self.run_distance_matrix(transformed_data, cosine_distance, multiprocessing=multiprocessing)
 
         elif metric == 'hamming_distance':
             # be careful hamming distance only works when all sequences have the same length
-            distances = self._distance_matrix(self.sequences, hamming_distance)
+            distances = self.run_distance_matrix(self.sequences, hamming_distance, multiprocessing=multiprocessing)
 
         elif metric == 'levenshtein_distance':
-            distances = self._distance_matrix(self.sequences, levenshtein_distance)
+            distances = self.run_distance_matrix(self.sequences, levenshtein_distance, multiprocessing=multiprocessing)
 
         else:
             raise ValueError("Unknown distance metric.")
 
         return distances
 
+    def run_distance_matrix(self, data, metric, multiprocessing=False):
+
+        if multiprocessing:
+            with Manager() as manager:
+                cache = manager.dict()
+                matrix = manager.dict()
+
+                jobs = [Process(target=self._distance_matrix,
+                                args=(data, i, metric, cache, matrix)) for i in range(len(data))]
+
+                for j in jobs:
+                    j.start()
+                for j in jobs:
+                    j.join()
+
+                # order the data
+                return [matrix[x] for x in range(len(data))]
+
+        else:
+            cache = Cache()
+            matrix = Cache(max_cache_size=len(data))
+
+            for i in range(len(data)):
+                cache.update(i, self._distance_matrix(data, i, metric, cache, matrix))
+
+            return [matrix[x] for x in range(len(data))]
+
+
     @staticmethod
-    def _distance_matrix(data, metric):
+    def _distance_matrix(data, i, metric, cache, matrix):
 
-        cache = Cache(max_cache_size=(len(data) * (len(data) - 1)) / 2)
-        matrix = list()
-        for i, seq_1 in enumerate(data):
-            row = []
-            for j, seq_2 in enumerate(data):
+        row = []
+        seq_1 = data[i]
+        for j, seq_2 in enumerate(data):
 
-                if i == j:
-                    row.append(0)
-                    continue
+            if i == j:
+                row.append(0)
+                continue
 
-                keys = ('{}-{}'.format(i, j), '{}-{}'.format(j, i))
-                if keys[0] not in cache or keys[1] not in cache:
-                    cache.update('{}-{}'.format(i, j), metric(seq_1, seq_2))
-                if keys[0] in cache:
-                    row.append(cache[keys[0]])
-                elif keys[1] in cache:
-                    row.append(cache[keys[0]])
-                else:
-                    raise ValueError("What happened??")
+            keys = ('{}-{}'.format(i, j), '{}-{}'.format(j, i))
+            if keys[0] not in cache or keys[1] not in cache:
+                cache['{}-{}'.format(i, j)] = metric(seq_1, seq_2)
+            if keys[0] in cache:
+                row.append(cache[keys[0]])
+            elif keys[1] in cache:
+                row.append(cache[keys[0]])
+            else:
+                raise ValueError("What happened??")
 
-            matrix.append(row)
-
-        return matrix
+        matrix[i] = row
 
 
 def load_antibody_object(antibody_object):
