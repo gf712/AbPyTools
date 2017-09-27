@@ -4,6 +4,7 @@ import os
 from abpytools.utils import PythonConfig
 from abpytools.features.regions import ChainDomains
 from matplotlib.ticker import MaxNLocator
+from .analysis_helper_functions import switch_interactive_mode
 
 
 class CDRLength(ChainDomains):
@@ -15,11 +16,7 @@ class CDRLength(ChainDomains):
     def plot_cdr(self, only_cdr3=True, save=False, plot_path='./', plot_name='CDR_length',
                  plot_title=None, hist=True, ax=None, **kwargs):
 
-        ipython_config = PythonConfig()
-        if ipython_config.ipython_info == 'notebook' and save is False:
-            if ipython_config.matplotlib_interactive is False:
-                # turns on interactive mode
-                plt.ion()
+        switch_interactive_mode(save=save)
 
         if ax is None:
             if only_cdr3:
@@ -58,6 +55,7 @@ class CDRLength(ChainDomains):
             plt.tight_layout()
             plt.subplots_adjust(top=0.85)
 
+        ipython_config = PythonConfig()
         if ipython_config.ipython_info == 'notebook' and save is False:
             plt.plot()
         else:
