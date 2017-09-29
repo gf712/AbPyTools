@@ -48,7 +48,7 @@ class AminoAcidFreq(ChainDomains):
 
             # TODO: implement 'all'
             elif self.region == 'all':
-                raise NotImplemented("This is not the code you're looking for.")
+                raise NotImplementedError("This is not the code you're looking for.")
         else:
             raise ValueError('Parameter region must be either: {}. Not {}'.format(' ,'.join(regions), region))
 

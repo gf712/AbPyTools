@@ -476,14 +476,13 @@ class ChainCollection(CollectionBase):
                 return [matrix[x] for x in range(len(data))]
 
         else:
-            cache = Cache()
+            cache = Cache(max_cache_size=(len(data) * (len(data) - 1)) / 2)
             matrix = Cache(max_cache_size=len(data))
 
             for i in range(len(data)):
                 cache.update(i, self._distance_matrix(data, i, metric, cache, matrix))
 
             return [matrix[x] for x in range(len(data))]
-
 
     @staticmethod
     def _distance_matrix(data, i, metric, cache, matrix):

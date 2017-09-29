@@ -41,7 +41,10 @@ def hamming_distance(seq1, seq2):
 
 def levenshtein_distance(seq1, seq2):
     """
-    levenshtein distance using dynamic programming
+
+    :param seq1:
+    :param seq2:
+    :return:
     """
 
     dist = init_score_matrix(seq_1=seq1, seq_2=seq2, indel=1)
