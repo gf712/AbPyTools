@@ -493,7 +493,7 @@ class ChainCollection(CollectionBase):
             elif keys[1] in cache:
                 row.append(cache[keys[0]])
             else:
-                raise ValueError("What happened??")
+                raise ValueError("Bug in row {} and column {}".format(i, j))
 
         matrix[i] = row
 
