@@ -447,7 +447,16 @@ class ChainCollection(CollectionBase):
 
         return distances
 
-    def run_distance_matrix(self, data, metric, multiprocessing=False):
+    def _run_distance_matrix(self, data, metric, multiprocessing=False):
+
+        """
+        Helper function to setup the calculation of each entry in the distance matrix
+        :param data: list with all sequences
+        :param metric: function that takes two string and calculates distance
+        :param multiprocessing: bool to turn multiprocessing on/off (True/False)
+        :return: list of lists with distances between all sequences of len(data) with each list of len(data)
+                 when i==j M_i,j = 0
+        """
 
         if multiprocessing:
             with Manager() as manager:
