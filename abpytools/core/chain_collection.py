@@ -194,9 +194,16 @@ class ChainCollection(CollectionBase):
         return abs_hydrophobicity_matrix
 
     def get_object(self, name=''):
+
+        """
+
+        :param name: str
+        :return:
+        """
+
         if name in self.names:
             index = self.names.index(name)
-            return self.antibody_objects[index]
+            return self[index]
         else:
             raise ValueError('Could not find sequence with specified name')
 
