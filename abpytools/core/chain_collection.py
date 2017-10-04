@@ -430,17 +430,17 @@ class ChainCollection(CollectionBase):
         transformed_data = self.composition(method=feature)
 
         if metric == 'cosine_similarity':
-            distances = self.run_distance_matrix(transformed_data, cosine_similarity, multiprocessing=multiprocessing)
+            distances = self._run_distance_matrix(transformed_data, cosine_similarity, multiprocessing=multiprocessing)
 
         elif metric == 'cosine_distance':
-            distances = self.run_distance_matrix(transformed_data, cosine_distance, multiprocessing=multiprocessing)
+            distances = self._run_distance_matrix(transformed_data, cosine_distance, multiprocessing=multiprocessing)
 
         elif metric == 'hamming_distance':
             # be careful hamming distance only works when all sequences have the same length
-            distances = self.run_distance_matrix(self.sequences, hamming_distance, multiprocessing=multiprocessing)
+            distances = self._run_distance_matrix(self.sequences, hamming_distance, multiprocessing=multiprocessing)
 
         elif metric == 'levenshtein_distance':
-            distances = self.run_distance_matrix(self.sequences, levenshtein_distance, multiprocessing=multiprocessing)
+            distances = self._run_distance_matrix(self.sequences, levenshtein_distance, multiprocessing=multiprocessing)
 
         else:
             raise ValueError("Unknown distance metric.")
