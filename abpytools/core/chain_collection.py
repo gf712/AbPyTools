@@ -288,30 +288,20 @@ class ChainCollection(CollectionBase):
 
         self.antibody_objects += antibody_obj
 
-    # def remove(self, antibody_obj=None, name=''):
-    #
-    #     # TODO: complete method
-    #
-    #     if isinstance(antibody_obj, Chain):
-    #         name = antibody_obj.name
-    #     elif isinstance(antibody_obj, ChainCollection):
-    #         name = ChainCollection.names()
-    #     if antibody_obj is None and len(name) > 0:
-    #         self.antibody_objects.pop([x for x in antibody_obj if x.name == name][0])
-    #
-    #     self._update_obj()
-    #
-    # def filter(self):
-    #
-    #     # TODO: complete method
-    #     pass
-    #
-    # def _update_obj(self, index='all'):
-    #
-    #     # TODO: write method
-    #     if index == 'all':
-    #         self.antibody_objects = load_from_antibody_object(self.antibody_objects, show_progressbar=True,
-    #                                                           n_jobs=-1)
+    def pop(self, index=-1):
+
+        if index > len(self):
+            raise ValueError("The given index is outside the range of the object.")
+
+        element_to_pop = self[index]
+
+        self._destroy(index=index)
+
+        return element_to_pop
+
+    def _destroy(self, index):
+
+        del self.antibody_objects[index]
 
     @property
     def names(self):
