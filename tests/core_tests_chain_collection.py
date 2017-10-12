@@ -104,7 +104,8 @@ class ChainCollectionCore(unittest.TestCase):
         self.assertEqual(antibody_collection_1.numbering_scheme, 'chothia')
 
     def test_ChainCollection_numbering_scheme_kabat(self):
-        antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json', numbering_scheme='kabat')
+        antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json',
+                                                numbering_scheme='kabat')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertEqual(antibody_collection_1.numbering_scheme, 'kabat')
 
@@ -137,7 +138,7 @@ class ChainCollectionCore(unittest.TestCase):
         # if returning a single chain abpytools automatically creates a new Chain object
         self.assertIsInstance(antibody_collection_1[0], Chain)
 
-    def test_ChainCollection_slicing_1_obj(self):
+    def test_ChainCollection_slicing_2_obj(self):
         antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_heavy_2_sequences.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         # slicing including multiple sequences returns a ChainCollection object
