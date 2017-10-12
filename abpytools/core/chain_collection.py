@@ -49,8 +49,9 @@ class ChainCollection(CollectionBase):
 
         """
 
+        :type numbering_scheme: string
         :type antibody_objects: list of Chain objects
-              path:             string to a FASTA format file
+        :type path:             string with the path to a FASTA format file
         """
 
         if antibody_objects is None:
@@ -94,6 +95,15 @@ class ChainCollection(CollectionBase):
         self._path = path
 
     def load(self, n_threads=20, verbose=True, show_progressbar=True, **kwargs):
+
+        """
+
+        :param n_threads: int to specify number of threads to use in loading process
+        :param verbose: bool controls the level of verbose
+        :param show_progressbar: bool whether to display the progressbar
+        :param kwargs:
+        :return:
+        """
 
         names = list()
         if self._path is not None:
@@ -174,9 +184,24 @@ class ChainCollection(CollectionBase):
                     json.dump(data, f, indent=2)
 
     def molecular_weights(self, monoisotopic=False):
+
+        """
+
+        :param monoisotopic: bool whether to use monoisotopic values
+        :return: list
+        """
+
         return [x.ab_molecular_weight(monoisotopic=monoisotopic) for x in self.antibody_objects]
 
     def extinction_coefficients(self, extinction_coefficient_database='Standard', reduced=False):
+
+        """
+
+        :param extinction_coefficient_database: string with the name of the database to use
+        :param reduced: bool whether to consider the cysteines to be reduced
+        :return: list
+        """
+
         return [x.ab_ec(extinction_coefficient_database=extinction_coefficient_database,
                         reduced=reduced) for x in self.antibody_objects]
 
@@ -243,11 +268,11 @@ class ChainCollection(CollectionBase):
 
     def igblast_server_query(self, chunk_size=50, show_progressbar=True, **kwargs):
         """
-        
+
         :param show_progressbar:
         :param chunk_size:
         :param kwargs: keyword arguments to pass to igblast_options
-        :return: 
+        :return:
         """
 
         # check if query is larger than 50 sequences
@@ -309,6 +334,12 @@ class ChainCollection(CollectionBase):
     def _destroy(self, index):
 
         del self.antibody_objects[index]
+
+    # def filter(self):
+    #
+    #     # TODO: complete method
+    #     pass
+    #
 
     @property
     def names(self):
@@ -393,8 +424,8 @@ class ChainCollection(CollectionBase):
     def _split_to_chunks(self, chunk_size=50):
         """
         Helper function to split ChainCollection into size chunk_size and returns generator
-        :param chunks:
-        :return:
+        :param chunk_size: int, size of each chunk
+        :return: generator to iterate of each chunk of size chunk_size
         """
 
         if self.n_ab > chunk_size:
@@ -439,7 +470,21 @@ class ChainCollection(CollectionBase):
         else:
             raise ValueError("Unknown method")
 
-        transformed_data = self.composition(method=feature)
+    def distance_matrix(self, feature=None, metric='cosine_similarity', multiprocessing=False):
+
+        """
+        Returns the distance matrix using a given feature and distance metric
+        :param feature: string with the name of the feature to use
+        :param metric: string with the name of the metric to use
+        :param multiprocessing: bool to turn multiprocessing on/off (True/False)
+        :return: list of lists with distances between all sequences of len(data) with each list of len(data)
+                 when i==j M_i,j = 0
+        """
+
+        if feature is None:
+            transformed_data = self.sequences
+        else:
+            transformed_data = self.composition(method=feature)
 
         if metric == 'cosine_similarity':
             distances = self._run_distance_matrix(transformed_data, cosine_similarity, multiprocessing=multiprocessing)
@@ -500,6 +545,16 @@ class ChainCollection(CollectionBase):
 
     @staticmethod
     def _distance_matrix(data, i, metric, cache, matrix):
+
+        """
+        Function to calculate distance from the ith sequence of the ith row to the remaining entries in the same row
+        :param data: list with all sequences
+        :param i: int that indicates the matrix row being processed
+        :param metric: function that takes two string and calculates distance
+        :param cache: either a Manager or Cache object to cache results
+        :param matrix: either a Manager or Cache object to store results in a matrix
+        :return: None
+        """
 
         row = []
         seq_1 = data[i]
@@ -721,3 +776,4 @@ def igblast_options(sequences, domain='imgt',
     url += parse.urlencode(values)
 
     return url
+

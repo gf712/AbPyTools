@@ -241,3 +241,17 @@ class FabCollection(CollectionBase):
                                     self._internal_heavy_name,
                                     self._internal_light_name,
                                     self._names)
+
+    def get_object(self, name):
+
+        """
+
+        :param name: str
+        :return:
+        """
+
+        if name in self.names:
+            index = self.names.index(name)
+            return self[index]
+        else:
+            raise ValueError('Could not find sequence with specified name')
