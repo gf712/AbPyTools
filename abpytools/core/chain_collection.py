@@ -430,10 +430,15 @@ class ChainCollection(CollectionBase):
             return [order_seq(aa_frequency(seq)) for seq in self.sequences]
         elif method == 'chou':
             return chou_pseudo_aa_composition(self.sequences)
+        elif method == 'triad':
+            return triad_method(self.sequences)
+        elif method == 'hydrophobicity':
+            return self.hydrophobicity_matrix()
+        elif method == 'volume':
+                return side_chain_volume(self.sequences)
         else:
             raise ValueError("Unknown method")
 
-    def distance_matrix(self, feature='chou', metric='cosine_similarity', multiprocessing=False):
         transformed_data = self.composition(method=feature)
 
         if metric == 'cosine_similarity':
