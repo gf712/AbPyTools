@@ -93,7 +93,7 @@ class ChainCollection(CollectionBase):
 
         self._path = path
 
-    def load(self, n_jobs=-1, verbose=True, show_progressbar=True, **kwargs):
+    def load(self, n_threads=20, verbose=True, show_progressbar=True, **kwargs):
 
         names = list()
         if self._path is not None:
@@ -140,7 +140,7 @@ class ChainCollection(CollectionBase):
         self.antibody_objects, self._chain = load_from_antibody_object(
             antibody_objects=self.antibody_objects,
             show_progressbar=show_progressbar,
-            n_jobs=n_jobs, verbose=verbose, **kwargs)
+            n_threads=n_threads, verbose=verbose, **kwargs)
 
     def save(self, file_format='FASTA', file_path='./', file_name='Ab_collection', information='all'):
 
@@ -535,32 +535,51 @@ all_bar_funcs = {
 }
 
 
-def parallelexecutor(use_bar='tqdm', **joblib_args):
-    def aprun(bar=use_bar, **tq_args):
-        def tmp(op_iter):
-            if str(bar) in all_bar_funcs.keys():
-                bar_func = all_bar_funcs[str(bar)](tq_args)
-            else:
-                raise ValueError("Value %s not supported as bar type" % bar)
-            return Parallel(**joblib_args)(bar_func(op_iter))
+# def parallelexecutor(use_bar='tqdm', **joblib_args):
+#     def aprun(bar=use_bar, **tq_args):
+#         def tmp(op_iter):
+#             if str(bar) in all_bar_funcs.keys():
+#                 bar_func = all_bar_funcs[str(bar)](tq_args)
+#             else:
+#                 raise ValueError("Value %s not supported as bar type" % bar)
+#             return Parallel(**joblib_args)(bar_func(op_iter))
+#
+#         return tmp
+#
+#     return aprun
 
-        return tmp
 
-    return aprun
-
-
-def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1, verbose=True, timeout=5):
+def load_from_antibody_object(antibody_objects, show_progressbar=True, n_threads=20, verbose=True, timeout=5):
     if verbose:
         print("Loading in antibody objects")
 
-    if show_progressbar:
-        aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs, timeout=timeout)
-    else:
-        aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs, timeout=timeout)
+    from queue import Queue
+    import threading
 
-    # load in objects in parallel
-    antibody_objects = aprun(total=len(antibody_objects))(
-        delayed(load_antibody_object)(obj) for obj in antibody_objects)
+    q = Queue()
+    for i in range(n_threads):
+        t = threading.Thread(target=worker, args=(q,))
+        t.daemon = True
+        t.start()
+
+    if show_progressbar:
+        for antibody_object in tqdm(antibody_objects):
+            q.put(antibody_object)
+
+    else:
+        for antibody_object in antibody_objects:
+            q.put(antibody_object)
+
+    q.join()
+
+    # if show_progressbar:
+    #     aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs, timeout=timeout)
+    # else:
+    #     aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs, timeout=timeout)
+    #
+    # # load in objects in parallel
+    # antibody_objects = aprun(total=len(antibody_objects))(
+    #     delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
     status = [x.status for x in antibody_objects]
     loaded_obj_chains = [x.chain for x in antibody_objects if x.status != 'Not Loaded']
@@ -591,10 +610,10 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
 def load_igblast_query(igblast_result, names):
 
     """
-    
+
     :param names:
     :param igblast_result:
-    :return: 
+    :return:
     """
 
     try:
@@ -662,6 +681,13 @@ def load_igblast_query(igblast_result, names):
         result_dict[query_i] = (germline_identity, germline)
 
     return result_dict
+
+
+def worker(q):
+    while True:
+        item = q.get()
+        load_antibody_object(item)
+        q.task_done()
 
 
 def make_fasta(names, sequences):
