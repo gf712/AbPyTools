@@ -12,8 +12,8 @@ from operator import itemgetter
 from urllib import parse
 from math import ceil
 from .base import CollectionBase
-from ..features.composition import chou_pseudo_aa_composition, order_seq, aa_composition, aa_frequency
-from ..analysis.distance_metrics import cosine_distance, cosine_similarity, hamming_distance, levenshtein_distance
+from ..features.composition import *
+from ..analysis.distance_metrics import *
 from ..core.cache import Cache
 from multiprocessing import Manager, Process
 
@@ -453,6 +453,9 @@ class ChainCollection(CollectionBase):
 
         elif metric == 'levenshtein_distance':
             distances = self._run_distance_matrix(self.sequences, levenshtein_distance, multiprocessing=multiprocessing)
+
+        elif metric == 'euclidean_distance':
+            distances = self._run_distance_matrix(transformed_data, euclidean_distance, multiprocessing=multiprocessing)
 
         else:
             raise ValueError("Unknown distance metric.")

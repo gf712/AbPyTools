@@ -1,5 +1,5 @@
 from ..utils.math_utils import dot_product, magnitude
-from math import acos
+from math import acos, sqrt
 from .analysis_helper_functions import init_score_matrix
 
 
@@ -63,3 +63,27 @@ def levenshtein_distance(seq1, seq2):
                                  dist[row - 1][col - 1] + cost)  # substitution
 
     return dist[-1][-1]
+
+
+def euclidean_distance(u, v):
+    """
+    returns the euclidean distance
+    :param u:
+    :param v:
+    :return:
+    """
+    return norm(u, v, degree=2)
+
+
+def manhattan_distance(u, v):
+    """
+    returns the Manhattan distance
+    :param u:
+    :param v:
+    :return:
+    """
+    return norm(u, v, degree=1)
+
+
+def norm(u, v, degree=2):
+    return sqrt(sum([(abs(u_i - v_i))**degree for u_i, v_i in zip(u, v)]))
