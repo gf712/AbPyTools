@@ -70,21 +70,10 @@ class Chain:
             # this should never happen...
             raise ValueError("Unknown loading status")
 
-    def ab_numbering(self, server='abysis'):
-
-        # assert numbering_scheme.lower() in available_numbering_schemes, \
-        #     "Unknown Numbering scheme: {}. \
-        #     Numbering schemes available: {}".format(numbering_scheme,
-        #                                             ', '.join(available_numbering_schemes))
-        #
-        # assert server in available_servers, "Unknown server: {}. \
-        #     Available servers: {}".format(server, ' ,'.join(available_servers))
-        #
-        # # store the numbering scheme used for reference in other methods
-        # self._numbering_scheme = numbering_scheme
+    def ab_numbering(self, server='abysis', **kwargs):
 
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
-        numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme)
+        numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme, **kwargs)
 
         if numbering == ['']:
             self._loading_status = 'Failed'
@@ -322,7 +311,7 @@ class Chain:
         return len(self.sequence)
 
 
-def get_ab_numbering(sequence, server, numbering_scheme):
+def get_ab_numbering(sequence, server, numbering_scheme, timeout=30):
     """
 
     :rtype: list
@@ -343,7 +332,7 @@ def get_ab_numbering(sequence, server, numbering_scheme):
         url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
                                                                                                   scheme)
         # use the Download class from utils to get output
-        numbering_table = Download(url, verbose=False)
+        numbering_table = Download(url, verbose=False, timeout=timeout)
         try:
             numbering_table.download()
         except ValueError:
