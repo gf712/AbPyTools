@@ -86,4 +86,4 @@ def manhattan_distance(u, v):
 
 
 def norm(u, v, degree=2):
-    return sqrt(sum([(abs(u_i - v_i))**degree for u_i, v_i in zip(u, v)]))
+    return sum([(abs(u_i - v_i))**degree for u_i, v_i in zip(u, v)]) ** (1/degree)
