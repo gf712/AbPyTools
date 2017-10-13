@@ -23,3 +23,9 @@ class DistanceMetricsTest(unittest.TestCase):
 
     def test_levenshtein_distance(self):
         self.assertEqual(levenshtein_distance(self.seq1, self.seq2), 3)
+
+    def test_euclidean_distance(self):
+        self.assertAlmostEqual(euclidean_distance(self.vector1, self.vector2), 4.4721359549995796)
+
+    def test_manhattan_distance(self):
+        self.assertEqual(manhattan_distance(self.vector1, self.vector2), 8)
