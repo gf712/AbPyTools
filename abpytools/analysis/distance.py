@@ -12,7 +12,7 @@ class DistancePlot(ChainCollection):
         super().__init__(antibody_objects=antibody_objects, path=path)
 
     def plot_heatmap(self, feature='chou', distance_metric='cosine_distance', save=False, ax=None, labels=None,
-                     multiprocessing=False, **kwargs):
+                     multiprocessing=False, file_name='./heatmap.png', **kwargs):
 
         data = self.distance_matrix(feature=feature, metric=distance_metric, multiprocessing=multiprocessing)
 
@@ -33,6 +33,8 @@ class DistancePlot(ChainCollection):
         ipython_config = PythonConfig()
         if ipython_config.ipython_info == 'notebook' and save is False:
             plt.plot()
+        else:
+            plt.savefig(file_name)
 
     def plot_dendrogram(self, feature='chou', distance_metric='cosine_distance', save=False, ax=None, labels=None,
                         multiprocessing=False, **kwargs):
@@ -58,3 +60,5 @@ class DistancePlot(ChainCollection):
         ipython_config = PythonConfig()
         if ipython_config.ipython_info == 'notebook' and save is False:
             plt.plot()
+        else:
+            plt.savefig(file_name)
