@@ -482,8 +482,18 @@ class ChainCollection(CollectionBase):
 
         if feature is None:
             transformed_data = self.sequences
-        else:
+        elif isinstance(feature, str):
+            # in this case the features are calculated using a predefined featurisation method (see self.composition)
             transformed_data = self.composition(method=feature)
+
+        elif isinstance(feature, list):
+            # a user defined list with vectors
+            if len(feature) != self.n_ab:
+                raise ValueError("Expected a list of size {}, instead got {}.".format(self.n_ab, len(feature)))
+            else:
+                transformed_data = feature
+        else:
+            raise TypeError("Unexpected input for feature argument.")
 
         if metric == 'cosine_similarity':
             distances = self._run_distance_matrix(transformed_data, cosine_similarity, multiprocessing=multiprocessing)
@@ -493,10 +503,10 @@ class ChainCollection(CollectionBase):
 
         elif metric == 'hamming_distance':
             # be careful hamming distance only works when all sequences have the same length
-            distances = self._run_distance_matrix(self.sequences, hamming_distance, multiprocessing=multiprocessing)
+            distances = self._run_distance_matrix(transformed_data, hamming_distance, multiprocessing=multiprocessing)
 
         elif metric == 'levenshtein_distance':
-            distances = self._run_distance_matrix(self.sequences, levenshtein_distance, multiprocessing=multiprocessing)
+            distances = self._run_distance_matrix(transformed_data, levenshtein_distance, multiprocessing=multiprocessing)
 
         elif metric == 'euclidean_distance':
             distances = self._run_distance_matrix(transformed_data, euclidean_distance, multiprocessing=multiprocessing)
