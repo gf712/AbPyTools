@@ -14,6 +14,7 @@ from ..features.composition import *
 from ..analysis.distance_metrics import *
 from ..core.cache import Cache
 from multiprocessing import Manager, Process
+from inspect import signature
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -499,6 +500,21 @@ class ChainCollection(CollectionBase):
 
         elif metric == 'euclidean_distance':
             distances = self._run_distance_matrix(transformed_data, euclidean_distance, multiprocessing=multiprocessing)
+
+        elif metric == 'manhattan_distance':
+            distances = self._run_distance_matrix(transformed_data, manhattan_distance, multiprocessing=multiprocessing)
+
+        elif callable(metric):
+            # user defined metric function
+            user_function_signature = signature(metric)
+
+            # number of params should be two, can take args with defaults though
+            default_params = sum(['=' in x for x in user_function_signature.parameters])
+
+            if len(user_function_signature.parameters) - default_params > 2:
+                raise ValueError("Expected a function with two parameters")
+            else:
+                distances = self._run_distance_matrix(transformed_data, metric, multiprocessing=multiprocessing)
 
         else:
             raise ValueError("Unknown distance metric.")
