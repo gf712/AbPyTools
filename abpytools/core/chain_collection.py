@@ -661,27 +661,32 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_threads
     #     delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
     status = [x.status for x in antibody_objects]
-    loaded_obj_chains = [x.chain for x in antibody_objects if x.status != 'Not Loaded']
-
-    failed = sum([1 if x == 'Not Loaded' else 0 for x in status])
+    failed = sum([1 if x == 'Not Loaded' or x == 'Failed' else 0 for x in status])
 
     # remove objects that did not load
     while 'Not Loaded' in status:
         i = status.index('Not Loaded')
         del antibody_objects[i], status[i]
 
+    while 'Failed' in status:
+        i = status.index('Failed')
+        del antibody_objects[i], status[i]
+
     if verbose:
         print("Failed to load {} objects in list".format(failed))
+
+    loaded_obj_chains = [x.chain for x in antibody_objects if x.status == 'Loaded']
 
     if len(set(loaded_obj_chains)) == 1:
         chain = loaded_obj_chains[0]
     else:
-        raise ValueError("All sequences must of the same chain type: Light or Heavy")
+        raise ValueError("All sequences must be of the same chain type: Light or Heavy",
+                         set([x.chain for x in loaded_obj_chains]))
 
     n_ab = len(loaded_obj_chains)
 
     if n_ab == 0:
-        raise IOError("Could not find any heavy or light chains in provided file or list of objects")
+        raise ValueError("Could not find any heavy or light chains in provided file or list of objects")
 
     return antibody_objects, chain
 
