@@ -3,6 +3,7 @@ AbPyTools
 
 [![Coverage Status](https://coveralls.io/repos/github/gf712/AbPyTools/badge.svg?branch=master)](https://coveralls.io/github/gf712/AbPyTools?branch=master)
 [![Build Status](https://travis-ci.org/gf712/AbPyTools.svg?branch=master)](https://travis-ci.org/gf712/AbPyTools)
+[![Code Health](https://landscape.io/github/gf712/AbPyTools/master/landscape.svg?style=flat)](https://landscape.io/github/gf712/AbPyTools/master)
 
 AbPyTools is a Python 3 package to extract information from heavy and light antibody chain sequences. Using the built-in
 Antibody and ChainCollection it is very easy to manipulate the data and do more specific analysis with custom scripts.
