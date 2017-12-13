@@ -161,7 +161,7 @@ class FabCollection(CollectionBase):
                                                              ('Light', 'Score')]),
                           index=self.names)
 
-        df = df.convert_objects(convert_numeric=True)
+        df = df.loc[:, (slice(None), 'Score')].apply(pd.to_numeric)
 
         return df
 
