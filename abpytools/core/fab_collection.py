@@ -146,6 +146,14 @@ class FabCollection(CollectionBase):
 
     def _germline_pd(self):
 
+        # empty dictionaries return false, so this condition checks if any of the values are False
+        if all([x for x in self._light_chains.germline_identity.values()]) is False:
+            # this means there is no information about the germline,
+            # by default it will run a web query
+            self._light_chains.igblast_server_query()
+        if all([x for x in self._heavy_chains.germline_identity.values()]) is False:
+            self._heavy_chains.igblast_server_query()
+
         heavy_chain_germlines = self._heavy_chains.germline
         light_chain_germlines = self._light_chains.germline
 

@@ -1,0 +1,65 @@
+package:
+  name: abpytools
+  version: '0.2'
+
+source:
+  path: ./
+
+build:
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - scipy
+    - numpy
+    - joblib
+    - pandas
+    - tqdm >=4.15
+    - seaborn
+    - matplotlib
+    - beautifulsoup4
+    - lxml
+
+  run:
+    - python
+    - setuptools
+    - scipy
+    - numpy
+    - joblib
+    - pandas
+    - tqdm >=4.15
+    - seaborn
+    - matplotlib
+    - beautifulsoup4
+    - lxml
+
+test:
+  requires:
+    - pytest
+
+  source_files:
+    - tests/*
+    - tests/Data/*
+
+  commands:
+    - pytest
+
+
+about:
+
+  home: https://github.com/gf712/AbPyTools
+
+  license: MIT License
+
+  summary: "Python package for analysis of antibody variable heavy and light chains"
+
+  description: |
+
+   AbPyTools is a Python 3 package to extract information from heavy and light antibody chain sequences.
+   Using the built-in Antibody and ChainCollection it is very easy to manipulate the data and do more
+   specific analysis with custom scripts.
+
+  dev_url: https://github.com/gf712/AbPyTools/tree/v0.2
