@@ -47,11 +47,10 @@ class ChainDomains(ChainCollection):
             for antibody in self.antibody_objects:
                 dict_i = dict()
                 for cdr in ['CDR1', 'CDR2', 'CDR3']:
-                    seq_i = list()
-                    indices = antibody.ab_regions()[0][cdr]
-                    for i in indices:
-                        seq_i.append(antibody.sequence[i])
-                    dict_i[cdr] = ''.join(seq_i)
+                    self.sequence_splitter_helper(antibody=antibody,
+                                                  region=cdr,
+                                                  index=0,
+                                                  dict_i=dict_i)
                 cdr_sequences[antibody.name] = dict_i
 
             self._cache.update(key='cdr_sequences', data=cdr_sequences)
@@ -74,11 +73,18 @@ class ChainDomains(ChainCollection):
         for antibody in self.antibody_objects:
             dict_i = dict()
             for framework in ['FR1', 'FR2', 'FR3', 'FR4']:
-                seq_i = list()
-                indices = antibody.ab_regions()[1][framework]
-                for i in indices:
-                    seq_i.append(antibody.sequence[i])
-                dict_i[framework] = ''.join(seq_i)
+                self.sequence_splitter_helper(antibody=antibody,
+                                              region=framework,
+                                              index=1,
+                                              dict_i=dict_i)
             framework_sequences[antibody.name] = dict_i
 
         return framework_sequences
+
+    @staticmethod
+    def sequence_splitter_helper(antibody, region, index, dict_i):
+        seq_i = list()
+        indices = antibody.ab_regions()[index][region]
+        for i in indices:
+            seq_i.append(antibody.sequence[i])
+        dict_i[region] = ''.join(seq_i)
