@@ -58,8 +58,8 @@ def dot_product(u, v):
 def magnitude(u):
     """
     Calculates the magnitude (euclidean norm) of vector u
-    :param u: 
-    :return: 
+    :param u: list representing a vector
+    :return: float magnitude of vector
     """
     return sum([x ** 2 for x in u]) ** 0.5
 
