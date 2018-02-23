@@ -6,9 +6,10 @@ from abpytools.utils import DataLoader
 from operator import itemgetter
 from .fab import Fab
 from .helper_functions import germline_identity_pd, to_numbering_table
+from .base import CollectionBase
 
 
-class FabCollection:
+class FabCollection(CollectionBase):
     """
 
     """
@@ -81,13 +82,13 @@ class FabCollection:
     # in all the methods
     # in essence the abpytools.Fab object is just a representative building block that could in future just
     # cache data and would then represent a speed up in the calculations
-    def molecular_weight(self, monoisotopic=False):
+    def molecular_weights(self, monoisotopic=False):
 
         return [heavy + light for heavy, light in zip(self._heavy_chains.molecular_weights(monoisotopic=monoisotopic),
                                                       self._light_chains.molecular_weights(monoisotopic=monoisotopic))]
 
-    def extinction_coefficient(self, extinction_coefficient_database='Standard', reduced=False, normalise=False,
-                               **kwargs):
+    def extinction_coefficients(self, extinction_coefficient_database='Standard', reduced=False, normalise=False,
+                                **kwargs):
 
         heavy_ec = self._heavy_chains.extinction_coefficients(
             extinction_coefficient_database=extinction_coefficient_database,
@@ -98,7 +99,7 @@ class FabCollection:
 
         if normalise:
             return [(heavy + light) / mw for heavy, light, mw in
-                    zip(heavy_ec, light_ec, self.molecular_weight(**kwargs))]
+                    zip(heavy_ec, light_ec, self.molecular_weights(**kwargs))]
         else:
             return [heavy + light for heavy, light in zip(heavy_ec, light_ec)]
 
@@ -145,6 +146,14 @@ class FabCollection:
 
     def _germline_pd(self):
 
+        # empty dictionaries return false, so this condition checks if any of the values are False
+        if all([x for x in self._light_chains.germline_identity.values()]) is False:
+            # this means there is no information about the germline,
+            # by default it will run a web query
+            self._light_chains.igblast_server_query()
+        if all([x for x in self._heavy_chains.germline_identity.values()]) is False:
+            self._heavy_chains.igblast_server_query()
+
         heavy_chain_germlines = self._heavy_chains.germline
         light_chain_germlines = self._light_chains.germline
 
@@ -160,9 +169,17 @@ class FabCollection:
                                                              ('Light', 'Score')]),
                           index=self.names)
 
-        df = df.convert_objects(convert_numeric=True)
+        df = df.loc[:, (slice(None), 'Score')].apply(pd.to_numeric)
 
         return df
+
+    def save(self):
+        # TODO
+        raise NotImplementedError("This is not the code you are looking for.")
+
+    def load(self):
+        # TODO
+        raise NotImplementedError("This is not the code you are looking for.")
 
     @property
     def regions(self):
@@ -232,3 +249,17 @@ class FabCollection:
                                     self._internal_heavy_name,
                                     self._internal_light_name,
                                     self._names)
+
+    def get_object(self, name):
+
+        """
+
+        :param name: str
+        :return:
+        """
+
+        if name in self.names:
+            index = self.names.index(name)
+            return self[index]
+        else:
+            raise ValueError('Could not find sequence with specified name')

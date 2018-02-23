@@ -1,6 +1,8 @@
 import warnings
 import _pickle as cPickle
 from abpytools.home import Home
+from ..utils.python_config import PythonConfig
+import matplotlib.pyplot as plt
 
 SUPPORTED_SUBSITUTION_MATRICES = ['BLOSUM45', 'BLOSUM62', 'BLOSUM80']
 
@@ -129,3 +131,11 @@ def traceback(traceback_matrix, seq_1, seq_2):
         current = traceback_matrix[row][column]
 
     return ''.join(aligned_seq_2)[::-1]
+
+
+def switch_interactive_mode(save=False):
+    ipython_config = PythonConfig()
+    if ipython_config.ipython_info == 'notebook' and save is False:
+        if ipython_config.matplotlib_interactive is False:
+            # turns on interactive mode
+            plt.ion()

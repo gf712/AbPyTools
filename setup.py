@@ -1,4 +1,21 @@
-from setuptools import setup
+from setuptools import setup #, Extension
+
+# Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
+import distutils.sysconfig
+
+# cfg_vars = distutils.sysconfig.get_config_vars()
+# for key, value in cfg_vars.items():
+#     if type(value) == str:
+#         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
+
+about = {}
+with open('__about__.py', 'r') as f:
+    exec(f.read(), about)
+
+# cython_extension = Extension("abpytools.Cextensions",
+#                              ["./abpytools/cython_extensions/Cextensions.pyx"],
+#                              extra_compile_args=['-O3'],
+#                              language='c++')
 
 setup(
     name='AbPyTools',
@@ -9,7 +26,7 @@ setup(
                  'Programming Language :: Python :: 3 :: Only',
                  'Topic :: Scientific/Engineering :: Bio-Informatics'],
     keywords='antibody-analysis bioinformatics data-processing',
-    version='0.1.1',
+    version=about['__version__'],
     package_dir={'abpytools': 'abpytools'},
     packages=['abpytools',
               'abpytools.utils',
@@ -18,9 +35,9 @@ setup(
               'abpytools.features'],
     package_data={'abpytools': ['data/*.json']},
     url='https://github.com/gf712/AbPyTools',
-    license='MIT',
-    author='Gil Ferreira Hoben',
-    author_email='gil.hoben.16@ucl.ac.uk',
+    license=about['__license__'],
+    author=about['__author__'],
+    author_email=about['__author_email__'],
     description='Python package for antibody analysis',
     install_requires=['numpy',
                       'joblib',
@@ -29,6 +46,9 @@ setup(
                       'seaborn',
                       'matplotlib',
                       'beautifulsoup4',
-                      'lxml'],
-    test_suite="tests"
+                      'lxml',
+                      'scipy'],
+    test_suite="tests",
+    # ext_modules=[cython_extension],
+    # cmdclass={'build_ext': build_ext}
 )

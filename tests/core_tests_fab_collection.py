@@ -88,17 +88,17 @@ class FabCollectionCore(unittest.TestCase):
     def test_FabCollection_MW(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
-        self.assertAlmostEqual(fab_collection.molecular_weight()[0], 25078.143331999992)
+        self.assertAlmostEqual(fab_collection.molecular_weights()[0], 25078.143331999992)
 
     def test_FabCollection_ec_1(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
-        self.assertEqual(fab_collection.extinction_coefficient()[0], 52870)
+        self.assertEqual(fab_collection.extinction_coefficients()[0], 52870)
 
     def test_FabCollection_ec_2(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
-        self.assertAlmostEqual(fab_collection.extinction_coefficient(normalise=True)[0], 2.1082102969136987)
+        self.assertAlmostEqual(fab_collection.extinction_coefficients(normalise=True)[0], 2.1082102969136987)
 
     def test_FabCollection_charge(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,

@@ -3,6 +3,8 @@ AbPyTools
 
 [![Coverage Status](https://coveralls.io/repos/github/gf712/AbPyTools/badge.svg?branch=master)](https://coveralls.io/github/gf712/AbPyTools?branch=master)
 [![Build Status](https://travis-ci.org/gf712/AbPyTools.svg?branch=master)](https://travis-ci.org/gf712/AbPyTools)
+[![Code Health](https://landscape.io/github/gf712/AbPyTools/master/landscape.svg?style=flat)](https://landscape.io/github/gf712/AbPyTools/master)
+[![PyPI version](https://badge.fury.io/py/AbPyTools.svg)](https://badge.fury.io/py/AbPyTools)
 
 AbPyTools is a Python 3 package to extract information from heavy and light antibody chain sequences. Using the built-in
 Antibody and ChainCollection it is very easy to manipulate the data and do more specific analysis with custom scripts.
@@ -35,6 +37,9 @@ Stuff that will be added/ worked on next:
 
 Installing abpytools:
 -
+
+## From source:
+
 Clone code from the GitHub repository
 
 `git clone https://github.com/gf712/AbPyTools.git`
@@ -46,6 +51,14 @@ Change to package directory in your local machine
 Install package
 
 `python setup.py install`
+
+Run tests (recommended)
+
+`python setup.py test`
+
+## From pypi
+
+`pip install abpytools` 
 
 Import to python
 -

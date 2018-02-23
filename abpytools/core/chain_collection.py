@@ -1,29 +1,32 @@
 from .chain import Chain
 import numpy as np
 import logging
-from joblib import Parallel, delayed
 from abpytools.utils import PythonConfig, Download
 import json
 import os
 import pandas as pd
-import re
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
 from operator import itemgetter
 from urllib import parse
 from math import ceil
+from .base import CollectionBase
+from ..features.composition import *
+from ..analysis.distance_metrics import *
+from ..core.cache import Cache
+from multiprocessing import Manager, Process
+from inspect import signature
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 ipython_config = PythonConfig()
-ipython_config.get_ipython_info()
-if ipython_config.backend == 'notebook':
-    from tqdm import tqdm_notebook as tqdm
+if ipython_config.ipython_info == 'notebook':
+    from tqdm import tqdm_notebook as tqdm  # pragma: no cover
 else:
     from tqdm import tqdm
 
 
-class ChainCollection:
+class ChainCollection(CollectionBase):
     """
     Object containing Chain objects and to perform analysis on the ensemble.
 
@@ -45,14 +48,17 @@ class ChainCollection:
 
         """
 
+        :type numbering_scheme: string
         :type antibody_objects: list of Chain objects
-              path:             string to a FASTA format file
+        :type path:             string with the path to a FASTA format file
         """
 
         if antibody_objects is None:
             antibody_objects = []
 
-        if not isinstance(antibody_objects, list):
+        if isinstance(antibody_objects, ChainCollection):
+            antibody_objects = antibody_objects.antibody_objects
+        elif not isinstance(antibody_objects, list):
             raise ValueError("Expected a list, instead got object of type {}".format(type(antibody_objects)))
 
         elif not all(isinstance(obj, Chain) for obj in antibody_objects) and len(antibody_objects) > 0:
@@ -80,14 +86,23 @@ class ChainCollection:
                 self._chain = antibody_objects[0].chain
             else:
                 self._chain = ''
-                self._path = path
                 self._numbering_scheme = numbering_scheme
         else:
             self._chain = ''
-            self._path = path
             self._numbering_scheme = numbering_scheme
 
-    def load(self, n_jobs=-1, verbose=True, show_progressbar=True, **kwargs):
+        self._path = path
+
+    def load(self, n_threads=20, verbose=True, show_progressbar=True, **kwargs):
+
+        """
+
+        :param n_threads: int to specify number of threads to use in loading process
+        :param verbose: bool controls the level of verbose
+        :param show_progressbar: bool whether to display the progressbar
+        :param kwargs:
+        :return:
+        """
 
         names = list()
         if self._path is not None:
@@ -134,7 +149,7 @@ class ChainCollection:
         self.antibody_objects, self._chain = load_from_antibody_object(
             antibody_objects=self.antibody_objects,
             show_progressbar=show_progressbar,
-            n_jobs=n_jobs, verbose=verbose, **kwargs)
+            n_threads=n_threads, verbose=verbose, **kwargs)
 
     def save(self, file_format='FASTA', file_path='./', file_name='Ab_collection', information='all'):
 
@@ -168,9 +183,24 @@ class ChainCollection:
                     json.dump(data, f, indent=2)
 
     def molecular_weights(self, monoisotopic=False):
+
+        """
+
+        :param monoisotopic: bool whether to use monoisotopic values
+        :return: list
+        """
+
         return [x.ab_molecular_weight(monoisotopic=monoisotopic) for x in self.antibody_objects]
 
     def extinction_coefficients(self, extinction_coefficient_database='Standard', reduced=False):
+
+        """
+
+        :param extinction_coefficient_database: string with the name of the database to use
+        :param reduced: bool whether to consider the cysteines to be reduced
+        :return: list
+        """
+
         return [x.ab_ec(extinction_coefficient_database=extinction_coefficient_database,
                         reduced=reduced) for x in self.antibody_objects]
 
@@ -188,9 +218,16 @@ class ChainCollection:
         return abs_hydrophobicity_matrix
 
     def get_object(self, name=''):
+
+        """
+
+        :param name: str
+        :return:
+        """
+
         if name in self.names:
             index = self.names.index(name)
-            return self.antibody_objects[index]
+            return self[index]
         else:
             raise ValueError('Could not find sequence with specified name')
 
@@ -230,11 +267,11 @@ class ChainCollection:
 
     def igblast_server_query(self, chunk_size=50, show_progressbar=True, **kwargs):
         """
-        
+
         :param show_progressbar:
         :param chunk_size:
         :param kwargs: keyword arguments to pass to igblast_options
-        :return: 
+        :return:
         """
 
         # check if query is larger than 50 sequences
@@ -263,8 +300,8 @@ class ChainCollection:
 
         try:
             q.download()
-        except ValueError:
-            raise ValueError("Check the internet connection.")
+        except ValueError:  # pragma: no cover
+            raise ValueError("Check the internet connection.")  # pragma: no cover
 
         igblast_result = q.html
 
@@ -281,31 +318,27 @@ class ChainCollection:
     def append(self, antibody_obj):
 
         self.antibody_objects += antibody_obj
-    #
-    # def remove(self, antibody_obj=None, name=''):
-    #
-    #     # TODO: complete method
-    #
-    #     if isinstance(antibody_obj, Chain):
-    #         name = antibody_obj.name
-    #     elif isinstance(antibody_obj, ChainCollection):
-    #         name = ChainCollection.names()
-    #     if antibody_obj is None and len(name) > 0:
-    #         self.antibody_objects.pop([x for x in antibody_obj if x.name == name][0])
-    #
-    #     self._update_obj()
-    #
+
+    def pop(self, index=-1):
+
+        if index > len(self):
+            raise ValueError("The given index is outside the range of the object.")
+
+        element_to_pop = self[index]
+
+        self._destroy(index=index)
+
+        return element_to_pop
+
+    def _destroy(self, index):
+
+        del self.antibody_objects[index]
+
     # def filter(self):
     #
     #     # TODO: complete method
     #     pass
     #
-    # def _update_obj(self, index='all'):
-    #
-    #     # TODO: write method
-    #     if index == 'all':
-    #         self.antibody_objects = load_from_antibody_object(self.antibody_objects, show_progressbar=True,
-    #                                                           n_jobs=-1)
 
     @property
     def names(self):
@@ -390,17 +423,14 @@ class ChainCollection:
     def _split_to_chunks(self, chunk_size=50):
         """
         Helper function to split ChainCollection into size chunk_size and returns generator
-        :param chunks:
-        :return:
+        :param chunk_size: int, size of each chunk
+        :return: generator to iterate of each chunk of size chunk_size
         """
-
-        start = 0
 
         if self.n_ab > chunk_size:
 
-            for x in range(chunk_size, self.n_ab, chunk_size):
-                yield self[range(start, x)]
-                start = x
+            for x in range(0, self.n_ab, chunk_size):
+                yield self[range(x, min(x + chunk_size, self.n_ab))]
 
         else:
             yield self
@@ -418,6 +448,158 @@ class ChainCollection:
     def loading_status(self):
         return [x.status for x in self.antibody_objects]
 
+    def composition(self, method='count'):
+        """
+        Amino acid composition of each sequence. Each resulting list is organised alphabetically (see composition.py)
+        :param method:
+        :return:
+        """
+        if method == 'count':
+            return [order_seq(aa_composition(seq)) for seq in self.sequences]
+        elif method == 'freq':
+            return [order_seq(aa_frequency(seq)) for seq in self.sequences]
+        elif method == 'chou':
+            return chou_pseudo_aa_composition(self.sequences)
+        elif method == 'triad':
+            return triad_method(self.sequences)
+        elif method == 'hydrophobicity':
+            return self.hydrophobicity_matrix()
+        elif method == 'volume':
+                return side_chain_volume(self.sequences)
+        else:
+            raise ValueError("Unknown method")
+
+    def distance_matrix(self, feature=None, metric='cosine_similarity', multiprocessing=False):
+
+        """
+        Returns the distance matrix using a given feature and distance metric
+        :param feature: string with the name of the feature to use
+        :param metric: string with the name of the metric to use
+        :param multiprocessing: bool to turn multiprocessing on/off (True/False)
+        :return: list of lists with distances between all sequences of len(data) with each list of len(data)
+                 when i==j M_i,j = 0
+        """
+
+        if feature is None:
+            transformed_data = self.sequences
+        elif isinstance(feature, str):
+            # in this case the features are calculated using a predefined featurisation method (see self.composition)
+            transformed_data = self.composition(method=feature)
+
+        elif isinstance(feature, list):
+            # a user defined list with vectors
+            if len(feature) != self.n_ab:
+                raise ValueError("Expected a list of size {}, instead got {}.".format(self.n_ab, len(feature)))
+            else:
+                transformed_data = feature
+        else:
+            raise TypeError("Unexpected input for feature argument.")
+
+        if metric == 'cosine_similarity':
+            distances = self._run_distance_matrix(transformed_data, cosine_similarity, multiprocessing=multiprocessing)
+
+        elif metric == 'cosine_distance':
+            distances = self._run_distance_matrix(transformed_data, cosine_distance, multiprocessing=multiprocessing)
+
+        elif metric == 'hamming_distance':
+            # be careful hamming distance only works when all sequences have the same length
+            distances = self._run_distance_matrix(transformed_data, hamming_distance, multiprocessing=multiprocessing)
+
+        elif metric == 'levenshtein_distance':
+            distances = self._run_distance_matrix(transformed_data, levenshtein_distance, multiprocessing=multiprocessing)
+
+        elif metric == 'euclidean_distance':
+            distances = self._run_distance_matrix(transformed_data, euclidean_distance, multiprocessing=multiprocessing)
+
+        elif metric == 'manhattan_distance':
+            distances = self._run_distance_matrix(transformed_data, manhattan_distance, multiprocessing=multiprocessing)
+
+        elif callable(metric):
+            # user defined metric function
+            user_function_signature = signature(metric)
+
+            # number of params should be two, can take args with defaults though
+            default_params = sum(['=' in x for x in user_function_signature.parameters])
+
+            if len(user_function_signature.parameters) - default_params > 2:
+                raise ValueError("Expected a function with two parameters")
+            else:
+                distances = self._run_distance_matrix(transformed_data, metric, multiprocessing=multiprocessing)
+
+        else:
+            raise ValueError("Unknown distance metric.")
+
+        return distances
+
+    def _run_distance_matrix(self, data, metric, multiprocessing=False):
+
+        """
+        Helper function to setup the calculation of each entry in the distance matrix
+        :param data: list with all sequences
+        :param metric: function that takes two string and calculates distance
+        :param multiprocessing: bool to turn multiprocessing on/off (True/False)
+        :return: list of lists with distances between all sequences of len(data) with each list of len(data)
+                 when i==j M_i,j = 0
+        """
+
+        if multiprocessing:
+            with Manager() as manager:
+                cache = manager.dict()
+                matrix = manager.dict()
+
+                jobs = [Process(target=self._distance_matrix,
+                                args=(data, i, metric, cache, matrix)) for i in range(len(data))]
+
+                for j in jobs:
+                    j.start()
+                for j in jobs:
+                    j.join()
+
+                # order the data
+                return [matrix[x] for x in range(len(data))]
+
+        else:
+            cache = Cache(max_cache_size=(len(data) * (len(data) - 1)) / 2)
+            matrix = Cache(max_cache_size=len(data))
+
+            for i in range(len(data)):
+                cache.update(i, self._distance_matrix(data, i, metric, cache, matrix))
+
+            return [matrix[x] for x in range(len(data))]
+
+    @staticmethod
+    def _distance_matrix(data, i, metric, cache, matrix):
+
+        """
+        Function to calculate distance from the ith sequence of the ith row to the remaining entries in the same row
+        :param data: list with all sequences
+        :param i: int that indicates the matrix row being processed
+        :param metric: function that takes two string and calculates distance
+        :param cache: either a Manager or Cache object to cache results
+        :param matrix: either a Manager or Cache object to store results in a matrix
+        :return: None
+        """
+
+        row = []
+        seq_1 = data[i]
+        for j, seq_2 in enumerate(data):
+
+            if i == j:
+                row.append(0)
+                continue
+
+            keys = ('{}-{}'.format(i, j), '{}-{}'.format(j, i))
+            if keys[0] not in cache or keys[1] not in cache:
+                cache['{}-{}'.format(i, j)] = metric(seq_1, seq_2)
+            if keys[0] in cache:
+                row.append(cache[keys[0]])
+            elif keys[1] in cache:
+                row.append(cache[keys[0]])
+            else:
+                raise ValueError("Bug in row {} and column {}".format(i, j))
+
+        matrix[i] = row
+
 
 def load_antibody_object(antibody_object):
     antibody_object.load()
@@ -432,55 +614,79 @@ all_bar_funcs = {
 }
 
 
-def parallelexecutor(use_bar='tqdm', **joblib_args):
-    def aprun(bar=use_bar, **tq_args):
-        def tmp(op_iter):
-            if str(bar) in all_bar_funcs.keys():
-                bar_func = all_bar_funcs[str(bar)](tq_args)
-            else:
-                raise ValueError("Value %s not supported as bar type" % bar)
-            return Parallel(**joblib_args)(bar_func(op_iter))
+# def parallelexecutor(use_bar='tqdm', **joblib_args):
+#     def aprun(bar=use_bar, **tq_args):
+#         def tmp(op_iter):
+#             if str(bar) in all_bar_funcs.keys():
+#                 bar_func = all_bar_funcs[str(bar)](tq_args)
+#             else:
+#                 raise ValueError("Value %s not supported as bar type" % bar)
+#             return Parallel(**joblib_args)(bar_func(op_iter))
+#
+#         return tmp
+#
+#     return aprun
 
-        return tmp
 
-    return aprun
-
-
-def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1, verbose=True, timeout=5):
+def load_from_antibody_object(antibody_objects, show_progressbar=True, n_threads=20, verbose=True, timeout=5):
     if verbose:
         print("Loading in antibody objects")
 
-    if show_progressbar:
-        aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs, timeout=timeout)
-    else:
-        aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs, timeout=timeout)
+    from queue import Queue
+    import threading
 
-    # load in objects in parallel
-    antibody_objects = aprun(total=len(antibody_objects))(
-        delayed(load_antibody_object)(obj) for obj in antibody_objects)
+    q = Queue()
+    for i in range(n_threads):
+        t = threading.Thread(target=worker, args=(q,))
+        t.daemon = True
+        t.start()
+
+    if show_progressbar:
+        for antibody_object in tqdm(antibody_objects):
+            q.put(antibody_object)
+
+    else:
+        for antibody_object in antibody_objects:
+            q.put(antibody_object)
+
+    q.join()
+
+    # if show_progressbar:
+    #     aprun = parallelexecutor(use_bar='tqdm', n_jobs=n_jobs, timeout=timeout)
+    # else:
+    #     aprun = parallelexecutor(use_bar='None', n_jobs=n_jobs, timeout=timeout)
+    #
+    # # load in objects in parallel
+    # antibody_objects = aprun(total=len(antibody_objects))(
+    #     delayed(load_antibody_object)(obj) for obj in antibody_objects)
 
     status = [x.status for x in antibody_objects]
-    loaded_obj_chains = [x.chain for x in antibody_objects if x.status != 'Not Loaded']
-
-    failed = sum([1 if x == 'Not Loaded' else 0 for x in status])
+    failed = sum([1 if x == 'Not Loaded' or x == 'Failed' else 0 for x in status])
 
     # remove objects that did not load
     while 'Not Loaded' in status:
         i = status.index('Not Loaded')
         del antibody_objects[i], status[i]
 
+    while 'Failed' in status:
+        i = status.index('Failed')
+        del antibody_objects[i], status[i]
+
     if verbose:
         print("Failed to load {} objects in list".format(failed))
+
+    loaded_obj_chains = [x.chain for x in antibody_objects if x.status == 'Loaded']
 
     if len(set(loaded_obj_chains)) == 1:
         chain = loaded_obj_chains[0]
     else:
-        raise ValueError("All sequences must of the same chain type: Light or Heavy")
+        raise ValueError("All sequences must be of the same chain type: Light or Heavy",
+                         set([x.chain for x in loaded_obj_chains]))
 
     n_ab = len(loaded_obj_chains)
 
     if n_ab == 0:
-        raise IOError("Could not find any heavy or light chains in provided file or list of objects")
+        raise ValueError("Could not find any heavy or light chains in provided file or list of objects")
 
     return antibody_objects, chain
 
@@ -488,9 +694,10 @@ def load_from_antibody_object(antibody_objects, show_progressbar=True, n_jobs=-1
 def load_igblast_query(igblast_result, names):
 
     """
-    
-    :param igblast_result: 
-    :return: 
+
+    :param names:
+    :param igblast_result:
+    :return:
     """
 
     try:
@@ -560,6 +767,13 @@ def load_igblast_query(igblast_result, names):
     return result_dict
 
 
+def worker(q):
+    while True:
+        item = q.get()
+        load_antibody_object(item)
+        q.task_done()
+
+
 def make_fasta(names, sequences):
 
     file_string = ''
@@ -591,3 +805,4 @@ def igblast_options(sequences, domain='imgt',
     url += parse.urlencode(values)
 
     return url
+

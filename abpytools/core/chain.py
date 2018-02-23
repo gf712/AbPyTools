@@ -4,6 +4,7 @@ from ..utils import DataLoader, Download
 import logging
 import pandas as pd
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
+from .cache import Cache
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
@@ -34,6 +35,7 @@ class Chain:
         self._loading_status = 'Not Loaded'
         self.germline_identity = dict()
         self.germline = tuple()
+        self._cache = Cache(max_cache_size=10)
 
     def load(self):
         """
@@ -68,21 +70,10 @@ class Chain:
             # this should never happen...
             raise ValueError("Unknown loading status")
 
-    def ab_numbering(self, server='abysis'):
-
-        # assert numbering_scheme.lower() in available_numbering_schemes, \
-        #     "Unknown Numbering scheme: {}. \
-        #     Numbering schemes available: {}".format(numbering_scheme,
-        #                                             ', '.join(available_numbering_schemes))
-        #
-        # assert server in available_servers, "Unknown server: {}. \
-        #     Available servers: {}".format(server, ' ,'.join(available_servers))
-        #
-        # # store the numbering scheme used for reference in other methods
-        # self._numbering_scheme = numbering_scheme
+    def ab_numbering(self, server='abysis', **kwargs):
 
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
-        numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme)
+        numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme, **kwargs)
 
         if numbering == ['']:
             self._loading_status = 'Failed'
@@ -148,11 +139,11 @@ class Chain:
 
         # check if all the required parameters are in order
         if isinstance(hydrophobicity_scores, str):
-            assert hydrophobicity_scores in available_hydrophobicity_scores, \
-                "Chosen hydrophobicity scores ({}) not available. \
+            if hydrophobicity_scores not in available_hydrophobicity_scores:
+                raise ValueError("Chosen hydrophobicity scores ({}) not available. \
                 Available hydrophobicity scores: {}".format(
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
-                )
+                ))
 
         if self._loading_status == 'Not Loaded':
             self.numbering = self.ab_numbering()
@@ -183,20 +174,26 @@ class Chain:
         :return:
         """
 
-        if self._loading_status == 'Not Loaded':
-            self.numbering, self._chain = self.ab_numbering()
+        if 'cdrs' not in self._cache:
 
-        if self.numbering == 'NA':
-            raise ValueError("Cannot return CDR positions without the antibody numbering information")
+            if self._loading_status == 'Not Loaded':
+                self.numbering, self._chain = self.ab_numbering()
 
-        data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self._chain])
-        cdr_positions = data_loader.get_data()
+            if self.numbering == 'NA':
+                raise ValueError("Cannot return CDR positions without the antibody numbering information")
 
-        data_loader = DataLoader(data_type='Framework_positions', data=[self._numbering_scheme, self._chain])
-        framework_position = data_loader.get_data()
+            data_loader = DataLoader(data_type='CDR_positions', data=[self._numbering_scheme, self._chain])
+            cdr_positions = data_loader.get_data()
 
-        return calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
-                             framework_positions=framework_position)
+            data_loader = DataLoader(data_type='Framework_positions', data=[self._numbering_scheme, self._chain])
+            framework_position = data_loader.get_data()
+
+            cdrs = calculate_cdr(numbering=self.numbering, cdr_positions=cdr_positions,
+                                 framework_positions=framework_position)
+
+            self._cache.update('cdrs', cdrs)
+
+        return self._cache['cdrs']
 
     def ab_molecular_weight(self, monoisotopic=False):
 
@@ -314,7 +311,7 @@ class Chain:
         return len(self.sequence)
 
 
-def get_ab_numbering(sequence, server, numbering_scheme):
+def get_ab_numbering(sequence, server, numbering_scheme, timeout=30):
     """
 
     :rtype: list
@@ -335,7 +332,7 @@ def get_ab_numbering(sequence, server, numbering_scheme):
         url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
                                                                                                   scheme)
         # use the Download class from utils to get output
-        numbering_table = Download(url, verbose=False)
+        numbering_table = Download(url, verbose=False, timeout=timeout)
         try:
             numbering_table.download()
         except ValueError:
