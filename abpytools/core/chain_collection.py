@@ -21,7 +21,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 ipython_config = PythonConfig()
 if ipython_config.ipython_info == 'notebook':
-    from tqdm import tqdm_notebook as tqdm
+    from tqdm import tqdm_notebook as tqdm  # pragma: no cover
 else:
     from tqdm import tqdm
 
@@ -300,8 +300,8 @@ class ChainCollection(CollectionBase):
 
         try:
             q.download()
-        except ValueError:
-            raise ValueError("Check the internet connection.")
+        except ValueError:  # pragma: no cover
+            raise ValueError("Check the internet connection.")  # pragma: no cover
 
         igblast_result = q.html
 

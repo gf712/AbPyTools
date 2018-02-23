@@ -13,7 +13,7 @@ class PythonConfig:
 
     @property
     def matplotlib_interactive(self):
-        return self._matplotlib_interactive
+        return self._matplotlib_interactive  # pragma: no cover
 
 
 def get_ipython_info():
