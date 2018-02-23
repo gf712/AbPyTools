@@ -1,5 +1,4 @@
-from setuptools import setup, Extension
-from Cython.Build import build_ext
+from setuptools import setup #, Extension
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
