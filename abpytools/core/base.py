@@ -3,31 +3,14 @@ from abc import ABC, abstractmethod
 
 class CollectionBase(ABC):
 
-    @abstractmethod
-    def molecular_weights(self, monoisotopic):
-        pass
-
-    @abstractmethod
-    def extinction_coefficients(self, extinction_coefficient_database,
-                                reduced, normalise):
-        pass
-
-    @abstractmethod
-    def hydrophobicity_matrix(self):
-        pass
-
-    @abstractmethod
-    def total_charge(self, ph, pka_database):
-        pass
-
-    @abstractmethod
-    def charge(self):
-        pass
+    """
+    Abstract class to not forget some essential methods
+    """
 
     @abstractmethod
     def load(self, n_threads, verbose, show_progressbar, **kwargs):
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def save(self, file_format, file_path, file_name, information):
-        pass
+        pass  # pragma: no cover
