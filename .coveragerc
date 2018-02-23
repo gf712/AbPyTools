@@ -1,6 +1,10 @@
 [run]
 omit =
-    /tests/*
-    /core/__about__.py
+    pragma: no cover
+    __about__.py
     def __repr__
     raise NotImplementedError
+    plt.
+    ax.
+    ax[
+    sns.

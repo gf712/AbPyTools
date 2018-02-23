@@ -9,7 +9,7 @@ import distutils.sysconfig
 #         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 
 about = {}
-with open('./abpytools/__about__.py', 'r') as f:
+with open('__about__.py', 'r') as f:
     exec(f.read(), about)
 
 # cython_extension = Extension("abpytools.Cextensions",
