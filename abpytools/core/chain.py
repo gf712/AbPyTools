@@ -146,7 +146,7 @@ class Chain:
                 )
 
         if self._loading_status == 'Not Loaded':
-            self._chain, self.numbering = self.ab_numbering()
+            self.numbering = self.ab_numbering()
         if self._chain == 'NA':
             raise ValueError("Could not determine chain type")
 
