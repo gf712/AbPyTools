@@ -17,7 +17,7 @@ class CollectionBase(ABC):
         pass
 
     @abstractmethod
-    def total_charge(self):
+    def total_charge(self, ph, pka_database):
         pass
 
     @abstractmethod
@@ -29,5 +29,5 @@ class CollectionBase(ABC):
         pass
 
     @abstractmethod
-    def save(self):
+    def save(self, file_format, file_path, file_name, information):
         pass

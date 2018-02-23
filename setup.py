@@ -1,8 +1,22 @@
-from setuptools import setup
+from setuptools import setup, Extension
+from Cython.Build import build_ext
+
+# Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
+import distutils.sysconfig
+
+# cfg_vars = distutils.sysconfig.get_config_vars()
+# for key, value in cfg_vars.items():
+#     if type(value) == str:
+#         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 
 about = {}
 with open('./abpytools/__about__.py', 'r') as f:
     exec(f.read(), about)
+
+# cython_extension = Extension("abpytools.Cextensions",
+#                              ["./abpytools/cython_extensions/Cextensions.pyx"],
+#                              extra_compile_args=['-O3'],
+#                              language='c++')
 
 setup(
     name='AbPyTools',
@@ -35,5 +49,7 @@ setup(
                       'beautifulsoup4',
                       'lxml',
                       'scipy'],
-    test_suite="tests"
+    test_suite="tests",
+    # ext_modules=[cython_extension],
+    # cmdclass={'build_ext': build_ext}
 )

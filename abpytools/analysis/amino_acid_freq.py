@@ -136,6 +136,13 @@ class AminoAcidFreq(ChainDomains):
                       "#f0b98d", "#ef9708", "#0fcfc0", "#9cded6"]
 
             if sort_by == 'name':
+
+                # previous, lgd = self.plot_helper(ax=ax, colors=colors,
+                #                                  title='amino acids',
+                #                                  keys=sorted(amino_acid_index.keys()),
+                #                                  position=position, data=aa,
+                #                                  previous=previous)
+
                 ax.set_title(self.region + ' amino acids', size=20)
                 for i, amino_acid in enumerate(sorted(amino_acid_index.keys())):
                     c = colors[i]
@@ -146,24 +153,21 @@ class AminoAcidFreq(ChainDomains):
                                 prop={"size": 16})
 
             elif sort_by == 'hydropathy':
-                colors = ['b', 'r', 'k']
-                ax.set_title(self.region + ' amino acid hydropathy', size=20)
-                for i, prop_i in enumerate(['Hydrophilic', 'Moderate', 'Hydrophobic']):
-                    c = colors[i]
-                    ax.bar(position, hyd[i, position], bottom=previous, label=prop_i, color=c, align='center')
-                    previous += hyd[i, position]
-                lgd = ax.legend(['Hydrophilic', 'Moderate', 'Hydrophobic'], loc='center left', bbox_to_anchor=(1, 0.5),
-                                prop={"size": 16})
+
+                previous, lgd = self.plot_helper(ax=ax, colors=['b', 'r', 'k'],
+                                                 title=sort_by,
+                                                 keys=['Hydrophilic', 'Moderate',
+                                                       'Hydrophobic'],
+                                                 position=position, data=hyd,
+                                                 previous=previous)
 
             else:
-                colors = ['b', 'r', 'k']
-                ax.set_title(self.region + ' amino acid charge', size=20)
-                for i, prop_i in enumerate(['Negative', 'Positive', 'Neutral']):
-                    c = colors[i]
-                    ax.bar(position, chg[i, position], bottom=previous, label=prop_i, color=c, align='center')
-                    previous += chg[i, position]
-                lgd = ax.legend(['Negative', 'Positive', 'Neutral'], loc='center left', bbox_to_anchor=(1, 0.5),
-                                prop={"size": 16})
+
+                previous, lgd = self.plot_helper(ax=ax, colors=['b', 'r', 'k'],
+                                                 title='amino acid charge',
+                                                 keys=['Negative', 'Positive', 'Neutral'],
+                                                 position=position, data=chg,
+                                                 previous=previous)
 
         if display_count:
             for position in range(aa.shape[1]):
@@ -188,3 +192,15 @@ class AminoAcidFreq(ChainDomains):
         else:
             fig.savefig(os.path.join(plot_path, plot_name), bbox_extra_artists=(lgd,), bbox_inches='tight')
             plt.close(fig)
+
+    def plot_helper(self, ax, colors, title, keys, position, data, previous):
+
+        ax.set_title('{} {}'.format(self.region, title), size=20)
+        for i, prop_i in enumerate(keys):
+            c = colors[i]
+            ax.bar(position, data[i, position], bottom=previous, label=prop_i, color=c, align='center')
+            previous += data[i, position]
+        lgd = ax.legend(keys, loc='center left', bbox_to_anchor=(1, 0.5),
+                        prop={"size": 16})
+
+        return previous, lgd
