@@ -139,8 +139,8 @@ class Chain:
 
         # check if all the required parameters are in order
         if isinstance(hydrophobicity_scores, str):
-            assert hydrophobicity_scores in available_hydrophobicity_scores, \
-                "Chosen hydrophobicity scores ({}) not available. \
+            if hydrophobicity_scores in available_hydrophobicity_scores:
+                raise "Chosen hydrophobicity scores ({}) not available. \
                 Available hydrophobicity scores: {}".format(
                     hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
                 )

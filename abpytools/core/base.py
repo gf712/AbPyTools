@@ -4,11 +4,12 @@ from abc import ABC, abstractmethod
 class CollectionBase(ABC):
 
     @abstractmethod
-    def molecular_weights(self):
+    def molecular_weights(self, monoisotopic):
         pass
 
     @abstractmethod
-    def extinction_coefficients(self):
+    def extinction_coefficients(self, extinction_coefficient_database,
+                                reduced, normalise):
         pass
 
     @abstractmethod
@@ -24,7 +25,7 @@ class CollectionBase(ABC):
         pass
 
     @abstractmethod
-    def load(self):
+    def load(self, n_threads, verbose, show_progressbar, **kwargs):
         pass
 
     @abstractmethod

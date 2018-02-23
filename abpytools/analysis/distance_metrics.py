@@ -1,5 +1,5 @@
 from ..utils.math_utils import dot_product, magnitude
-from math import acos, sqrt
+from math import acos
 from .analysis_helper_functions import init_score_matrix
 
 
