@@ -24,6 +24,7 @@ class Chain:
     def __init__(self, sequence='', name='Chain1', numbering=None, numbering_scheme='chothia'):
         self._raw_sequence = sequence.upper()
         self._sequence = self._raw_sequence.replace('-', '')
+        self._aligned_sequence = None
         self._name = name
         self.numbering = numbering
         self.hydrophobicity_matrix = np.array([])
@@ -117,6 +118,8 @@ class Chain:
                 # if there is no amino acid in the sequence that corresponds to position i we just replace it by
                 # the replacement value, which is by default '-'
                 data[i] = replacement
+
+        self._aligned_sequence = data
 
         if as_array:
             # return the data as numpy.array -> much faster than creating a pandas.DataFrame
@@ -289,6 +292,12 @@ class Chain:
     @property
     def sequence(self):
         return self._sequence
+
+    @property
+    def aligned_sequence(self):
+        if self._aligned_sequence is None:
+            _ = self.ab_numbering_table(as_array=True, replacement='')
+        return self._aligned_sequence
 
     @property
     def status(self):
