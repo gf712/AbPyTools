@@ -91,7 +91,7 @@ class Chain:
 
         """
 
-        :param region: 
+        :param region:
         :param as_array: if True returns numpy.array object, if False returns a pandas.DataFrame
         :param replacement: value to replace empty positions
         :return:
@@ -245,11 +245,11 @@ class Chain:
 
         """
         Method to calculate the charges for each amino acid of antibody
-        :param pka_database: 
-        :param ph: 
-        :param align: if set to True an alignment will be performed, 
+        :param pka_database:
+        :param ph:
+        :param align: if set to True an alignment will be performed,
                       if it hasn't been done already using the ab_numbering method
-                        
+
         :return: array with amino acid charges
         """
 
