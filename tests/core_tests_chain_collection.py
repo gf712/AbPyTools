@@ -322,6 +322,7 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_kabat.load(show_progressbar=False, verbose=False)
         self.assertRaises(ValueError, operator.add, antibody_chothia, antibody_kabat)
 
+    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
     def test_ChainCollection_add_exception_2(self):
         # check if adding two ChainCollection objects with one sequence each
         # results in a ChainCollection object with two sequences
@@ -337,6 +338,7 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         self.assertRaises(ValueError, operator.add, antibody_collection_1, 0)
 
+    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
     def test_ChainCollection_fasta(self):
         antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)

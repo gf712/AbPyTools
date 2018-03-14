@@ -1,6 +1,6 @@
 import re
 import numpy as np
-from ..utils import DataLoader, Download
+from ..utils import DataLoader, Download, NumberingException
 import logging
 import pandas as pd
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
@@ -61,6 +61,9 @@ class Chain:
             except ValueError:
                 self._loading_status = 'Failed'
 
+            except NumberingException:
+                self._loading_status = 'Unnumbered'
+
         elif self._loading_status == 'Loaded':
             self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
             self.mw = self.ab_molecular_weight()
@@ -76,11 +79,7 @@ class Chain:
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
         numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme, **kwargs)
 
-        if numbering == ['']:
-            self._loading_status = 'Failed'
-            return 'NA'
-
-        elif numbering[0][0] == 'H':
+        if numbering[0][0] == 'H':
             self._chain = 'heavy'
         elif numbering[0][0] == 'L':
             self._chain = 'light'
@@ -350,7 +349,7 @@ def get_ab_numbering(sequence, server, numbering_scheme, timeout=30):
         # check whether the server returned an error
         if numbering_table.html.replace("\n", '') == 'Warning: Unable to number sequence' or len(
                 numbering_table.html.replace("\n", '')) == 0:
-            raise ValueError("Unable to number sequence")
+            raise NumberingException("Unable to number sequence")
 
         # parse the results
         parsed_numbering_table = re.findall("[\S| ]+", numbering_table.html)

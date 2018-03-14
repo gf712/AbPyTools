@@ -1,0 +1,2 @@
+class NumberingException(Exception):
+    pass
