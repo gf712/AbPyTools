@@ -56,3 +56,9 @@ class ChainCore(unittest.TestCase):
 
     def test_Chain_sequence_len(self):
         self.assertEqual(len(self.heavy_chain_object), 184)
+
+    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    def test_Chain_unnumbered_sequene(self):
+        test_seq = Chain(sequence='TEST')
+        test_seq.load()
+        self.assertEqual(test_seq.status, 'Unnumbered')

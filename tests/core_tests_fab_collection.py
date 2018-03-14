@@ -176,6 +176,7 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection)
         self.assertEqual(len(fab_collection), 2)
 
+    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
     def test_FabCollection_germline_identity(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection,
