@@ -349,6 +349,10 @@ class ChainCollection(CollectionBase):
         return [x.sequence for x in self.antibody_objects]
 
     @property
+    def aligned_sequences(self):
+        return [x.aligned_sequence for x in self.antibody_objects]
+
+    @property
     def n_ab(self):
         return len(self.sequences)
 

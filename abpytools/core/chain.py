@@ -296,7 +296,7 @@ class Chain:
     def aligned_sequence(self):
         if self._aligned_sequence is None:
             _ = self.ab_numbering_table(as_array=True, replacement='-')
-        return self._aligned_sequence
+        return self._aligned_sequence.tolist()
 
     @property
     def status(self):

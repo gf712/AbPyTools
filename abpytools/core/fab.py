@@ -111,6 +111,10 @@ class Fab:
         return self._pair_sequence
 
     @property
+    def aligned_sequence(self):
+        return self[0].aligned_sequence + self[1].aligned_sequence
+
+    @property
     def germline_identity(self):
         return self._germline_identity()
 

@@ -198,6 +198,12 @@ class FabCollection(CollectionBase):
         return self._pair_sequences
 
     @property
+    def aligned_sequences(self):
+        return [heavy + light for light, heavy in
+                zip(self._heavy_chains.aligned_sequences,
+                    self._light_chains.aligned_sequences)]
+
+    @property
     def n_ab(self):
         return self._n_ab
 
