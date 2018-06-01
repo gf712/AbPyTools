@@ -169,7 +169,7 @@ class FabCollection(CollectionBase):
                                                              ('Light', 'Score')]),
                           index=self.names)
 
-        df = df.loc[:, (slice(None), 'Score')].apply(pd.to_numeric)
+        df.loc[:, (slice(None), 'Score')] = df.loc[:, (slice(None), 'Score')].apply(pd.to_numeric)
 
         return df
 
