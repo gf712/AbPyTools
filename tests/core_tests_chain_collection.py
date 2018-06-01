@@ -183,7 +183,8 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         antibody_collection_1.igblast_local_query('tests/Data/chain_collection_1_igblast.html')
-        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69)
+        self.assertAlmostEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69,
+                               delta=10e-9)
 
     @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
     def test_ChainCollection_igblast_server_query_germline(self):
@@ -197,7 +198,8 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
         antibody_collection_1.load(show_progressbar=False, verbose=False)
         antibody_collection_1.igblast_server_query(show_progressbar=False)
-        self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69)
+        self.assertAlmostEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69,
+                               delta=10e-9)
 
     @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
     def test_ChainCollection_igblast_server_query_identity(self):
