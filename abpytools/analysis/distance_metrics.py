@@ -1,4 +1,5 @@
 from ..utils.math_utils import dot_product, magnitude
+from .distance_metrics_ import cosine_distance_, hamming_distance_
 from math import acos
 from .analysis_helper_functions import init_score_matrix
 
@@ -13,8 +14,8 @@ def cosine_distance(u, v):
     if u == v:
         return 0
     else:
-        # this clips the values to be between 1 and -1, as there can be rounding errors
-        return acos(max(min(dot_product(u, v) / (magnitude(u) * magnitude(v)), 1), -1))
+        # pure python: acos(max(min(dot_product(u, v) / (magnitude(u) * magnitude(v)), 1), -1))
+        return cosine_distance_(u, v)
 
 
 def cosine_similarity(u, v):
@@ -36,7 +37,8 @@ def hamming_distance(seq1, seq2):
     """
     if len(seq1) != len(seq2):
         raise ValueError("Sequences must be equal length, instead got {} and {}".format(len(seq1), len(seq2)))
-    return sum(aa1 != aa2 for aa1, aa2 in zip(seq1, seq2))
+    # pure python: sum(aa1 != aa2 for aa1, aa2 in zip(seq1, seq2))
+    return hamming_distance_(seq1, seq2)
 
 
 def levenshtein_distance(seq1, seq2):

@@ -34,6 +34,11 @@ Stuff that will be added/ worked on next:
 - adding some useful functions, such as comparing sequence with available datasets
 - write high level code for more specific analysis
   - plot CDR lengths of antibodies
+  
+Cython:
+-
+From version 0.3 AbPyTools will start using Cython to speed up numerical manipulations.
+In the front end nothing will change, but installation from source will require Cython!
 
 Installing abpytools:
 -
@@ -63,3 +68,8 @@ Run tests (recommended)
 Import to python
 -
 `import abpytools`
+
+Changelog:
+-
+### v0.3 (release date TBD):
+ - Implementation of backend calculations with Cython leading to speedups of several orders of magnitude
