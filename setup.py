@@ -1,4 +1,6 @@
-from setuptools import setup #, Extension
+from setuptools import setup
+from distutils.extension import Extension
+
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
@@ -12,10 +14,30 @@ about = {}
 with open('abpytools/__about__.py', 'r') as f:
     exec(f.read(), about)
 
-# cython_extension = Extension("abpytools.Cextensions",
-#                              ["./abpytools/cython_extensions/Cextensions.pyx"],
-#                              extra_compile_args=['-O3'],
-#                              language='c++')
+try:
+    from Cython.Build import cythonize
+    from Cython.Distutils import build_ext
+
+    use_cython = True
+
+except ImportError:
+    use_cython = False
+
+    raise NotImplementedError("Currenly Cython is always required, but in future versions both "
+                              "Python and Cython implementations will be available.")
+
+if use_cython:
+
+    cython_extensions = [Extension("abpytools.cython_extensions.convert_py_2_C",
+                                   ["abpytools/cython_extensions/convert_py_2_C.pyx"]),
+                         Extension("abpytools.utils.math_utils_",
+                                   ["abpytools/utils/math_utils_.pyx"]),
+                         Extension("abpytools.analysis.distance_metrics_",
+                                   ["abpytools/analysis/distance_metrics_.pyx"])
+                         ]
+    cython_extensions_ = cythonize(cython_extensions)
+else:
+    cython_extensions_ = None
 
 setup(
     name='AbPyTools',
@@ -49,6 +71,6 @@ setup(
                       'lxml',
                       'scipy'],
     test_suite="tests",
-    # ext_modules=[cython_extension],
-    # cmdclass={'build_ext': build_ext}
+    ext_modules=cython_extensions_,
+    cmdclass={'build_ext': build_ext}
 )
