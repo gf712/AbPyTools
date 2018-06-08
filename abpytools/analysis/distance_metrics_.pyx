@@ -1,8 +1,35 @@
 from abpytools.cython_extensions.convert_py_2_C cimport get_C_double_array_pointers, release_C_pointer, get_C_char_array_pointers
 from abpytools.utils.math_utils_ cimport internal_vector_dot_product_, internal_vector_norm_
 from libc.math cimport acos as acos_C
+from libc.math cimport fmin as min_C
 from libc.float cimport DBL_EPSILON
-from .analysis_helper_functions import init_score_matrix
+# from abpytools.utils.math_utils_ import Matrix2D
+cimport numpy as np
+import numpy as np
+
+
+cpdef np.ndarray init_score_matrix_(str seq_1, str seq_2, int indel):
+    """
+    - score matrix initialisation with two sequences
+    Example init_score_matrix('SEND', 'AND', -1):
+        [[0, -1, -2],
+         [-1, 0, 0],
+         [-2, 0, 0],
+         [-3, 0, 0]]
+         
+    Args:
+        seq_1: 
+        seq_2: 
+        indel: 
+
+    Returns:
+
+    """
+
+    init_matrix = np.array([[x * indel] + [0] * len(seq_1) if x > 0 else list(range(0, (len(seq_1) + 1) * indel, indel)) for x in
+                            range(len(seq_2) + 1)])
+
+    return init_matrix
 
 
 cpdef double cosine_distance_(list u, list v):
@@ -73,6 +100,7 @@ cpdef int hamming_distance_(str seq1, str seq2):
 
     return result
 
+
 cpdef levenshtein_distance(seq1, seq2):
     """
     
@@ -83,11 +111,12 @@ cpdef levenshtein_distance(seq1, seq2):
     Returns:
 
     """
-
-    dist = init_score_matrix(seq_1=seq1, seq_2=seq2, indel=1)
-
-    cols = len(dist[0])
-    rows = len(dist)
+    cdef np.ndarray dist = init_score_matrix_(seq_1=seq1, seq_2=seq2, indel=1)
+    cdef int cols = dist.shape[1]
+    cdef int rows = dist.shape[0]
+    cdef int col
+    cdef int row
+    cdef int cost
 
     for col in range(1, cols):
         for row in range(1, rows):
@@ -95,8 +124,8 @@ cpdef levenshtein_distance(seq1, seq2):
                 cost = 0
             else:
                 cost = 1
-            dist[row][col] = min(dist[row - 1][col] + 1,  # deletion
-                                 dist[row][col - 1] + 1,  # insertion
-                                 dist[row - 1][col - 1] + cost)  # substitution
+            dist[row, col] = min_C(min_C(dist[row - 1, col] + 1,  # deletion
+                                   dist[row, col - 1] + 1),  # insertion
+                                   dist[row - 1, col - 1] + cost)  # substitution
 
     return dist[-1][-1]
