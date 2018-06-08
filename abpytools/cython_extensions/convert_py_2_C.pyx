@@ -1,5 +1,7 @@
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy
+from cython.operator cimport dereference, postincrement
+
 
 cdef double* get_C_double_array_pointers(list a, int size):
 
@@ -55,3 +57,26 @@ cdef void release_C_pointer(scalar_or_char *a):
     """
 
     free(a)
+
+
+cdef double* get_array_from_ptr(double* ptr, int size):
+    """
+    Internal function to get C array from a single ptr
+    Args:
+        ptr: C pointer 
+        size: size of array
+
+    Returns:
+
+    """
+    cdef double *a_ = <double *> malloc(size*sizeof(double *))
+
+    if a_ is NULL:
+        raise MemoryError("Failed to allocate memory!")
+
+    cdef int i
+    for i in range(size):
+        a_[i] = dereference(ptr)
+        postincrement(ptr)
+
+    return a_
