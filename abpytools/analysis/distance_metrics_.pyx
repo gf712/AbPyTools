@@ -1,14 +1,12 @@
-from abpytools.cython_extensions.convert_py_2_C cimport get_C_double_array_pointers, release_C_pointer, get_C_char_array_pointers
-from abpytools.utils.math_utils_ cimport internal_vector_dot_product_, internal_vector_norm_
+from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer,
+get_C_char_array_pointers)
+from abpytools.utils.math_utils_ cimport Matrix2D_backend, Vector
 from libc.math cimport acos as acos_C
 from libc.math cimport fmin as min_C
 from libc.float cimport DBL_EPSILON
-# from abpytools.utils.math_utils_ import Matrix2D
-cimport numpy as np
-import numpy as np
 
 
-cpdef np.ndarray init_score_matrix_(str seq_1, str seq_2, int indel):
+cdef Matrix2D_backend init_score_matrix_(str seq_1, str seq_2, int indel):
     """
     - score matrix initialisation with two sequences
     Example init_score_matrix('SEND', 'AND', -1):
@@ -16,7 +14,7 @@ cpdef np.ndarray init_score_matrix_(str seq_1, str seq_2, int indel):
          [-1, 0, 0],
          [-2, 0, 0],
          [-3, 0, 0]]
-         
+
     Args:
         seq_1: 
         seq_2: 
@@ -26,8 +24,8 @@ cpdef np.ndarray init_score_matrix_(str seq_1, str seq_2, int indel):
 
     """
 
-    init_matrix = np.array([[x * indel] + [0] * len(seq_1) if x > 0 else list(range(0, (len(seq_1) + 1) * indel, indel)) for x in
-                            range(len(seq_2) + 1)])
+    init_matrix = Matrix2D_backend([[x * indel] + [0] * len(seq_1) if x > 0 else
+                                    list(range(0, (len(seq_1) + 1) * indel, indel)) for x in range(len(seq_2) + 1)])
 
     return init_matrix
 
@@ -48,24 +46,21 @@ cpdef double cosine_distance_(list u, list v):
     else:
         raise ValueError("Vector size mismatch")
 
-    cdef double *u_ = get_C_double_array_pointers(u, size)
-    cdef double *v_ = get_C_double_array_pointers(v, size)
+    cdef Vector u_ = Vector(u)
+    cdef Vector v_ = Vector(v)
     cdef double result
     cdef double lower
     cdef int norm = 2
 
-    cdef double upper = internal_vector_dot_product_(u_, v_, size)
+    cdef double upper = u_.dot_product(v_)
 
     if upper < DBL_EPSILON:
         # if the result is lower than the double rounding error just assume that it should be in fact 0
         result = 0
 
     else:
-        lower = internal_vector_norm_(u_, norm, size) * internal_vector_norm_(v_, norm, size)
+        lower = u_.norm(norm) * v_.norm(norm)
         result = acos_C(upper / lower)
-
-    release_C_pointer(u_)
-    release_C_pointer(v_)
 
     return result
 
@@ -101,7 +96,7 @@ cpdef int hamming_distance_(str seq1, str seq2):
     return result
 
 
-cpdef levenshtein_distance(seq1, seq2):
+cpdef double levenshtein_distance_(seq1, seq2):
     """
     
     Args:
@@ -111,9 +106,9 @@ cpdef levenshtein_distance(seq1, seq2):
     Returns:
 
     """
-    cdef np.ndarray dist = init_score_matrix_(seq_1=seq1, seq_2=seq2, indel=1)
-    cdef int cols = dist.shape[1]
-    cdef int rows = dist.shape[0]
+    cdef Matrix2D_backend dist = init_score_matrix_(seq_1=seq1, seq_2=seq2, indel=1)
+    cdef int rows = dist.n_rows
+    cdef int cols = dist.n_cols
     cdef int col
     cdef int row
     cdef int cost
@@ -128,4 +123,4 @@ cpdef levenshtein_distance(seq1, seq2):
                                    dist[row, col - 1] + 1),  # insertion
                                    dist[row - 1, col - 1] + cost)  # substitution
 
-    return dist[-1][-1]
+    return dist[rows-1, cols-1]

@@ -1,7 +1,7 @@
-from ..utils.math_utils import dot_product, magnitude
-from .distance_metrics_ import cosine_distance_, hamming_distance_
-from math import acos
+from .distance_metrics_ import cosine_distance_, hamming_distance_, levenshtein_distance_
 from .analysis_helper_functions import init_score_matrix
+# from math import acos
+# from ..utils.math_utils import dot_product, magnitude
 
 
 def cosine_distance(u, v):
@@ -49,23 +49,24 @@ def levenshtein_distance(seq1, seq2):
     :return:
     """
 
-    dist = init_score_matrix(seq_1=seq1, seq_2=seq2, indel=1)
-
-    cols = len(dist[0])
-    rows = len(dist)
-
-    for col in range(1, cols):
-        for row in range(1, rows):
-            if seq2[row - 1] == seq1[col - 1]:
-                cost = 0
-            else:
-                cost = 1
-            dist[row][col] = min(dist[row - 1][col] + 1,  # deletion
-                                 dist[row][col - 1] + 1,  # insertion
-                                 dist[row - 1][col - 1] + cost)  # substitution
-
-    return dist[-1][-1]
-
+    # pure python:
+    # dist = init_score_matrix(seq_1=seq1, seq_2=seq2, indel=1)
+    #
+    # cols = len(dist[0])
+    # rows = len(dist)
+    #
+    # for col in range(1, cols):
+    #     for row in range(1, rows):
+    #         if seq2[row - 1] == seq1[col - 1]:
+    #             cost = 0
+    #         else:
+    #             cost = 1
+    #         dist[row][col] = min(dist[row - 1][col] + 1,  # deletion
+    #                              dist[row][col - 1] + 1,  # insertion
+    #                              dist[row - 1][col - 1] + cost)  # substitution
+    #
+    # return dist[rows-1][cols-1]
+    return levenshtein_distance_(seq1, seq2)
 
 def euclidean_distance(u, v):
     """
