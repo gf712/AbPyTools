@@ -1,6 +1,7 @@
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy
 from cython.operator cimport dereference, postincrement
+# from libc.stdio cimport printf
 
 
 cdef double* get_C_double_array_pointers(list a, int size):
@@ -22,6 +23,35 @@ cdef double* get_C_double_array_pointers(list a, int size):
     for i in range(size):
         a_[i] = a[i]
         i+=1
+
+    return a_
+
+
+cdef double** get_C_double_array_pp(double* a, int size):
+
+    """
+    Internal function to convert a python list to a C array of pointers that point to pointers (double**)
+    :param a: 
+    :param size: 
+    :return: 
+    """
+
+    # allocate memory of a_ C arrays that will contain a copy of list a
+    cdef double **a_ = <double **> malloc(size*sizeof(double*))
+
+    if a_ is NULL:
+        raise MemoryError("Failed to allocate memory!")
+
+    # convert list to C array
+    # cdef double *a__ = get_C_double_array_pointers(a, size)
+
+    # cdef double *ptr = a__
+
+    for i in range(size):
+        a_[i] = a
+        # printf("%f, %p\n", dereference(a_[i]), a_[i]);
+        # print(i, ref, dereference(a_[i]), hex(<unsigned long>&a_[i]))
+        postincrement(a)
 
     return a_
 
@@ -59,7 +89,12 @@ cdef void release_C_pointer(scalar_or_char *a):
     free(a)
 
 
-cdef double* get_array_from_ptr(double* ptr, int size):
+cdef void release_C_pp(scalar_or_char **a):
+
+    free(a)
+
+
+cdef double** get_array_from_ptr(double* ptr, int size):
     """
     Internal function to get C array from a single ptr
     Args:
@@ -69,14 +104,16 @@ cdef double* get_array_from_ptr(double* ptr, int size):
     Returns:
 
     """
-    cdef double *a_ = <double *> malloc(size*sizeof(double *))
+    cdef double **a_ = <double **> malloc(size*sizeof(double))
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
 
     cdef int i
     for i in range(size):
-        a_[i] = dereference(ptr)
+        a_[i] = ptr
+        # printf("%f, %p\n", dereference(a_[i]), a_[i]);
+        # print(i, ref, dereference(a_[i]), hex(<unsigned long>&a_[i]))
         postincrement(ptr)
 
     return a_
