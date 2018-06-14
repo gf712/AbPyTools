@@ -1,5 +1,6 @@
 from libc.math cimport pow as pow_C
-from abpytools.cython_extensions.convert_py_2_C cimport get_C_double_array_pointers, release_C_pointer, get_array_from_ptr
+from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer,
+get_array_from_ptr, get_C_double_array_pp, release_C_pp)
 import itertools
 from cython.operator cimport dereference, postincrement
 
@@ -47,6 +48,9 @@ class Matrix2D(Matrix2D_backend):
                 repr_string+="     {}\n".format(x)
         return repr_string
 
+    # def __dealloc__(self):
+
+
 
 cdef class Matrix2D_backend:
     """
@@ -59,7 +63,7 @@ cdef class Matrix2D_backend:
         self.values_ = values_
         self.n_rows = len(self.values_)
         self.n_cols = len(self.values_[0])
-        self.size = self.n_cols * self.n_rows
+        self.size_ = self.n_cols * self.n_rows
 
         cdef int i
 
@@ -68,14 +72,15 @@ cdef class Matrix2D_backend:
                raise ValueError("All rows must have the same number of elements")
 
         # copy data to a contiguous C array
-        self.data_C = get_C_double_array_pointers(list(itertools.chain(*self.values_)), self.n_rows * self.n_cols)
+        self.data_C = get_C_double_array_pointers(list(itertools.chain(*self.values_)), self.size_)
+        self.data_C_pointer = get_C_double_array_pp(self.data_C, self.size_)
 
     def _check_index(self, int row, int column):
-        if row * self.n_cols + column < self.size:
+        if row * self.n_cols + column < self.size_:
             raise IndexError("Requested element is outside array bounds")
 
     cdef double* _get_value_pointer(self, int row, int col):
-        cdef double* ptr = &self.data_C[self.n_cols * row + col]
+        cdef double* ptr = self.data_C_pointer[self.n_cols * row + col]
 
     cdef double* _get_row_pointer(self, int row):
         """
@@ -87,13 +92,14 @@ cdef class Matrix2D_backend:
 
         """
         # pointer to first element of C array row
-        cdef double* ptr = &self.data_C[self.n_cols * row]
+        cdef double* ptr = self.data_C_pointer[self.n_cols * row]
+        # print(dereference(ptr), hex(<unsigned long>&ptr))
         return ptr
 
-    def _get_row(self, int row):
+    cpdef list _get_row(self, int row):
         result = []
         cdef int i
-        ptr = self._get_row_pointer(row)
+        cdef double* ptr = self._get_row_pointer(row)
         for i in range(self.n_cols):
             result.append(dereference(ptr))
             postincrement(ptr)
@@ -103,12 +109,37 @@ cdef class Matrix2D_backend:
     def __dealloc__(self):
         # releases C memory allocation
         release_C_pointer(self.data_C)
+        release_C_pp(self.data_C_pointer)
 
-    def __getitem__(self, int row):
-        # create vector using data_ references
-        return Vector.create(self._get_row_pointer(row), self.n_cols)
+    cdef double _get_value(self, int row, int col):
+        return dereference(self._get_row_pointer(row)+col)
 
-    def _get_values(self):
+    cdef void _set_value(self, int row, int col, double value):
+        cdef double* ptr =  self._get_row_pointer(row) + col
+        ptr[0] = value
+
+
+    def __getitem__(self, idx):
+        if isinstance(idx, tuple) and len(idx) == 2:
+            # return a single value (only supports rows and columns)
+            # NOTE that there are no bound checks, so this can lead to odd behaviour,
+            # e.g. asking for a[0, a.shape[1]+1] will return the first element of the second row
+            # however this avoids wasting resources creating a new Vector object to get a single element
+            row, column = idx
+            return self._get_value(row, column)
+        else:
+            # create vector using data_ pointers
+            return Vector.create(self._get_row_pointer(idx), self.n_cols)
+
+    def __setitem__(self, idx, value):
+        if isinstance(idx, tuple) and len(idx) == 2:
+            row, column = idx
+            self._set_value(row, column, value)
+        else:
+            raise NotImplementedError("Cannot assign vectors to rows in Matrix2D yet!")
+
+
+    cpdef list _get_values(self):
         """
         Returns all values of C array
         Returns:
@@ -131,23 +162,6 @@ cdef class Matrix2D_backend:
         return result
 
 
-# class Vector(Vector_backend):
-#
-#     def __init__(self, values=None):
-#         super().__init__(values)
-#
-#
-#     def __getitem__(self, idx):
-#         return self._get_element(idx)
-#
-#     def __setitem__(self, idx, value):
-#         return
-#
-#     @property
-#     def size(self):
-#         return self.size_
-#
-#
 cdef class Vector:
 
     """
@@ -158,37 +172,41 @@ cdef class Vector:
         if values_ is not None:
             self.size_ = len(values_)
             self.data_C = get_C_double_array_pointers(values_, self.size_)
+            self.data_C_pointer = get_C_double_array_pp(self.data_C, self.size)
+
 
     @staticmethod
     cdef Vector create(double* ptr, int size):
         cdef Vector vec = Vector()
         vec.size_ = size
-        vec.data_C = get_array_from_ptr(ptr, size)
+        vec.data_C_pointer = get_array_from_ptr(ptr, size)
         return vec
 
     cpdef double dot_product(self, Vector other):
 
         """
-        Vector dot product
+        Vector dot product.
         Args:
-            other: 
+            other (Vector): a Vector object to calculate the dot product with
 
-        Returns:
+        Returns: the dot product between two vectors
 
         """
 
         if self.size_ != other.size:
             raise ValueError("Vector size mismatch")
 
-        return internal_vector_dot_product_(self.data_C, other.data_C, self.size_)
+        return internal_vector_dot_product_pp_(self.data_C_pointer, other.data_C_pointer, self.size_)
 
     cdef double _get_element(self, int idx):
-        return self.data_C[idx]
+        return dereference(self.data_C_pointer[idx])
 
     cdef void _set_array_value(self, int idx, double value):
-        cdef double* ptr = &self.data_C[idx]
-        ptr = &value
-        # self.data_C[idx] = value
+        cdef double* ptr = self.data_C_pointer[idx]
+        ptr[0] = value
+
+    cdef double norm(self, int p):
+        return internal_vector_norm_pp_(self.data_C_pointer, p, self.size_)
 
     @property
     def values(self):
@@ -198,7 +216,9 @@ cdef class Vector:
         return [self._get_element(i) for i in range(self.size_)]
 
     def __dealloc__(self):
-        release_C_pointer(self.data_C)
+        if hasattr(self, 'data_C'):
+            release_C_pointer(self.data_C)
+        release_C_pp(self.data_C_pointer)
 
     @property
     def size(self):
@@ -209,6 +229,28 @@ cdef class Vector:
 
     def __setitem__(self, idx, value):
         self._set_array_value(idx, value)
+
+
+cdef double internal_vector_dot_product_pp_(double **u, double **v, int size):
+    """
+    Dot product with double pointers.
+    
+    Args:
+        u: 
+        v: 
+        size: 
+
+    Returns:
+
+    """
+    cdef int i
+    cdef double result = 0.0
+
+    for i in range(size):
+        result += dereference(u[i]) * dereference(v[i])
+
+    return result
+
 
 cdef double internal_vector_dot_product_(double *u, double *v, int size):
     """
@@ -228,6 +270,20 @@ cdef double internal_vector_dot_product_(double *u, double *v, int size):
 
     for i in range(size):
         result += u[i] * v[i]
+
+    return result
+
+
+cdef double internal_vector_norm_pp_(double **u, int norm, int size):
+
+    cdef int i
+    cdef double result = 0.0
+    cdef double inverse_norm = 1.0 / norm
+
+    for i in range(size):
+        result += pow_C(dereference(u[i]), norm)
+
+    result = pow_C(result, inverse_norm)
 
     return result
 
