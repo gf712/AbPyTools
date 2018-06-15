@@ -1,5 +1,5 @@
 from .distance_metrics_ import cosine_distance_, hamming_distance_, levenshtein_distance_
-from .analysis_helper_functions import init_score_matrix
+# from .analysis_helper_functions import init_score_matrix
 # from math import acos
 # from ..utils.math_utils import dot_product, magnitude
 

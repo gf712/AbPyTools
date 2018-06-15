@@ -1,6 +1,5 @@
-from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer,
-get_C_char_array_pointers)
-from abpytools.utils.math_utils_ cimport Matrix2D_backend, Vector
+from abpytools.cython_extensions.convert_py_2_C cimport release_C_pointer, get_C_char_array_pointers
+from abpytools.utils.math_utils cimport Matrix2D_backend, Vector
 from libc.math cimport acos as acos_C
 from libc.math cimport fmin as min_C
 from libc.float cimport DBL_EPSILON
