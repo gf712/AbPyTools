@@ -11,11 +11,21 @@ aa_group = {'A': '0', 'G': '0', 'V': '0', 'I': '1', 'L': '1', 'F': '1', 'P': '1'
             'S': '2', 'H': '3', 'N': '3', 'Q': '3', 'W': '3', 'R': '4', 'K': '4', 'D': '5', 'E': '5', 'C': '6'}
 
 
-def chou_pseudo_aa_composition(sequences):
-    # M.K. Gupta , R. Niyogi & M. Misra (2013) An alignment-free method to find
-    # similarity among protein sequences via the general form of Chou’s pseudo amino acid composition,
-    # SAR and QSAR in Environmental Research, 24:7, 597-609,
-    # DOI: 10.1080/1062936X.2013.773378
+def chou_pseudo_aa_composition(*sequences):
+
+    """
+
+    M.K. Gupta , R. Niyogi & M. Misra (2013) An alignment-free method to find
+    similarity among protein sequences via the general form of Chou’s pseudo amino acid composition,
+    SAR and QSAR in Environmental Research, 24:7, 597-609,
+    DOI: 10.1080/1062936X.2013.773378
+
+    Args:
+        *sequences: amino acid sequences
+
+    Returns:
+        list of Chou's pseudo amino acid composition for each sequence
+    """
 
     # first the aa count
     aa_count_dict = [aa_composition(seq) for seq in sequences]
@@ -37,20 +47,65 @@ def chou_pseudo_aa_composition(sequences):
 
 
 def aa_composition(seq):
+    """
+    Number of amino acids in a given sequence.
+
+    Args:
+        seq (str): A string representing a sequence
+
+    Returns:
+        Counter with amino acid composition
+
+    """
     return Counter(seq)
 
 
 def aa_frequency(seq):
+
+    """
+    Normalised amino acid composition.
+
+    Args:
+        seq (str): A string representing a sequence
+
+    Returns:
+        Dictionary with amino acid frequency
+
+    """
+
     aa_count = aa_composition(seq)
     total = sum(aa_count.values())
     return {key: value/total for key, value in aa_count.items()}
 
 
 def distance_to_first(seq):
+    """
+    Cumulative distance of each of the twenty amino acids to the first residue,
+
+    Args:
+        seq (str): A string representing a sequence
+
+    Returns:
+        Dictionary with cumulative
+
+    """
     return {x: sum([m.start() for m in re.finditer(x, seq)]) for x in aa_order}
 
 
 def aa_distribution(seq, aa_count, aa_distance_to_first):
+    """
+    Amino acid distribution described in An alignment-free method to find
+    similarity among protein sequences via the general form of Chou’s pseudo amino acid composition.
+
+    Args:
+        seq (str): amino acid sequence
+        aa_count (dict): aminod acid count of sequence
+        aa_distance_to_first (dict): distance to first for each amino acid to first position
+
+    Returns:
+        dict
+
+    """
     aa_dist_dict = defaultdict(int)
     for i, aa in enumerate(seq):
         aa_dist_dict[aa] += (i - (aa_distance_to_first[aa] / aa_count[aa])) ** 2 / aa_count[aa]
@@ -58,14 +113,31 @@ def aa_distribution(seq, aa_count, aa_distance_to_first):
 
 
 def order_seq(seq_dict):
+    """
+    Orders dictionary to a list
+
+    Args:
+        seq_dict (dict): dictionary with amino acid keys
+
+    Returns:
+        A list with ordered amino acid
+
+    """
     return [seq_dict[aa] if aa in seq_dict else 0 for aa in aa_order]
 
 
-def triad_method(sequences):
+def triad_method(*sequences):
 
-    # as described in
-    # Shen J. et al. (2006). Predicting protein–protein interactions based only on sequences information. PNAS,
-    # 104(11), pp: 4337-4341.
+    """
+    Triad featurisation method described in Shen J. et al. (2006). Predicting protein–protein interactions based
+    only on sequences information. PNAS, 104(11), pp: 4337-4341.
+
+    Args:
+        *sequences (list): sequence of amino acids
+
+    Returns:
+        list of lists with results of triad method
+    """
 
     d_matrix = []
 
