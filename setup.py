@@ -1,10 +1,9 @@
 from setuptools import setup
 from distutils.extension import Extension
 
-
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
-import distutils.sysconfig
-
+# import distutils.sysconfig
+#
 # cfg_vars = distutils.sysconfig.get_config_vars()
 # for key, value in cfg_vars.items():
 #     if type(value) == str:
@@ -30,8 +29,8 @@ if use_cython:
 
     cython_extensions = [Extension("abpytools.cython_extensions.convert_py_2_C",
                                    ["abpytools/cython_extensions/convert_py_2_C.pyx"]),
-                         Extension("abpytools.utils.math_utils_",
-                                   ["abpytools/utils/math_utils_.pyx"]),
+                         Extension("abpytools.utils.math_utils",
+                                   ["abpytools/utils/math_utils.pyx"]),
                          Extension("abpytools.analysis.distance_metrics_",
                                    ["abpytools/analysis/distance_metrics_.pyx"])
                          ]
