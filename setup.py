@@ -1,13 +1,15 @@
-from setuptools import setup
-from distutils.extension import Extension
+from setuptools import setup, Extension
+# from distutils.core import setup
+# from distutils.extension import Extension
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
-# import distutils.sysconfig
-#
-# cfg_vars = distutils.sysconfig.get_config_vars()
-# for key, value in cfg_vars.items():
-#     if type(value) == str:
-#         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
+import distutils.sysconfig
+import subprocess
+
+cfg_vars = distutils.sysconfig.get_config_vars()
+for key, value in cfg_vars.items():
+    if type(value) == str:
+        cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
 
 about = {}
 with open('abpytools/__about__.py', 'r') as f:
@@ -19,6 +21,9 @@ try:
 
     use_cython = True
 
+    compile_time_env = {}
+
+
 except ImportError:
     use_cython = False
 
@@ -28,13 +33,28 @@ except ImportError:
 if use_cython:
 
     cython_extensions = [Extension("abpytools.cython_extensions.convert_py_2_C",
-                                   ["abpytools/cython_extensions/convert_py_2_C.pyx"]),
+                                   ["abpytools/cython_extensions/convert_py_2_C.pyx"],
+                                   language='c++'),
                          Extension("abpytools.utils.math_utils",
-                                   ["abpytools/utils/math_utils.pyx"]),
+                                   ["abpytools/utils/math_utils.pyx", "abpytools/utils/ops.cpp"],
+                                   extra_compile_args=['-fopenmp', '-march=native'],
+                                   extra_link_args=['-fopenmp', '-march=native'],
+                                   language='c++'),
                          Extension("abpytools.analysis.distance_metrics_",
-                                   ["abpytools/analysis/distance_metrics_.pyx"])
+                                   ["abpytools/analysis/distance_metrics_.pyx"],
+                                   language='c++')
                          ]
-    cython_extensions_ = cythonize(cython_extensions)
+
+    try:
+        call = subprocess.check_output("gcc -mavx2 -dM -E - < /dev/null | egrep 'SSE4_2'",
+                                       stderr=subprocess.STDOUT, shell=True)
+        compile_time_env['SSE4_2'] = 1
+    except subprocess.CalledProcessError:
+        compile_time_env['SSE4_2'] = 0
+
+    cython_extensions_ = cythonize(cython_extensions, compile_time_env=compile_time_env)
+
+
 else:
     cython_extensions_ = None
 
@@ -53,7 +73,8 @@ setup(
               'abpytools.utils',
               'abpytools.core',
               'abpytools.analysis',
-              'abpytools.features'],
+              'abpytools.features',
+              'abpytools.cython_extensions'],
     package_data={'abpytools': ['data/*.json']},
     url='https://github.com/gf712/AbPyTools',
     license=about['__license__'],
