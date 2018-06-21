@@ -126,3 +126,13 @@ cdef double** get_pp_from_ptr(double* ptr, int size):
         postincrement(ptr)
 
     return a_
+
+
+cdef void get_array_from_ptr(double* ptr, double* a_, int size):
+
+    cdef int i
+
+    for i in range(size):
+        a_[0] = dereference(ptr)
+        postincrement(ptr)
+        postincrement(a_)
