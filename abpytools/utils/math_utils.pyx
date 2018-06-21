@@ -1,8 +1,9 @@
 from libc.math cimport pow as pow_C
 from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer,
-get_array_from_ptr, get_C_double_array_pp, release_C_pp)
+get_pp_from_ptr, get_C_double_array_pp, release_C_pp, get_array_from_ptr, memalign)
 import itertools
 from cython.operator cimport dereference, postincrement
+from libc.stdlib cimport malloc
 
 
 
@@ -179,8 +180,20 @@ cdef class Vector:
     cdef Vector create(double* ptr, int size):
         cdef Vector vec = Vector()
         vec.size_ = size
-        vec.data_C_pointer = get_array_from_ptr(ptr, size)
+        vec.data_C_pointer = get_pp_from_ptr(ptr, size)
+
+        IF SSE4_2:
+            vec.data_C = <double *> memalign(16, size*sizeof(double))
+        ELSE:
+            vec.data_C = <double *> malloc(16, size*sizeof(double))
+
+        get_array_from_ptr(ptr, vec.data_C, size)
         return vec
+
+        IF SSE4_2:
+            cdef double *value_pointers_ = <double *> memalign(16, size*sizeof(double))
+        ELSE:
+            cdef double *value_pointers_ = <double *> malloc(16, size*sizeof(double))
 
     cpdef double dot_product(self, Vector other):
 

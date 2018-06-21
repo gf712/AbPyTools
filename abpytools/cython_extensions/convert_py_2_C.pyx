@@ -14,7 +14,11 @@ cdef double* get_C_double_array_pointers(list a, int size):
     """
 
     # allocate memory of a_ and b_ C arrays that will contain a copy of a and b lists, respectively
-    cdef double *a_ = <double *> malloc(size*sizeof(double *))
+    IF SSE4_2:
+        cdef double *a_ = <double *> memalign(16, size*sizeof(double *))
+    ELSE:
+        cdef double *a_ = <double *> malloc(size*sizeof(double *))
+
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
@@ -37,7 +41,10 @@ cdef double** get_C_double_array_pp(double* a, int size):
     """
 
     # allocate memory of a_ C arrays that will contain a copy of list a
-    cdef double **a_ = <double **> malloc(size*sizeof(double*))
+    IF SSE4_2:
+        cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
+    ELSE:
+        cdef double **a_ = <double **> malloc(16, size*sizeof(double*))
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
@@ -61,7 +68,10 @@ cdef char* get_C_char_array_pointers(str a, int size):
     """
 
     # allocate memory of a_ and b_ C arrays that will contain a copy of a and b lists, respectively
-    cdef char *a_ = <char*> malloc(size*sizeof(char *))
+    IF SSE4_2:
+        cdef char *a_ = <char*> memalign(16, size*sizeof(char *))
+    ELSE:
+        cdef char *a_ = <char*> malloc(16, size*sizeof(char *))
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
@@ -90,7 +100,7 @@ cdef void release_C_pp(scalar_or_char **a):
     free(a)
 
 
-cdef double** get_array_from_ptr(double* ptr, int size):
+cdef double** get_pp_from_ptr(double* ptr, int size):
     """
     Internal function to get C array from a single ptr
     Args:
@@ -100,7 +110,10 @@ cdef double** get_array_from_ptr(double* ptr, int size):
     Returns:
 
     """
-    cdef double **a_ = <double **> malloc(size*sizeof(double))
+    IF SSE4_2:
+        cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
+    ELSE:
+        cdef double **a_ = <double **> malloc(16, size*sizeof(double*))
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
