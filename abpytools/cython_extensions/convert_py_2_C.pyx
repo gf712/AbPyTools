@@ -92,12 +92,14 @@ cdef void release_C_pointer(scalar_or_char *a):
     """
 
     free(a)
+    a=NULL
 
 
 cdef void release_C_pp(scalar_or_char **a):
 
     free(a[0])
     free(a)
+    a=NULL
 
 
 cdef double** get_pp_from_ptr(double* ptr, int size):
