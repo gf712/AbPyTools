@@ -42,11 +42,6 @@ cdef double** get_C_double_array_pp(double* a, int size):
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
 
-    # convert list to C array
-    # cdef double *a__ = get_C_double_array_pointers(a, size)
-
-    # cdef double *ptr = a__
-
     for i in range(size):
         a_[i] = a
         # printf("%f, %p\n", dereference(a_[i]), a_[i]);
@@ -91,6 +86,7 @@ cdef void release_C_pointer(scalar_or_char *a):
 
 cdef void release_C_pp(scalar_or_char **a):
 
+    free(a[0])
     free(a)
 
 
@@ -112,7 +108,7 @@ cdef double** get_array_from_ptr(double* ptr, int size):
     cdef int i
     for i in range(size):
         a_[i] = ptr
-        # printf("%f, %p\n", dereference(a_[i]), a_[i]);
+        # printf("%f, %d\n", dereference(a_[i]), a_[i])
         # print(i, ref, dereference(a_[i]), hex(<unsigned long>&a_[i]))
         postincrement(ptr)
 
