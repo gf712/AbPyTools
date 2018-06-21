@@ -5,52 +5,14 @@ import itertools
 from cython.operator cimport dereference, postincrement
 from libc.stdlib cimport malloc
 
+cdef extern from "ops.h":
+    void subtract_op(double **A, double **B, double **C, int size)
+    void subtract_op(double *A, double *B, double *C, int size)
 
 
-class Matrix2D(Matrix2D_backend):
+cdef class NumericalBaseStructure:
 
-    def __init__(self, values):
-        """
-        Lightweight numpy-like class for fast numerical calculations with Cython
-        Args:
-            values:
-        """
-        super().__init__(values)
-
-    @property
-    def values(self):
-        """
-        Returns data as a list of lists
-        """
-        return self._get_values()
-
-    @property
-    def shape(self):
-        return self.n_rows, self.n_cols
-
-    def __str__(self):
-
-        final_string = "[{}]"
-        intermediate_string = ""
-        for i in range(self.n_rows):
-            intermediate_string += "[{}]".format(', '.join([str(x) for x in self._get_row(i)]))
-
-        return final_string.format(intermediate_string)
-
-    def __repr__(self):
-
-        repr_string = "array"
-        first=True
-        for x in self.__str__().split('\n'):
-            if first:
-                repr_string += "{}\n".format(x)
-                first=False
-            else:
-                repr_string+="     {}\n".format(x)
-        return repr_string
-
-    # def __dealloc__(self):
-
+    pass
 
 
 cdef class Matrix2D_backend:
@@ -67,7 +29,6 @@ cdef class Matrix2D_backend:
         self.size_ = self.n_cols * self.n_rows
 
         cdef int i
-
         for i in range(1, self.n_rows):
            if len(self.values_[i]) != self.n_cols:
                raise ValueError("All rows must have the same number of elements")
@@ -164,6 +125,50 @@ cdef class Matrix2D_backend:
         return result
 
 
+
+class Matrix2D(Matrix2D_backend):
+
+    def __init__(self, values):
+        """
+        Lightweight numpy-like class for fast numerical calculations with Cython
+        Args:
+            values:
+        """
+        super().__init__(values)
+
+    @property
+    def values(self):
+        """
+        Returns data as a list of lists
+        """
+        return self._get_values()
+
+    @property
+    def shape(self):
+        return self.n_rows, self.n_cols
+
+    def __str__(self):
+
+        final_string = "[{}]"
+        intermediate_string = ""
+        for i in range(self.n_rows):
+            intermediate_string += "[{}]".format(', '.join([str(x) for x in self._get_row(i)]))
+
+        return final_string.format(intermediate_string)
+
+    def __repr__(self):
+
+        repr_string = "array"
+        first=True
+        for x in self.__str__().split('\n'):
+            if first:
+                repr_string += "{}\n".format(x)
+                first=False
+            else:
+                repr_string+="     {}\n".format(x)
+        return repr_string
+
+
 cdef class Vector:
 
     """
@@ -180,6 +185,16 @@ cdef class Vector:
 
     @staticmethod
     cdef Vector create(double* ptr, int size):
+        """
+        Create a Vector from a pointer.
+        
+        Args:
+            ptr: 
+            size: 
+
+        Returns:
+
+        """
         cdef Vector vec = Vector()
         vec.size_ = size
         vec.data_C_pointer = get_pp_from_ptr(ptr, size)
@@ -251,7 +266,7 @@ cdef class Vector:
         cdef double* ptr = self.data_C_pointer[idx]
         ptr[0] = value
 
-    cdef double norm(self, int p):
+    cpdef double norm(self, int p):
         return internal_vector_norm_pp_(self.data_C_pointer, p, self.size_)
 
     @property
@@ -278,6 +293,29 @@ cdef class Vector:
 
     def __setitem__(self, idx, value):
         self._set_array_value(idx, value)
+
+    cpdef Vector subtract(self, Vector other):
+        """
+        Elementwise subtraction between two vectors.
+        
+        Args:
+            other: 
+
+        Returns:
+
+        """
+
+        # create empty vector
+        cdef Vector vec = Vector.allocate(self.size_)
+
+        subtract_op(self.data_C, other.data_C, vec.data_C, self.size_)
+
+        # _subtract_C_array(self.data_C_pointer, other.data_C_pointer, vec.data_C_pointer, self.size_)
+
+        return vec
+
+    def __sub__(self, other):
+        return self.subtract(other)
 
 
 cdef double internal_vector_dot_product_pp_(double **u, double **v, int size):
