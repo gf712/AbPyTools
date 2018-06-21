@@ -193,10 +193,40 @@ cdef class Vector:
         vec.derived_=1
         return vec
 
+    @staticmethod
+    cdef Vector allocate(int size):
+        """
+        
+        Args:  
+            size: 
+
+        Returns:
+
+        """
         IF SSE4_2:
             cdef double *value_pointers_ = <double *> memalign(16, size*sizeof(double))
         ELSE:
             cdef double *value_pointers_ = <double *> malloc(16, size*sizeof(double))
+
+        cdef Vector vec = Vector()
+        vec.size_=size
+        vec.data_C = value_pointers_
+        vec.data_C_pointer = get_C_double_array_pp(vec.data_C, vec.size)
+        vec.derived_=0
+
+        return vec
+
+    @staticmethod
+    cdef Vector allocate_with_value(int size, double value):
+        cdef Vector vec = Vector.allocate(size)
+        cdef double *value_ptr = dereference(vec.data_C_pointer)
+        if value is not None:
+            for i in range(size):
+                value_ptr[0] = value
+                postincrement(value_ptr)
+        vec.derived_=1
+        return vec
+
 
     cpdef double dot_product(self, Vector other):
 

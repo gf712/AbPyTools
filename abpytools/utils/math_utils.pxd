@@ -16,8 +16,14 @@ cdef class Vector:
     cdef double* data_C
     cdef double** data_C_pointer
 
+    # additional instantiation methods
     @staticmethod
     cdef Vector create(double* ptr, int size)
+    @staticmethod
+    cdef Vector allocate(int size)
+    @staticmethod
+    cdef Vector allocate_with_value(int size, double value)
+
     cdef double _get_element(self, int idx)
     cdef void _set_array_value(self, int idx, double value)
     cpdef double dot_product(self, Vector other)
