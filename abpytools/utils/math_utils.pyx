@@ -109,7 +109,8 @@ cdef class Matrix2D_backend:
 
     def __dealloc__(self):
         # releases C memory allocation
-        release_C_pointer(self.data_C)
+        # print("Releasing Matrix memory ({})".format(id(self)))
+        # release_C_pointer(self.data_C)
         release_C_pp(self.data_C_pointer)
 
     cdef double _get_value(self, int row, int col):
@@ -174,6 +175,7 @@ cdef class Vector:
             self.size_ = len(values_)
             self.data_C = get_C_double_array_pointers(values_, self.size_)
             self.data_C_pointer = get_C_double_array_pp(self.data_C, self.size)
+            self.derived_=0
 
 
     @staticmethod
@@ -188,6 +190,7 @@ cdef class Vector:
             vec.data_C = <double *> malloc(16, size*sizeof(double))
 
         get_array_from_ptr(ptr, vec.data_C, size)
+        vec.derived_=1
         return vec
 
         IF SSE4_2:
@@ -229,9 +232,12 @@ cdef class Vector:
         return [self._get_element(i) for i in range(self.size_)]
 
     def __dealloc__(self):
-        if hasattr(self, 'data_C'):
-            release_C_pointer(self.data_C)
-        release_C_pp(self.data_C_pointer)
+        if not self.derived_:
+            if self.data_C_pointer != NULL:
+                # print("Releasing Vector memory ({})".format(hex(id(self))))
+                release_C_pp(self.data_C_pointer)
+            # else:
+                # print("Matrix has already been released")
 
     @property
     def size(self):

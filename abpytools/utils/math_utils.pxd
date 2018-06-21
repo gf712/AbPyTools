@@ -12,7 +12,7 @@ cdef class Matrix2D_backend:
     cdef void _set_value(self, int row, int col, double value)
 
 cdef class Vector:
-    cdef int size_
+    cdef int size_, derived_
     cdef double* data_C
     cdef double** data_C_pointer
 
