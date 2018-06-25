@@ -1,9 +1,8 @@
 from libc.math cimport pow as pow_C
-from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer,
-get_pp_from_ptr, get_C_double_array_pp, release_C_pp, get_array_from_ptr, memalign)
+from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer, memalign)
 import itertools
 from cython.operator cimport dereference, postincrement
-from libc.stdlib cimport malloc
+from libc.stdlib cimport malloc, free
 
 cdef extern from "ops.h":
     void subtract_op(double **A, double **B, double **C, int size)
@@ -35,14 +34,13 @@ cdef class Matrix2D_backend:
 
         # copy data to a contiguous C array
         self.data_C = get_C_double_array_pointers(list(itertools.chain(*self.values_)), self.size_)
-        self.data_C_pointer = get_C_double_array_pp(self.data_C, self.size_)
 
     def _check_index(self, int row, int column):
         if row * self.n_cols + column < self.size_:
             raise IndexError("Requested element is outside array bounds")
 
     cdef double* _get_value_pointer(self, int row, int col):
-        cdef double* ptr = self.data_C_pointer[self.n_cols * row + col]
+        cdef double* ptr = &self.data_C[self.n_cols * row + col]
 
     cdef double* _get_row_pointer(self, int row):
         """
@@ -54,7 +52,7 @@ cdef class Matrix2D_backend:
 
         """
         # pointer to first element of C array row
-        cdef double* ptr = self.data_C_pointer[self.n_cols * row]
+        cdef double* ptr = &self.data_C[self.n_cols * row]
         # print(dereference(ptr), hex(<unsigned long>&ptr))
         return ptr
 
@@ -71,8 +69,8 @@ cdef class Matrix2D_backend:
     def __dealloc__(self):
         # releases C memory allocation
         # print("Releasing Matrix memory ({})".format(id(self)))
-        # release_C_pointer(self.data_C)
-        release_C_pp(self.data_C_pointer)
+        release_C_pointer(self.data_C)
+        # release_C_pp(self.data_C)
 
     cdef double _get_value(self, int row, int col):
         return dereference(self._get_row_pointer(row)+col)
@@ -179,7 +177,6 @@ cdef class Vector:
         if values_ is not None:
             self.size_ = len(values_)
             self.data_C = get_C_double_array_pointers(values_, self.size_)
-            self.data_C_pointer = get_C_double_array_pp(self.data_C, self.size)
             self.derived_=0
 
 
@@ -197,14 +194,7 @@ cdef class Vector:
         """
         cdef Vector vec = Vector()
         vec.size_ = size
-        vec.data_C_pointer = get_pp_from_ptr(ptr, size)
-
-        IF SSE4_2:
-            vec.data_C = <double *> memalign(16, size*sizeof(double))
-        ELSE:
-            vec.data_C = <double *> malloc(16, size*sizeof(double))
-
-        get_array_from_ptr(ptr, vec.data_C, size)
+        vec.data_C = ptr
         vec.derived_=1
         return vec
 
@@ -221,12 +211,14 @@ cdef class Vector:
         IF SSE4_2:
             cdef double *value_pointers_ = <double *> memalign(16, size*sizeof(double))
         ELSE:
-            cdef double *value_pointers_ = <double *> malloc(16, size*sizeof(double))
+            cdef double *value_pointers_ = <double *> malloc(size*sizeof(double))
+
+        if value_pointers_ is NULL:
+            raise MemoryError("Failed to allocated memory")
 
         cdef Vector vec = Vector()
         vec.size_=size
         vec.data_C = value_pointers_
-        vec.data_C_pointer = get_C_double_array_pp(vec.data_C, vec.size)
         vec.derived_=0
 
         return vec
@@ -234,12 +226,11 @@ cdef class Vector:
     @staticmethod
     cdef Vector allocate_with_value(int size, double value):
         cdef Vector vec = Vector.allocate(size)
-        cdef double *value_ptr = dereference(vec.data_C_pointer)
-        if value is not None:
-            for i in range(size):
-                value_ptr[0] = value
-                postincrement(value_ptr)
-        vec.derived_=1
+        cdef double *value_ptr = vec.data_C
+        for i in range(size):
+            value_ptr[0] = value
+            postincrement(value_ptr)
+        vec.derived_=0
         return vec
 
 
@@ -257,17 +248,18 @@ cdef class Vector:
         if self.size_ != other.size:
             raise ValueError("Vector size mismatch")
 
-        return internal_vector_dot_product_pp_(self.data_C_pointer, other.data_C_pointer, self.size_)
+        return internal_vector_dot_product_(self.data_C, other.data_C, self.size_)
 
     cdef double _get_element(self, int idx):
-        return dereference(self.data_C_pointer[idx])
+        return self.data_C[idx]
 
     cdef void _set_array_value(self, int idx, double value):
-        cdef double* ptr = self.data_C_pointer[idx]
+        cdef double* ptr = &self.data_C[idx]
         ptr[0] = value
 
     cpdef double norm(self, int p):
-        return internal_vector_norm_pp_(self.data_C_pointer, p, self.size_)
+        # return norm_op(self.data_C, p, self.size_)
+        return internal_vector_norm_(self.data_C, p, self.size_)
 
     @property
     def values(self):
@@ -278,11 +270,8 @@ cdef class Vector:
 
     def __dealloc__(self):
         if not self.derived_:
-            if self.data_C_pointer != NULL:
-                # print("Releasing Vector memory ({})".format(hex(id(self))))
-                release_C_pp(self.data_C_pointer)
-            # else:
-                # print("Matrix has already been released")
+            if self.data_C != NULL:
+                free(self.data_C)
 
     @property
     def size(self):
@@ -310,34 +299,10 @@ cdef class Vector:
 
         subtract_op(self.data_C, other.data_C, vec.data_C, self.size_)
 
-        # _subtract_C_array(self.data_C_pointer, other.data_C_pointer, vec.data_C_pointer, self.size_)
-
         return vec
 
     def __sub__(self, other):
         return self.subtract(other)
-
-
-cdef double internal_vector_dot_product_pp_(double **u, double **v, int size):
-    """
-    Dot product with double pointers.
-    
-    Args:
-        u: 
-        v: 
-        size: 
-
-    Returns:
-
-    """
-    cdef int i
-    cdef double result = 0.0
-
-    for i in range(size):
-        result += dereference(u[i]) * dereference(v[i])
-
-    return result
-
 
 cdef double internal_vector_dot_product_(double *u, double *v, int size):
     """
@@ -357,20 +322,6 @@ cdef double internal_vector_dot_product_(double *u, double *v, int size):
 
     for i in range(size):
         result += u[i] * v[i]
-
-    return result
-
-
-cdef double internal_vector_norm_pp_(double **u, int norm, int size):
-
-    cdef int i
-    cdef double result = 0.0
-    cdef double inverse_norm = 1.0 / norm
-
-    for i in range(size):
-        result += pow_C(dereference(u[i]), norm)
-
-    result = pow_C(result, inverse_norm)
 
     return result
 

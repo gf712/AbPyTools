@@ -2,7 +2,6 @@ cdef class Matrix2D_backend:
     cdef public int n_cols, n_rows, size_
     cdef list values_
     cdef double* data_C
-    cdef double** data_C_pointer
 
     cdef double* _get_row_pointer(self, int row)
     cdef double* _get_value_pointer(self, int row, int column)
@@ -14,7 +13,6 @@ cdef class Matrix2D_backend:
 cdef class Vector:
     cdef int size_, derived_
     cdef double* data_C
-    cdef double** data_C_pointer
 
     # additional instantiation methods
     @staticmethod
