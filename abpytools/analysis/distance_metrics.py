@@ -1,4 +1,5 @@
 from .distance_metrics_ import cosine_distance_, hamming_distance_, levenshtein_distance_
+from abpytools.utils.math_utils import Vector
 # from .analysis_helper_functions import init_score_matrix
 # from math import acos
 # from ..utils.math_utils import dot_product, magnitude
@@ -37,7 +38,8 @@ def hamming_distance(seq1, seq2):
     """
     if len(seq1) != len(seq2):
         raise ValueError("Sequences must be equal length, instead got {} and {}".format(len(seq1), len(seq2)))
-    # pure python: sum(aa1 != aa2 for aa1, aa2 in zip(seq1, seq2))
+    # pure python:
+    # sum(aa1 != aa2 for aa1, aa2 in zip(seq1, seq2))
     return hamming_distance_(seq1, seq2)
 
 
@@ -68,6 +70,7 @@ def levenshtein_distance(seq1, seq2):
     # return dist[rows-1][cols-1]
     return levenshtein_distance_(seq1, seq2)
 
+
 def euclidean_distance(u, v):
     """
     returns the euclidean distance
@@ -75,7 +78,10 @@ def euclidean_distance(u, v):
     :param v:
     :return:
     """
-    return norm(u, v, degree=2)
+    u = Vector(u)
+    v = Vector(v)
+    r = u - v
+    return r.norm(2)
 
 
 def manhattan_distance(u, v):
@@ -85,8 +91,17 @@ def manhattan_distance(u, v):
     :param v:
     :return:
     """
-    return norm(u, v, degree=1)
+    u = Vector(u)
+    v = Vector(v)
+    r = u - v
+
+    return r.norm(1)
 
 
 def norm(u, v, degree=2):
-    return sum([(abs(u_i - v_i))**degree for u_i, v_i in zip(u, v)]) ** (1/degree)
+
+    u = Vector(u)
+    v = Vector(v)
+    r = u - v
+
+    return r.norm(degree)

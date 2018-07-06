@@ -25,8 +25,10 @@ cdef class Vector:
     cdef double _get_element(self, int idx)
     cdef void _set_array_value(self, int idx, double value)
     cpdef double dot_product(self, Vector other)
-    cpdef double norm(self, int p)
     cpdef Vector subtract(self, Vector other)
+    cpdef Vector exp(self)
+    cpdef double norm(self, int p=*)
+
 
 cdef double internal_vector_dot_product_(double *u, double *v, int size)
 cdef double internal_vector_norm_(double *u, int norm, int size)

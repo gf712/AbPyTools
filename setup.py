@@ -2,6 +2,7 @@ from setuptools import setup, Extension
 # from distutils.core import setup
 # from distutils.extension import Extension
 
+
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
 import subprocess
@@ -37,8 +38,8 @@ if use_cython:
                                    language='c++'),
                          Extension("abpytools.utils.math_utils",
                                    ["abpytools/utils/math_utils.pyx", "abpytools/utils/ops.cpp"],
-                                   extra_compile_args=['-fopenmp', '-march=native'],
-                                   extra_link_args=['-fopenmp', '-march=native'],
+                                   extra_compile_args=['-march=native', '-fopenmp'],
+                                   extra_link_args=['-fopenmp'],
                                    language='c++'),
                          Extension("abpytools.analysis.distance_metrics_",
                                    ["abpytools/analysis/distance_metrics_.pyx"],

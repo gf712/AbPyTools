@@ -1,16 +1,18 @@
 from libc.math cimport pow as pow_C
-from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer, memalign)
+from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer, memalign, posix_memalign)
 import itertools
 from cython.operator cimport dereference, postincrement
 from libc.stdlib cimport malloc, free
 
 cdef extern from "ops.h":
-    void subtract_op(double **A, double **B, double **C, int size)
     void subtract_op(double *A, double *B, double *C, int size)
+    double norm_op(double *A, int p, int size)
+    void exp_op(double *A, double *B, int size)
+    double l2_norm_op(double *A, int size)
+    double l1_norm_op(const double *A, int size)
 
 
 cdef class NumericalBaseStructure:
-
     pass
 
 
@@ -257,9 +259,18 @@ cdef class Vector:
         cdef double* ptr = &self.data_C[idx]
         ptr[0] = value
 
-    cpdef double norm(self, int p):
-        # return norm_op(self.data_C, p, self.size_)
-        return internal_vector_norm_(self.data_C, p, self.size_)
+    cpdef Vector exp(self):
+        cdef Vector vec = Vector.allocate(self.size_)
+        exp_op(self.data_C, vec.data_C, self.size_)
+        return vec
+
+    cpdef double norm(self, int p=2):
+        if p==2:
+            return l2_norm_op(self.data_C, self.size_)
+        elif p == 1:
+            return l1_norm_op(self.data_C, self.size_)
+        else:
+            return internal_vector_norm_(self.data_C, p, self.size_)
 
     @property
     def values(self):
@@ -303,6 +314,10 @@ cdef class Vector:
 
     def __sub__(self, other):
         return self.subtract(other)
+
+    def __iter__(self):
+        for x in range(self.size_):
+            yield self[x]
 
 cdef double internal_vector_dot_product_(double *u, double *v, int size):
     """

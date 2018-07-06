@@ -15,9 +15,9 @@ cdef double* get_C_double_array_pointers(list a, int size):
 
     # allocate memory of a_ and b_ C arrays that will contain a copy of a and b lists, respectively
     IF SSE4_2:
-        cdef double *a_ = <double *> memalign(16, size*sizeof(double *))
+        cdef double *a_ = <double *> memalign(16, size*sizeof(double))
     ELSE:
-        cdef double *a_ = <double *> malloc(size*sizeof(double *))
+        cdef double *a_ = <double *> malloc(size*sizeof(double))
 
 
     if a_ is NULL:
@@ -30,11 +30,19 @@ cdef double* get_C_double_array_pointers(list a, int size):
 
     return a_
 
+cdef double** allocate_pp(int size):
+    IF SSE4_2:
+        cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
+    ELSE:
+        cdef double **a_ = <double **> malloc(size*sizeof(double*))
+    for i in range(size):
+        a_[i] = <double *> malloc(sizeof(double))
+    return a_
 
 cdef double** get_C_double_array_pp(double* a, int size):
 
     """
-    Internal function to convert a python list to a C array of pointers that point to pointers (double**)
+    Internal function to convert a C array to a C array of pointers that point to pointers (double**)
     :param a: 
     :param size: 
     :return: 
@@ -44,7 +52,7 @@ cdef double** get_C_double_array_pp(double* a, int size):
     IF SSE4_2:
         cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
     ELSE:
-        cdef double **a_ = <double **> malloc(16, size*sizeof(double*))
+        cdef double **a_ = <double **> malloc(size*sizeof(double*))
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
@@ -69,9 +77,9 @@ cdef char* get_C_char_array_pointers(str a, int size):
 
     # allocate memory of a_ and b_ C arrays that will contain a copy of a and b lists, respectively
     IF SSE4_2:
-        cdef char *a_ = <char*> memalign(16, size*sizeof(char *))
+        cdef char *a_ = <char*> memalign(16, size*sizeof(char))
     ELSE:
-        cdef char *a_ = <char*> malloc(16, size*sizeof(char *))
+        cdef char *a_ = <char*> malloc(size*sizeof(char))
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
@@ -115,7 +123,7 @@ cdef double** get_pp_from_ptr(double* ptr, int size):
     IF SSE4_2:
         cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
     ELSE:
-        cdef double **a_ = <double **> malloc(16, size*sizeof(double*))
+        cdef double **a_ = <double **> malloc(size*sizeof(double*))
 
     if a_ is NULL:
         raise MemoryError("Failed to allocate memory!")
