@@ -134,6 +134,84 @@ void subtract_op(const double *A, const double *B, double *C, int size) {
 }
 
 
+void multiply_op_sse(const double *A, const double *B, double *C, int N) {
+
+    __m128d x1, x2;
+
+    for(int i =0; i<N; i+=2) {
+
+        x1 = _mm_load_pd(&A[i]);
+        x2 = _mm_load_pd(&B[i]);
+
+        _mm_store_pd(&C[i], _mm_mul_pd(x1, x2));
+    }
+}
+
+
+void multiply_op_sequential(const double *A, const double *B, double *C, int N) {
+    for (int i=0; i<N; ++i) {
+        C[i] = A[i] * B[i];
+    }
+}
+
+
+void multiply_op(const double *A, const double *B, double *C, int size) {
+
+    #if __SSE4_2__
+    int extra = size % 2 == 0? 0:1;
+    multiply_op_sse(A, B, C, size);
+    // more calculations if necessary -> sequential
+    // for doubles this could be replaced with one hardcoded condition
+    while (extra > 0) {
+        C[size-extra] = A[size-extra] * B[size-extra];
+        extra--;
+    }
+    #else
+    multiply_op_sequential(A, B, C, size);
+    #endif
+
+}
+
+
+void add_op_sse(const double *A, const double *B, double *C, int N) {
+
+    __m128d x1, x2;
+
+    for(int i =0; i<N; i+=2) {
+
+        x1 = _mm_load_pd(&A[i]);
+        x2 = _mm_load_pd(&B[i]);
+
+        _mm_store_pd(&C[i], _mm_add_pd(x1, x2));
+    }
+}
+
+
+void add_op_sequential(const double *A, const double *B, double *C, int N) {
+    for (int i=0; i<N; ++i) {
+        C[i] = A[i] + B[i];
+    }
+}
+
+
+void add_op(const double *A, const double *B, double *C, int size) {
+
+    #if __SSE4_2__
+    int extra = size % 2 == 0? 0:1;
+    add_op_sse(A, B, C, size);
+    // more calculations if necessary -> sequential
+    // for doubles this could be replaced with one hardcoded condition
+    while (extra > 0) {
+        C[size-extra] = A[size-extra] + B[size-extra];
+        extra--;
+    }
+    #else
+    add_op_sequential(A, B, C, size);
+    #endif
+
+}
+
+
 double norm_op_sse(const double *A, int p, int size) {
 
 //    int extra = size % 2 == 0? 0:1;

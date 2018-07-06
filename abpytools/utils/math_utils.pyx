@@ -5,11 +5,14 @@ from cython.operator cimport dereference, postincrement
 from libc.stdlib cimport malloc, free
 
 cdef extern from "ops.h":
-    void subtract_op(double *A, double *B, double *C, int size)
     double norm_op(double *A, int p, int size)
     void exp_op(double *A, double *B, int size)
     double l2_norm_op(double *A, int size)
     double l1_norm_op(const double *A, int size)
+    # elementwise ops
+    void subtract_op(double *A, double *B, double *C, int size)
+    void multiply_op(double *A, double *B, double *C, int size)
+    void add_op(double *A, double *B, double *C, int size)
 
 
 cdef class NumericalBaseStructure:
@@ -312,12 +315,56 @@ cdef class Vector:
 
         return vec
 
+
+    cpdef Vector add(self, Vector other):
+        """
+        Elementwise addition between two vectors.
+        
+        Args:
+            other: 
+    
+        Returns:
+    
+        """
+
+        # create empty vector
+        cdef Vector vec = Vector.allocate(self.size_)
+
+        add_op(self.data_C, other.data_C, vec.data_C, self.size_)
+
+        return vec
+
+
+    cpdef Vector multiply(self, Vector other):
+        """
+        Elementwise multiplication between two vectors.
+        
+        Args:
+            other: 
+
+        Returns:
+
+        """
+        # create empty vector
+        cdef Vector vec = Vector.allocate(self.size_)
+
+        multiply_op(self.data_C, other.data_C, vec.data_C, self.size_)
+
+        return vec
+
+    def __add__(self, other):
+        return self.add(other)
+
     def __sub__(self, other):
         return self.subtract(other)
+
+    def __mul__(self, other):
+        return self.multiply(other)
 
     def __iter__(self):
         for x in range(self.size_):
             yield self[x]
+
 
 cdef double internal_vector_dot_product_(double *u, double *v, int size):
     """
