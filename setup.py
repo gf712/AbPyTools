@@ -38,7 +38,7 @@ if use_cython:
                                    language='c++'),
                          Extension("abpytools.utils.math_utils",
                                    ["abpytools/utils/math_utils.pyx", "abpytools/utils/ops.cpp"],
-                                   extra_compile_args=['-march=native', '-fopenmp'],
+                                   extra_compile_args=['-march=native', '-fopenmp', '-std=c++11'],
                                    extra_link_args=['-fopenmp'],
                                    language='c++'),
                          Extension("abpytools.analysis.distance_metrics_",
