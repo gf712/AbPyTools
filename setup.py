@@ -1,7 +1,4 @@
 from setuptools import setup, Extension
-# from distutils.core import setup
-# from distutils.extension import Extension
-
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig

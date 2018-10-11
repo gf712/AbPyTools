@@ -108,9 +108,7 @@ cpdef double levenshtein_distance_(seq1, seq2):
     cdef Matrix2D_backend dist = init_score_matrix_(seq_1=seq1, seq_2=seq2, indel=1)
     cdef int rows = dist.n_rows
     cdef int cols = dist.n_cols
-    cdef int col
-    cdef int row
-    cdef int cost
+    cdef int col, row, cost
 
     for col in range(1, cols):
         for row in range(1, rows):
