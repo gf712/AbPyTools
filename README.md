@@ -17,8 +17,7 @@ will be performed in a separate branch.
 AbPyTools features:
 - 
 - obtain Antibody numbering by querying AbNum (http://www.bioinf.org.uk/abs/abnum/)
-- calculate molecular weight, pI (isoelectric point) and extinction coefficients
-- calculate hydrophobicity matrix and CDR length
+- analysis of scFv sequences with optimised backend
 - higher level class that can load data from several antibody sequences
   - load and write antibody sequences in FASTA and json formats
   - calculates hydrophobicity matrix for whole dataset
@@ -34,6 +33,14 @@ Stuff that will be added/ worked on next:
 - adding some useful functions, such as comparing sequence with available datasets
 - write high level code for more specific analysis
   - plot CDR lengths of antibodies
+  
+Cython:
+-
+From version 0.3 AbPyTools will start using Cython to speed up numerical manipulations.
+In the front end nothing will change, but installation from source will require Cython!
+
+This new feature will speed up most calculations significantly. The backend uses code written 
+from scratch that mimics numpy behaviour but runs much faster, since it is more specialised and lightweight.
 
 Installing abpytools:
 -
@@ -63,3 +70,8 @@ Run tests (recommended)
 Import to python
 -
 `import abpytools`
+
+Changelog:
+-
+### v0.3 (release date TBD):
+ - Implementation of backend calculations with Cython leading to speedups of several orders of magnitude
