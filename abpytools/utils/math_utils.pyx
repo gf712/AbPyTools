@@ -1,5 +1,5 @@
 from libc.math cimport pow as pow_C
-from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer, memalign, posix_memalign)
+from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer, memalign)
 import itertools
 from cython.operator cimport dereference, postincrement
 from libc.stdlib cimport malloc, free

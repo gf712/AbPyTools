@@ -74,15 +74,23 @@ class Chain:
             # this should never happen...
             raise ValueError("Unknown loading status")
 
+    @staticmethod
+    def determine_chain_type(numbering):
+        if numbering[0][0] == 'H':
+            chain = 'heavy'
+        elif numbering[0][0] == 'L':
+            chain = 'light'
+        else:
+            # couldn't determine chain type
+            chain = ''
+
+        return chain
+
     def ab_numbering(self, server='abysis', **kwargs):
 
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
         numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme, **kwargs)
-
-        if numbering[0][0] == 'H':
-            self._chain = 'heavy'
-        elif numbering[0][0] == 'L':
-            self._chain = 'light'
+        self._chain = self.determine_chain_type(numbering)
 
         return numbering
 
@@ -164,7 +172,8 @@ class Chain:
                                  data=['hydrophobicity', hydrophobicity_scores + 'Hydrophobicity'])
         aa_hydrophobicity_scores = data_loader.get_data()
 
-        return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence, numbering=self.numbering,
+        return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence,
+                                               numbering=self.numbering,
                                                aa_hydrophobicity_scores=aa_hydrophobicity_scores,
                                                sequence=self._sequence)
 
