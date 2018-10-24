@@ -73,5 +73,10 @@ Import to python
 
 Changelog:
 -
-### v0.3 (release date TBD):
+### v0.3.1 (release date 27/10/2018)
+ - Major:
+   - Protobuf support to serialise core objects (`ChainCollection` and `FabCollection`)
+ - Minor:
+   - added Python 3.7 to Travis script
+### v0.3 (release date 11/10/2018):
  - Implementation of backend calculations with Cython leading to speedups of several orders of magnitude
