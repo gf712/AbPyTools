@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package abytools.formats.fab;
+
+import "abpytools/formats/chain.proto";
+
+message Fab {
+
+    string name = 1;
+    abytools.formats.chain.Chain light_chain = 2;
+    abytools.formats.chain.Chain heavy_chain = 3;
+
+}
+
+message FabCollection {
+
+    repeated string ordered_names = 1;
+    repeated Fab fabs = 2;
+
+}

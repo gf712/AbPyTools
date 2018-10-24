@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package abytools.formats.chain;
+
+message Chain {
+    string name =  1;
+    string sequence = 2;
+
+    enum NumberingScheme {
+        KABAT = 0;
+        CHOTHIA = 1;
+        CHOTHIA_EXT = 2;
+    }
+
+    NumberingScheme numbering_scheme = 3;
+
+    repeated string numbering = 4;
+
+    string chain_type = 5;
+
+    double MW = 6;
+
+    message Region {
+        string region_name = 1;
+        repeated int32 region_positions = 2;
+    }
+
+    repeated Region region = 7;
+    double pI = 8;
+}
+
+message ChainCollection {
+    repeated Chain chains = 1;
+}

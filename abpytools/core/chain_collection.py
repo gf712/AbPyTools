@@ -25,6 +25,13 @@ if ipython_config.ipython_info == 'notebook':
 else:
     from tqdm import tqdm
 
+try:
+    from abpytools.formats import ChainCollectionProto, ChainProto
+    from abpytools.formats.utils import get_protobuf_numbering_scheme, get_numbering_scheme_from_protobuf
+    HAS_PROTO = True
+except:
+    # not using protobuf for serialising files
+    HAS_PROTO = False
 
 class ChainCollection(CollectionBase):
     """
@@ -72,11 +79,11 @@ class ChainCollection(CollectionBase):
             # check if path exists
             if not os.path.isfile(path):
                 raise ValueError("The provided file path does not exist."
-                                 "Expected a string containing the path to a FASTA or JSON format file")
+                                 "Expected the path to a file with FASTA, JSON or pb2 format")
             # check if it has the right extentions
             # TODO: additional checks to see if file has right format (not only right extension)
-            elif not path.endswith('.json') and not path.endswith('.fasta'):
-                raise ValueError("Expected the path to a FASTA or JSON format file")
+            elif not path.endswith('.json') and not path.endswith('.fasta') and not path.endswith('.pb2'):
+                raise ValueError("Expected the path to a file with FASTA, JSON or pb2 format")
 
         self.antibody_objects = antibody_objects
 
@@ -105,6 +112,7 @@ class ChainCollection(CollectionBase):
         """
 
         names = list()
+        antibody_objects = list()
         if self._path is not None:
 
             if self._path.endswith(".json"):
@@ -124,8 +132,29 @@ class ChainCollection(CollectionBase):
                         antibody_i.pI = antibody_dict_i["pI"]
                         antibody_i._loading_status = 'Loaded'
                         names.append(key_i)
-                        self.antibody_objects.append(antibody_i)
+                        antibody_objects.append(antibody_i)
 
+            elif self._path.endswith(".pb2") and HAS_PROTO:
+                # deserialise proto binary
+                with open(self._path, 'rb') as f:
+
+                    proto_parser = ChainCollectionProto()
+                    proto_parser.ParseFromString(f.read())
+
+                for chain_i in proto_parser.chains:
+
+                    antibody_i = Chain(name=chain_i.name, sequence=chain_i.sequence)
+
+                    antibody_i = self.extract_from_protobuf(chain_i, antibody_i)
+
+                    antibody_i._loading_status = 'Loaded'
+                    names.append(chain_i.name)
+                    antibody_objects.append(antibody_i)
+
+            elif self._path.endswith(".pb2") and not HAS_PROTO:
+                raise ValueError("protobuf is required to serialise objects with protobuf")
+
+            # can only be a FASTA file now (checked extensions at instantiation)
             else:
                 with open(self._path, 'r') as f:
                     names = list()
@@ -141,13 +170,11 @@ class ChainCollection(CollectionBase):
                     if len(names) != len(sequences):
                         raise ValueError("Error reading file: make sure it is FASTA format")
 
-                    self.antibody_objects = list()
-
                     for name, sequence in zip(names, sequences):
-                        self.antibody_objects.append(Chain(name=name, sequence=sequence))
+                        antibody_objects.append(Chain(name=name, sequence=sequence))
 
         self.antibody_objects, self._chain = load_from_antibody_object(
-            antibody_objects=self.antibody_objects,
+            antibody_objects=antibody_objects,
             show_progressbar=show_progressbar,
             n_threads=n_threads, verbose=verbose, **kwargs)
 
@@ -157,7 +184,7 @@ class ChainCollection(CollectionBase):
             with open(os.path.join(file_path, file_name + '.fasta'), 'w') as f:
                 f.writelines(make_fasta(self.names, self.sequences))
 
-        if file_format == 'json':
+        elif file_format == 'json':
             if information == 'all':
 
                 with open(os.path.join(file_path, file_name + '.json'), 'w') as f:
@@ -181,6 +208,94 @@ class ChainCollection(CollectionBase):
 
                     data['ordered_names'] = ordered_names
                     json.dump(data, f, indent=2)
+
+        elif file_format == 'pb2':
+            proto_parser = ChainCollectionProto()
+            try:
+                with open(os.path.join(file_path, file_name + '.pb2'), 'rb') as f:
+                    proto_parser.ParseFromString(f.read())
+            except IOError:
+                # print("Creating new file")
+                pass
+
+            idi = 1
+            for antibody in self.antibody_objects:
+                antibody_dict = antibody.ab_format()
+                if len(antibody_dict['name']) > 0:
+                    key_i = antibody_dict['name']
+                else:
+                    key_i = "ID_{}_{}".format(antibody.chain, idi)
+                    idi += 1
+                proto_antibody = proto_parser.chains.add()
+                proto_antibody.name = key_i
+                self.add_to_protobuf(proto_antibody, antibody)
+
+            with open(os.path.join(file_path, file_name + '.pb2'), 'wb') as f:
+                f.write(proto_parser.SerializeToString())
+
+        elif file_format == 'pickle':
+            raise NotImplementedError
+
+        else:
+            raise ValueError(f"Given format ({file_format}) is not available.")
+
+    @staticmethod
+    def add_to_protobuf(proto_obj, antibody_obj):
+        """
+        Fills out a single chain for protobuf
+        Args:
+            proto_obj (ChainProto):
+            antibody_obj (Chain):
+
+        Returns:
+
+        """
+        proto_obj.sequence = antibody_obj.sequence
+        proto_obj.numbering_scheme = get_protobuf_numbering_scheme(antibody_obj.numbering_scheme)
+        proto_obj.numbering.extend(antibody_obj.numbering)
+        proto_obj.chain_type = antibody_obj.chain
+        proto_obj.MW = antibody_obj.mw
+        for x in {**antibody_obj.ab_regions()[0], **antibody_obj.ab_regions()[1]}.items():
+            proto_obj_cdr = proto_obj.region.add()
+            proto_obj_cdr.region_name = x[0]
+            proto_obj_cdr.region_positions.extend(x[1])
+        proto_obj.pI = antibody_obj.pI
+
+    @staticmethod
+    def extract_from_protobuf(proto_chain, chain_obj):
+        if proto_chain.numbering_scheme:
+            chain_obj._numbering_scheme = get_numbering_scheme_from_protobuf(proto_chain.numbering_scheme)
+
+        if proto_chain.numbering:
+            # convert google.protobuf.pyext._message.RepeatedScalarContainer to list
+            chain_obj.numbering = list(proto_chain.numbering)
+        else:
+            chain_obj.numbering = chain_obj.ab_numbering()
+
+        if proto_chain.chain_type:
+            chain_obj._chain = proto_chain.chain_type
+        else:
+            chain_obj._chain = Chain.determine_chain_type(proto_chain.numbering)
+
+        if proto_chain.MW:
+            chain_obj.mw = proto_chain.MW
+        else:
+            chain_obj.mw = chain_obj.ab_molecular_weight()
+
+        if proto_chain.region:
+            regions = dict()
+            for region in proto_chain.region:
+                regions[region.region_name] = region.region_positions
+            chain_obj.CDR = regions
+        else:
+            chain_obj.CDR = chain_obj.ab_regions()
+
+        if proto_chain.pI:
+            chain_obj.pI = proto_chain.pI
+        else:
+            chain_obj.pI = chain_obj.ab_pi()
+
+        return chain_obj
 
     def molecular_weights(self, monoisotopic=False):
 

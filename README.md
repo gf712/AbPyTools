@@ -76,6 +76,8 @@ Changelog:
 ### v0.3.1 (release date 27/10/2018)
  - Major:
    - Protobuf support to serialise core objects (`ChainCollection` and `FabCollection`)
+     - speed up in saving and loading large files
+     - files are about 5 times smaller
  - Minor:
    - added Python 3.7 to Travis script
 ### v0.3 (release date 11/10/2018):

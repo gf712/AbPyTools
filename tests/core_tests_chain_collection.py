@@ -3,6 +3,7 @@ from abpytools import ChainCollection, Chain
 from urllib import request
 import operator
 import os
+from glob import glob
 
 abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
 igblast_url = 'https://www.ncbi.nlm.nih.gov/igblast/'
@@ -92,6 +93,17 @@ class ChainCollectionCore(unittest.TestCase):
         test_chain.load()
         test_collection = ChainCollection(antibody_objects=[test_chain])
         self.assertEqual(test_collection.chain, 'heavy')
+
+    def test_ChainCollection_proto_io_1(self):
+        antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        antibody_collection_1.save(file_format='pb2', file_path='./tests', file_name='chain_collection_1_heavy')
+        self.assertTrue(os.path.isfile('./tests/chain_collection_1_heavy.pb2'))
+
+    def test_ChainCollection_proto_io_2(self):
+        antibody_collection_1 = ChainCollection(path='./tests/chain_collection_1_heavy.pb2')
+        antibody_collection_1.load(show_progressbar=False, verbose=False)
+        self.assertEqual(antibody_collection_1.names[0], 'test')
 
     def test_ChainCollection_n_ab(self):
         antibody_collection_1 = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
@@ -375,8 +387,7 @@ class ChainCollectionCore(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if os.path.exists('./tests/SaveTest.fasta'):
-            os.remove('./tests/SaveTest.fasta')
-
-        if os.path.exists('./tests/SaveTest.json'):
-            os.remove('./tests/SaveTest.json')
+        print("Tearing down")
+        for name in glob('./tests/*'):
+            if name.split('.')[-1] != 'py' and os.path.isfile(name):
+                os.remove(name)
