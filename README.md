@@ -78,7 +78,8 @@ Changelog:
    - Protobuf support to serialise core objects (`ChainCollection` and `FabCollection`)
      - speed up in saving and loading large files
      - files are about 5 times smaller
+   - Dropped support for Python 3.5 to start using f-strings
  - Minor:
-   - added Python 3.7 to Travis script
+   - added Python 3.7 to Travis script (also dropped Python 3.5)
 ### v0.3 (release date 11/10/2018):
  - Implementation of backend calculations with Cython leading to speedups of several orders of magnitude
