@@ -18,9 +18,9 @@ install:
     - conda update -q conda
     # Useful for debugging any issues with conda
     - conda info -a
-    - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION scipy numpy pip matplotlib pandas
+    - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION scipy numpy pip matplotlib pandas libprotobuf=3.6.0
     - source activate test-environment
-    - pip install coveralls coverage cython
+    - pip install coveralls coverage cython protobuf==3.6.0
     - python setup.py install
 
 before_script: # configure a headless display to test plot generation
