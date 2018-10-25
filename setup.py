@@ -94,6 +94,7 @@ def get_protoc_version(path):
     Returns:
         protobuf version with the format "%d.%d.%d"
     """
+
     with subprocess.Popen(f"{path} --version", shell=True, stdout=subprocess.PIPE) as proc:
         # get stdout
         protobuf_version_b = proc.communicate()[0]
@@ -193,6 +194,13 @@ class clean(_clean):
                 filepath = os.path.join(dirpath, filename)
                 if filepath.endswith("_pb2.py") or filepath.endswith("so"):
                     os.remove(filepath)
+                if filepath.endswith(".pyx"):
+                    # print(filepath.replace('pyx', 'cpp'))
+                    try:
+                        os.remove(filepath.replace('pyx', 'cpp'))
+                    except:
+                        # cython generated file no longer exists
+                        pass
         # _clean is an old-style class, so super() doesn't work.
         _clean.run(self)
 
