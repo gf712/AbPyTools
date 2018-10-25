@@ -14,7 +14,6 @@ message Fab {
 
 message FabCollection {
 
-    repeated string ordered_names = 1;
-    repeated Fab fabs = 2;
+    repeated Fab fabs = 1;
 
 }
