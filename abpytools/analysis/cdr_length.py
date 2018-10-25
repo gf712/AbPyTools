@@ -9,9 +9,11 @@ from .analysis_helper_functions import switch_interactive_mode
 
 class CDRLength(ChainDomains):
 
-    def __init__(self, path=None, antibody_objects=None, load=True):
+    def __init__(self, path=None, antibody_objects=None, verbose=True, show_progressbar=True, n_threads=10):
 
-        super().__init__(path=path, antibody_objects=antibody_objects, load=load)
+        super().__init__(path=path, antibody_objects=antibody_objects, verbose=verbose,
+                         show_progressbar=show_progressbar, n_threads=n_threads)
+        # print(self.)
 
     def plot_cdr(self, only_cdr3=True, save=False, plot_path='./', plot_name='CDR_length',
                  plot_title=None, hist=True, ax=None, **kwargs):

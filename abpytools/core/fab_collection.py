@@ -7,15 +7,32 @@ from operator import itemgetter
 from .fab import Fab
 from .helper_functions import germline_identity_pd, to_numbering_table
 from .base import CollectionBase
+import os
+import json
+from .utils import json_formatter, pb2_FabCollection_formatter
+
+try:
+    from abpytools.formats import ChainCollectionProto, FabCollectionProto
+    from abpytools.formats.utils import get_protobuf_numbering_scheme, get_numbering_scheme_from_protobuf
+
+    HAS_PROTO = True
+except:
+    # not using protobuf for serialising files
+    HAS_PROTO = False
 
 
 class FabCollection(CollectionBase):
-    """
-
-    """
 
     def __init__(self, fab=None, heavy_chains=None, light_chains=None, names=None):
+        """
 
+
+        Args:
+            fab:
+            heavy_chains:
+            light_chains:
+            names:
+        """
         # check if it's a Chain object
         if heavy_chains is None and light_chains is None and fab is None:
             raise ValueError('Provide a list of Chain objects or an ChainCollection object')
@@ -173,15 +190,95 @@ class FabCollection(CollectionBase):
 
         return df
 
-    def save(self):
+    def save(self, file_format, file_path, file_name):
+        """
 
-        # Set 
+        Args:
+            file_format:
+            file_path:
+            file_name:
 
-        raise NotImplementedError("This is not the code you are looking for.")
+        Returns:
 
-    def load(self):
-        # TODO
-        raise NotImplementedError("This is not the code you are looking for.")
+        """
+
+        if file_format not in ['json', 'pb2', 'fasta']:
+            raise ValueError("Expected the file format to be json, pb2 or fasta.")
+
+        if file_format == 'json':
+            with open(os.path.join(file_path, file_name + '.json'), 'w') as f:
+
+                light_antibody_json = json_formatter(self._light_chains)
+                heavy_antibody_json = json_formatter(self._heavy_chains)
+
+                fab_data = dict()
+                ordered_names = []
+
+                for light_antibody, heavy_antibody in zip(
+                        light_antibody_json['ordered_names'], heavy_antibody_json['ordered_names']):
+                    name = f"{light_antibody_json[light_antibody]['name']}-" \
+                           f"{heavy_antibody_json[heavy_antibody]['name']}"
+                    fab_data[name] = [light_antibody_json[light_antibody],
+                                      heavy_antibody_json[heavy_antibody]]
+                    ordered_names.append(name)
+                fab_data['ordered_names'] = ordered_names
+                json.dump(fab_data, f, indent=2)
+
+        elif file_format == 'pb2' and HAS_PROTO:
+            proto_parser = FabCollectionProto()
+            try:
+                with open(os.path.join(file_path, file_name + '.pb2'), 'rb') as f:
+                    proto_parser.ParseFromString(f.read())
+            except IOError:
+                # Creating new file
+                pass
+
+            pb2_FabCollection_formatter(self, proto_parser)
+
+            with open(os.path.join(file_path, file_name + '.pb2'), 'wb') as f:
+                f.write(proto_parser.SerializeToString())
+        elif file_format == 'fasta':
+            raise NotImplementedError
+
+    @staticmethod
+    def load_from_file(path, n_threads, verbose, show_progressbar, **kwargs):
+        pass
+
+    @staticmethod
+    def load(file):
+        """
+
+        Args:
+            self:
+            file:
+
+        Returns:
+
+        """
+        file_format = file.split('.')[-1]
+
+        if file_format not in ['json', 'pb2', 'fasta']:
+            raise ValueError("Expected the file format to be json, pb2 or fasta.")
+        if file_format == 'json':
+            pass
+        elif file_format == 'pb2':
+            pass
+        elif file_format == 'fasta':
+            pass
+
+    def _get_names_iter(self, chain='both'):
+        if chain == 'both':
+            for light_chain, heavy_chain in zip(self._light_chains, self._heavy_chains):
+                yield f"{light_chain.name}-{heavy_chain.name}"
+        elif chain == 'light':
+            for light_chain in self._light_chains:
+                yield light_chain.name
+        elif chain == 'heavy':
+            for heavy_chain in self._heavy_chains:
+                yield heavy_chain.name
+        else:
+            raise ValueError(f"Unknown chain type ({chain}), available options are:"
+                             f"both, light or heavy.")
 
     @property
     def regions(self):
@@ -235,12 +332,6 @@ class FabCollection(CollectionBase):
             return FabCollection(heavy_chains=list(itemgetter(*indices)(self._heavy_chains)),
                                  light_chains=list(itemgetter(*indices)(self._light_chains)),
                                  names=list(itemgetter(*indices)(self._names)))
-        # if isinstance(indices, int):
-        #     indices = [indices]
-        #
-        # return FabCollection(heavy_chains=list(itemgetter(*indices)(self._heavy_chains)),
-        #                      light_chains=list(itemgetter(*indices)(self._light_chains)),
-        #                      names=list(itemgetter(*indices)(self._names)), load=False)
 
     def _germline_identity(self):
 

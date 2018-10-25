@@ -12,11 +12,10 @@ class SequenceAlignmentTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ab_collection_1 = ChainCollection(path='./tests/Data/sequence_alignment_seq_1.json')
-        cls.ab_collection_2 = ChainCollection(path='./tests/Data/sequence_alignment_seq_2.json')
-
-        cls.ab_collection_1.load(show_progressbar=False, verbose=False)
-        cls.ab_collection_2.load(show_progressbar=False, verbose=False)
+        cls.ab_collection_1 = ChainCollection.load_from_file(path='./tests/Data/sequence_alignment_seq_1.json',
+                                                             show_progressbar=False, verbose=False)
+        cls.ab_collection_2 = ChainCollection.load_from_file(path='./tests/Data/sequence_alignment_seq_2.json',
+                                                             show_progressbar=False, verbose=False)
 
         cls.seq2_aligned = read_sequence_from_file('./tests/Data/BLOSUM62_aligned_sequence')
 

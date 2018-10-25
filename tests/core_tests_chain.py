@@ -26,11 +26,11 @@ class ChainCore(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.test_sequence = read_sequence_from_single_sequence_fasta('./tests/Data/chain_collection_fasta_test.fasta')
-        cls.heavy_chain_collection_object = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
-        cls.heavy_chain_collection_object.load()
+        cls.heavy_chain_collection_object = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_1_heavy.json')
         cls.heavy_chain_object = cls.heavy_chain_collection_object[0]
-        cls.light_chain_collection_object = ChainCollection(path='./tests/Data/chain_collection_1_light.json')
-        cls.light_chain_collection_object.load()
+        cls.light_chain_collection_object = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_1_light.json')
         cls.light_chain_object = cls.light_chain_collection_object[0]
 
     def test_Chain_load(self):

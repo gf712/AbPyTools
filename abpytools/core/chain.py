@@ -297,6 +297,9 @@ class Chain:
     def name(self):
         return self._name
 
+    def set_name(self, name):
+        self._name = name
+
     @property
     def sequence(self):
         return self._sequence
@@ -346,8 +349,7 @@ def get_ab_numbering(sequence, server, numbering_scheme, timeout=30):
             raise ValueError("{} numbering scheme is unknown.".format(numbering_scheme.capitalize()))
 
         # prepare the url string to query server
-        url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
-                                                                                                  scheme)
+        url = f"http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={sequence}&scheme={scheme}"
         # use the Download class from utils to get output
         numbering_table = Download(url, verbose=False, timeout=timeout)
         try:

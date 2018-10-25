@@ -1,7 +1,8 @@
 import unittest
 from abpytools import FabCollection, ChainCollection, Fab
 from urllib import request
-
+import os
+from glob import glob
 
 abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
 
@@ -19,11 +20,12 @@ class FabCollectionCore(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_light_2_sequences.json')
-        cls.heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_heavy_2_sequences.json')
-
-        cls.light_chain_collection.load(verbose=False, show_progressbar=False)
-        cls.heavy_chain_collection.load(verbose=False, show_progressbar=False)
+        cls.light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json',
+            verbose=False, show_progressbar=False)
+        cls.heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json',
+            verbose=False, show_progressbar=False)
 
         cls.heavy_chain_1 = cls.heavy_chain_collection[0]
         cls.light_chain_1 = cls.light_chain_collection[0]
@@ -78,12 +80,29 @@ class FabCollectionCore(unittest.TestCase):
                               FabCollection)
 
     def test_FabCollection_input4(self):
-        light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_light_2_sequences.json')
-        heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
         fab_collection = FabCollection(light_chains=light_chain_collection,
                                        heavy_chains=heavy_chain_collection,
                                        names=['Fab1', 'Fab2'])
         self.assertEqual(fab_collection.numbering_table()['Light']['CDR3']['L89'].loc['Fab1'], 'Q')
+
+    def test_FabCollection_json1(self):
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        fab_collection = FabCollection(light_chains=light_chain_collection,
+                                       heavy_chains=heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        fab_collection.save(file_format='json', file_path='./tests', file_name='fab_1')
+        self.assertTrue(os.path.isfile('./tests/fab_1.json'))
+
+    # def test_FabCollection_json2(self):
+    #     fab_collection = FabCollection.load(file='./tests/fab_1.json')
+
 
     def test_FabCollection_MW(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
@@ -212,3 +231,9 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection,
                                        names=['Fab1', 'Fab2'])
         self.assertEqual(fab_collection[[0, 1]]._light_chains.names, ['LightSeq1', 'LightSeq2'])
+
+    @classmethod
+    def tearDownClass(cls):
+        for name in glob('./tests/*'):
+            if name.split('.')[-1] != 'py' and os.path.isfile(name):
+                os.remove(name)

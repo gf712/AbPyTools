@@ -7,7 +7,7 @@ class SequenceCompositionTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.chain = ChainCollection(path='./tests/Data/chain_collection_1_light.json')
+        cls.chain = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_light.json')
         cls.chain.load()
         cls.sequence = cls.chain.sequences[0]
 
