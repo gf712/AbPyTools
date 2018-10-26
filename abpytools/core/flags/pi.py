@@ -1,0 +1,8 @@
+EMBOSS = "EMBOSS"
+DTASELECT = "DTASetect"
+SOLOMON = "Solomon"
+SILLERO = "Sillero"
+RODWELL = "Rodwell"
+WIKIPEDIA = "Wikipedia"
+LEHNINGER = "Lehninger"
+GRIMSLEY = "Grimsley"

@@ -1,0 +1,5 @@
+KD = "kd"
+WW = "ww"
+HH = "hh"
+MF = "mf"
+EW = "ew"
