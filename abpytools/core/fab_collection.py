@@ -242,30 +242,44 @@ class FabCollection(CollectionBase):
             raise NotImplementedError
 
     @classmethod
-    def load_from_file(cls, path, n_threads, verbose, show_progressbar, **kwargs):
-        pass
+    def load_from_json(cls, path, n_threads=20, verbose=True, show_progressbar=True):
+        raise NotImplementedError
 
     @classmethod
-    def load(cls, file):
-        """
+    def load_from_pb2(cls, path, n_threads=20, verbose=True, show_progressbar=True):
+        raise NotImplementedError
 
-        Args:
-            self:
-            file:
+    @classmethod
+    def load_from_fasta(cls, path, numbering_scheme=NUMBERING_FLAGS.CHOTHIA, n_threads=20,
+                        verbose=True, show_progressbar=True):
+        raise NotImplementedError
 
-        Returns:
-
-        """
-        file_format = file.split('.')[-1]
+    @classmethod
+    def load_from_file(cls, path, n_threads, verbose, show_progressbar, **kwargs):
+        file_format = path.split('.')[-1]
 
         if file_format not in ['json', 'pb2', 'fasta']:
             raise ValueError("Expected the file format to be json, pb2 or fasta.")
         if file_format == 'json':
-            pass
+            collection = cls.load_from_json(path,
+                                            n_threads=n_threads,
+                                            verbose=verbose,
+                                            show_progressbar=show_progressbar)
         elif file_format == 'pb2':
-            pass
+            collection = cls.load_from_pb2(path,
+                                           n_threads=n_threads,
+                                           verbose=verbose,
+                                           show_progressbar=show_progressbar)
         elif file_format == 'fasta':
-            pass
+            collection = cls.load_from_fasta(path,
+                                             n_threads=n_threads,
+                                             verbose=verbose,
+                                             show_progressbar=show_progressbar,
+                                             **kwargs)
+        else:
+            raise ValueError
+
+        return collection
 
     def _get_names_iter(self, chain='both'):
         if chain == 'both':
