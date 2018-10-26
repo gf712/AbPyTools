@@ -188,6 +188,10 @@ if HAS_PROTOBUF:
     config['PROTOBUF'] = {'PROTOBUF': 1,
                           'PROTOC_VERSION': get_protoc_version(protoc),
                           'PROTOBUF_LIB_VERSION': protobuf.__version__}
+else:
+    config['PROTOBUF'] = {'PROTOBUF': 0,
+                          'PROTOC_VERSION': 0,
+                          'PROTOBUF_LIB_VERSION': 0}
 
 with open("abpytools/config.ini", 'w') as configfile:
     config.write(configfile)
