@@ -7,9 +7,9 @@ class CollectionBase(ABC):
     Abstract class to not forget some essential methods
     """
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def load_from_file(path, n_threads, verbose, show_progressbar, **kwargs):
+    def load_from_file(cls, path, n_threads, verbose, show_progressbar, **kwargs):
         pass  # pragma: no cover
 
     @abstractmethod

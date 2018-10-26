@@ -10,6 +10,7 @@ from .base import CollectionBase
 import os
 import json
 from .utils import json_formatter, pb2_FabCollection_formatter
+from abpytools.core.flags import *
 
 try:
     from abpytools.formats import ChainCollectionProto, FabCollectionProto
@@ -240,12 +241,12 @@ class FabCollection(CollectionBase):
         elif file_format == 'fasta':
             raise NotImplementedError
 
-    @staticmethod
-    def load_from_file(path, n_threads, verbose, show_progressbar, **kwargs):
+    @classmethod
+    def load_from_file(cls, path, n_threads, verbose, show_progressbar, **kwargs):
         pass
 
-    @staticmethod
-    def load(file):
+    @classmethod
+    def load(cls, file):
         """
 
         Args:
@@ -285,7 +286,8 @@ class FabCollection(CollectionBase):
         heavy_regions = self._heavy_chains.ab_region_index()
         light_regions = self._light_chains.ab_region_index()
 
-        return {name: {'Heavy': heavy_regions[heavy], 'Light': light_regions[light]} for name, heavy, light in
+        return {name: {CHAIN_FLAGS.HEAVY_CHAIN: heavy_regions[heavy],
+                       CHAIN_FLAGS.LIGHT_CHAIN: light_regions[light]} for name, heavy, light in
                 zip(self.names, self._internal_heavy_name, self._internal_light_name)}
 
     @property

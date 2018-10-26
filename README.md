@@ -79,6 +79,8 @@ Changelog:
      - speed up in saving and loading large files
      - files are about 5 times smaller
    - Dropped support for Python 3.5 to start using f-strings
+   - API changes:
+     - Cleaned up object instantiation and added factory functions (**This will break some old code but provides a cleaner iterface**)
  - Minor:
    - added Python 3.7 to Travis script (also dropped Python 3.5)
 ### v0.3 (release date 11/10/2018):

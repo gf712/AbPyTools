@@ -6,16 +6,13 @@ from abpytools.core import Cache
 class ChainDomains(ChainCollection):
 
     def __init__(self, antibody_objects=None, path=None, verbose=True, show_progressbar=True, n_threads=10):
-        # expect a string which is a path to a FASTA file
+        super().__init__(antibody_objects=antibody_objects)
         if antibody_objects:
-            super().__init__(antibody_objects=antibody_objects)
             self.load()
         else:
-            antibody_objects = self.load_from_file(path=path,
-                                                   verbose=verbose,
-                                                   show_progressbar=show_progressbar,
-                                                   n_threads=n_threads)
-            super().__init__(antibody_objects=antibody_objects)
+            self.__init__(antibody_objects=ChainCollection.load_from_file(path=path, verbose=verbose,
+                                                                          show_progressbar=show_progressbar,
+                                                                          n_threads=n_threads))
 
         self._cache = Cache(max_cache_size=5)
 

@@ -5,6 +5,7 @@ import shutil
 from distutils.command.build_py import build_py as _build_py
 from distutils.command.clean import clean as _clean
 import re
+import configparser
 
 # Remove the "-Wstrict-prototypes" compiler option, which isn't valid for C++.
 import distutils.sysconfig
@@ -14,6 +15,8 @@ cfg_vars = distutils.sysconfig.get_config_vars()
 for key, value in cfg_vars.items():
     if type(value) == str:
         cfg_vars[key] = value.replace("-Wstrict-prototypes", "")
+
+config = configparser.ConfigParser()
 
 ####################################################################
 #                           VERSION
@@ -181,6 +184,13 @@ if HAS_PROTOBUF:
 else:
     build_py = _build_py
 
+if HAS_PROTOBUF:
+    config['PROTOBUF'] = {'PROTOBUF': 1,
+                          'PROTOC_VERSION': get_protoc_version(protoc),
+                          'PROTOBUF_LIB_VERSION': protobuf.__version__}
+
+with open("abpytools/config.ini", 'w') as configfile:
+    config.write(configfile)
 
 ####################################################################
 #                           CLEANUP
@@ -222,11 +232,13 @@ setup(
     packages=['abpytools',
               'abpytools.utils',
               'abpytools.core',
+              'abpytools.core.flags',
               'abpytools.formats',
               'abpytools.analysis',
               'abpytools.features',
               'abpytools.cython_extensions'],
-    package_data={'abpytools': ['data/*.json']},
+    package_data={'abpytools': ['data/*.json',
+                                'config.ini']},
     url='https://github.com/gf712/AbPyTools',
     license=about['__license__'],
     author=about['__author__'],
