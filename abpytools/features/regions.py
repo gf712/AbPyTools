@@ -1,6 +1,6 @@
-from abpytools import ChainCollection
+from abpytools.core.chain_collection import ChainCollection
+from abpytools.core.cache import Cache
 import numpy as np
-from abpytools.core import Cache
 
 
 class ChainDomains(ChainCollection):

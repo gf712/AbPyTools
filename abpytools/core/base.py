@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from .flags import *
 import os
+from .flags import *
 
 
 class CollectionBase(ABC):

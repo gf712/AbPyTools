@@ -10,16 +10,10 @@ from .base import CollectionBase
 import os
 import json
 from .utils import json_formatter, pb2_FabCollection_formatter
-from abpytools.core.flags import *
+from .flags import *
 
-try:
+if BACKEND_FLAGS.HAS_PROTO:
     from abpytools.formats import ChainCollectionProto, FabCollectionProto
-    from abpytools.formats.utils import get_protobuf_numbering_scheme, get_numbering_scheme_from_protobuf
-
-    HAS_PROTO = True
-except:
-    # not using protobuf for serialising files
-    HAS_PROTO = False
 
 
 class FabCollection(CollectionBase):
@@ -225,7 +219,7 @@ class FabCollection(CollectionBase):
                 fab_data['ordered_names'] = ordered_names
                 json.dump(fab_data, f, indent=2)
 
-        elif file_format == 'pb2' and HAS_PROTO:
+        elif file_format == 'pb2' and BACKEND_FLAGS.HAS_PROTO:
             proto_parser = FabCollectionProto()
             try:
                 with open(os.path.join(file_path, file_name + '.pb2'), 'rb') as f:
@@ -255,7 +249,7 @@ class FabCollection(CollectionBase):
         raise NotImplementedError
 
     @classmethod
-    def load_from_file(cls, path, n_threads, verbose, show_progressbar, **kwargs):
+    def load_from_file(cls, path, n_threads=20, verbose=True, show_progressbar=True, **kwargs):
         file_format = path.split('.')[-1]
 
         if file_format not in ['json', 'pb2', 'fasta']:

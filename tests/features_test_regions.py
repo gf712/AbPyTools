@@ -1,5 +1,6 @@
 import unittest
 from abpytools.features.regions import ChainDomains
+from abpytools.core.chain_collection import ChainCollection
 
 
 class AbDomainTest(unittest.TestCase):
@@ -10,6 +11,11 @@ class AbDomainTest(unittest.TestCase):
 
     def test_ChainDomains_instantiation(self):
         chain_domain = ChainDomains(path=self.ab_file)
+        self.assertIsInstance(chain_domain, ChainDomains)
+
+    def test_ChainDomains_ChainCollection_instantiation(self):
+        chain_collection = ChainCollection.load_from_file(self.ab_file)
+        chain_domain = ChainDomains(antibody_objects=chain_collection)
         self.assertIsInstance(chain_domain, ChainDomains)
 
     def test_ChainDomains_cdr_length(self):

@@ -4,8 +4,8 @@ from ..utils import DataLoader, Download, NumberingException
 import logging
 import pandas as pd
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
-from .cache import Cache
-from abpytools.core.flags import *
+from . import Cache
+from .flags import *
 
 # setting up debugging messages
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
