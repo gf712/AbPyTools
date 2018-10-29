@@ -9,11 +9,12 @@ from .helper_functions import germline_identity_pd, to_numbering_table
 from .base import CollectionBase
 import os
 import json
-from .utils import json_formatter, pb2_FabCollection_formatter
+from .utils import (json_FabCollection_formatter, pb2_FabCollection_formatter, pb2_FabCollection_parser,
+                    json_FabCollection_parser)
 from .flags import *
 
 if BACKEND_FLAGS.HAS_PROTO:
-    from abpytools.formats import ChainCollectionProto, FabCollectionProto
+    from abpytools.formats import FabCollectionProto
 
 
 class FabCollection(CollectionBase):
@@ -185,95 +186,55 @@ class FabCollection(CollectionBase):
 
         return df
 
-    def save(self, file_format, file_path, file_name):
-        """
+    def save_to_json(self, path, update=True):
+        with open(os.path.join(path + '.json'), 'w') as f:
+            fab_data = json_FabCollection_formatter(self)
+            json.dump(fab_data, f, indent=2)
 
-        Args:
-            file_format:
-            file_path:
-            file_name:
+    def save_to_pb2(self, path, update=True):
+        proto_parser = FabCollectionProto()
+        try:
+            with open(os.path.join(path + '.pb2'), 'rb') as f:
+                proto_parser.ParseFromString(f.read())
+        except IOError:
+            # Creating new file
+            pass
 
-        Returns:
+        pb2_FabCollection_formatter(self, proto_parser)
 
-        """
+        with open(os.path.join(path + '.pb2'), 'wb') as f:
+            f.write(proto_parser.SerializeToString())
 
-        if file_format not in ['json', 'pb2', 'fasta']:
-            raise ValueError("Expected the file format to be json, pb2 or fasta.")
-
-        if file_format == 'json':
-            with open(os.path.join(file_path, file_name + '.json'), 'w') as f:
-
-                light_antibody_json = json_formatter(self._light_chains)
-                heavy_antibody_json = json_formatter(self._heavy_chains)
-
-                fab_data = dict()
-                ordered_names = []
-
-                for light_antibody, heavy_antibody in zip(
-                        light_antibody_json['ordered_names'], heavy_antibody_json['ordered_names']):
-                    name = f"{light_antibody_json[light_antibody]['name']}-" \
-                           f"{heavy_antibody_json[heavy_antibody]['name']}"
-                    fab_data[name] = [light_antibody_json[light_antibody],
-                                      heavy_antibody_json[heavy_antibody]]
-                    ordered_names.append(name)
-                fab_data['ordered_names'] = ordered_names
-                json.dump(fab_data, f, indent=2)
-
-        elif file_format == 'pb2' and BACKEND_FLAGS.HAS_PROTO:
-            proto_parser = FabCollectionProto()
-            try:
-                with open(os.path.join(file_path, file_name + '.pb2'), 'rb') as f:
-                    proto_parser.ParseFromString(f.read())
-            except IOError:
-                # Creating new file
-                pass
-
-            pb2_FabCollection_formatter(self, proto_parser)
-
-            with open(os.path.join(file_path, file_name + '.pb2'), 'wb') as f:
-                f.write(proto_parser.SerializeToString())
-        elif file_format == 'fasta':
-            raise NotImplementedError
+    def save_to_fasta(self, path, update=True):
+        raise NotImplementedError
 
     @classmethod
     def load_from_json(cls, path, n_threads=20, verbose=True, show_progressbar=True):
-        raise NotImplementedError
+        with open(path, 'r') as f:
+            data = json.load(f)
+
+        fab_objects = json_FabCollection_parser(data)
+
+        fab_collection = cls(fab=fab_objects)
+
+        return fab_collection
 
     @classmethod
     def load_from_pb2(cls, path, n_threads=20, verbose=True, show_progressbar=True):
-        raise NotImplementedError
+        with open(path, 'rb') as f:
+            proto_parser = FabCollectionProto()
+            proto_parser.ParseFromString(f.read())
+
+        fab_objects = pb2_FabCollection_parser(proto_parser)
+
+        fab_collection = cls(fab=fab_objects)
+
+        return fab_collection
 
     @classmethod
     def load_from_fasta(cls, path, numbering_scheme=NUMBERING_FLAGS.CHOTHIA, n_threads=20,
                         verbose=True, show_progressbar=True):
         raise NotImplementedError
-
-    @classmethod
-    def load_from_file(cls, path, n_threads=20, verbose=True, show_progressbar=True, **kwargs):
-        file_format = path.split('.')[-1]
-
-        if file_format not in ['json', 'pb2', 'fasta']:
-            raise ValueError("Expected the file format to be json, pb2 or fasta.")
-        if file_format == 'json':
-            collection = cls.load_from_json(path,
-                                            n_threads=n_threads,
-                                            verbose=verbose,
-                                            show_progressbar=show_progressbar)
-        elif file_format == 'pb2':
-            collection = cls.load_from_pb2(path,
-                                           n_threads=n_threads,
-                                           verbose=verbose,
-                                           show_progressbar=show_progressbar)
-        elif file_format == 'fasta':
-            collection = cls.load_from_fasta(path,
-                                             n_threads=n_threads,
-                                             verbose=verbose,
-                                             show_progressbar=show_progressbar,
-                                             **kwargs)
-        else:
-            raise ValueError
-
-        return collection
 
     def _get_names_iter(self, chain='both'):
         if chain == 'both':

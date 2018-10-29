@@ -15,7 +15,8 @@ from ..analysis.distance_metrics import *
 from ..core.cache import Cache
 from multiprocessing import Manager, Process
 from inspect import signature
-from .utils import json_formatter, pb2_ChainCollection_formatter, extract_from_protobuf
+from .utils import (json_ChainCollection_formatter, pb2_ChainCollection_formatter, pb2_ChainCollection_parser,
+                    fasta_ChainCollection_parser, json_ChainCollection_parser)
 from .flags import *
 
 # setting up debugging messages
@@ -85,24 +86,8 @@ class ChainCollection(CollectionBase):
                         verbose=True, show_progressbar=True):
         if not os.path.isfile(path):
             raise ValueError("File does not exist!")
-        antibody_objects = list()
         with open(path, 'r') as f:
-            names = list()
-            sequences = list()
-            for line in f:
-                if line.startswith(">"):
-                    names.append(line.replace("\n", "")[1:])
-                # if line is empty skip line
-                elif line.isspace():
-                    pass
-                else:
-                    sequences.append(line.replace("\n", ""))
-            if len(names) != len(sequences):
-                raise ValueError("Error reading file: make sure it is FASTA format")
-
-            for name, sequence in zip(names, sequences):
-                antibody_objects.append(Chain(name=name, sequence=sequence,
-                                              numbering_scheme=numbering_scheme))
+            antibody_objects = fasta_ChainCollection_parser(f, numbering_scheme=numbering_scheme)
 
         chain_collection = cls(antibody_objects=antibody_objects, load=True,
                                n_threads=n_threads, verbose=verbose,
@@ -112,21 +97,11 @@ class ChainCollection(CollectionBase):
 
     @classmethod
     def load_from_pb2(cls, path, n_threads=20, verbose=True, show_progressbar=True):
-        antibody_objects = list()
-        names = list()
-        # deserialise proto binary
         with open(path, 'rb') as f:
             proto_parser = ChainCollectionProto()
             proto_parser.ParseFromString(f.read())
 
-        for chain_i in proto_parser.chains:
-            antibody_i = Chain(name=chain_i.name, sequence=chain_i.sequence)
-
-            antibody_i = extract_from_protobuf(chain_i, antibody_i)
-
-            antibody_i._loading_status = 'Loaded'
-            names.append(chain_i.name)
-            antibody_objects.append(antibody_i)
+        antibody_objects = pb2_ChainCollection_parser(proto_parser)
 
         chain_collection = cls(antibody_objects=antibody_objects, load=True,
                                n_threads=n_threads, verbose=verbose,
@@ -137,26 +112,10 @@ class ChainCollection(CollectionBase):
     @classmethod
     def load_from_json(cls, path, n_threads=20, verbose=True, show_progressbar=True):
 
-        antibody_objects = list()
-        names = list()
-
         with open(path, 'r') as f:
             data = json.load(f)
 
-            ordered_names = data.pop('ordered_names')
-
-            for key_i in ordered_names:
-                antibody_dict_i = data[key_i]
-                antibody_i = Chain(name=key_i, sequence=antibody_dict_i['sequence'])
-                antibody_i.numbering = antibody_dict_i['numbering']
-                antibody_i._chain = antibody_dict_i['chain']
-                antibody_i.mw = antibody_dict_i['MW']
-                antibody_i.CDR = antibody_dict_i["CDR"]
-                antibody_i._numbering_scheme = antibody_dict_i["numbering_scheme"]
-                antibody_i.pI = antibody_dict_i["pI"]
-                antibody_i._loading_status = 'Loaded'
-                names.append(key_i)
-                antibody_objects.append(antibody_i)
+        antibody_objects = json_ChainCollection_parser(data)
 
         chain_collection = cls(antibody_objects=antibody_objects, load=True,
                                n_threads=n_threads, verbose=verbose,
@@ -164,36 +123,28 @@ class ChainCollection(CollectionBase):
 
         return chain_collection
 
-    def save(self, file_format='FASTA', file_path='./', file_name='Ab_collection'):
+    def save_to_json(self, path, update=True):
+        with open(os.path.join(path + '.json'), 'w') as f:
+            data = json_ChainCollection_formatter(self.antibody_objects)
+            json.dump(data, f, indent=2)
 
-        if file_format == 'FASTA':
-            with open(os.path.join(file_path, file_name + '.fasta'), 'w') as f:
-                f.writelines(make_fasta(self.names, self.sequences))
+    def save_to_pb2(self, path, update=True):
+        proto_parser = ChainCollectionProto()
+        try:
+            with open(os.path.join(path + '.pb2'), 'rb') as f:
+                proto_parser.ParseFromString(f.read())
+        except IOError:
+            # print("Creating new file")
+            pass
 
-        elif file_format == 'json':
-            with open(os.path.join(file_path, file_name + '.json'), 'w') as f:
-                data = json_formatter(self.antibody_objects)
-                json.dump(data, f, indent=2)
+        pb2_ChainCollection_formatter(self.antibody_objects, proto_parser)
 
-        elif file_format == 'pb2':
-            proto_parser = ChainCollectionProto()
-            try:
-                with open(os.path.join(file_path, file_name + '.pb2'), 'rb') as f:
-                    proto_parser.ParseFromString(f.read())
-            except IOError:
-                # print("Creating new file")
-                pass
+        with open(os.path.join(path + '.pb2'), 'wb') as f:
+            f.write(proto_parser.SerializeToString())
 
-            pb2_ChainCollection_formatter(self.antibody_objects, proto_parser)
-
-            with open(os.path.join(file_path, file_name + '.pb2'), 'wb') as f:
-                f.write(proto_parser.SerializeToString())
-
-        elif file_format == 'pickle':
-            raise NotImplementedError
-
-        else:
-            raise ValueError(f"Given format ({file_format}) is not available.")
+    def save_to_fasta(self, path, update=True):
+        with open(os.path.join(path + '.fasta'), 'w') as f:
+            f.writelines(make_fasta(self.names, self.sequences))
 
     def molecular_weights(self, monoisotopic=False):
 

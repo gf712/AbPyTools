@@ -1,4 +1,4 @@
-from abpytools.core.flags import numbering, pi, backend, options, hydrophobicity, chain
+from abpytools.core.flags import numbering, pi, backend, options, hydrophobicity, chain, formats
 
 # create alias to flag modules
 NUMBERING_FLAGS = numbering
@@ -7,6 +7,7 @@ OPTION_FLAGS = options
 PI_FLAGS = pi
 BACKEND_FLAGS = backend
 HYDROPHOBICITY_FLAGS = hydrophobicity
+FORMAT_FLAGS = formats
 
 # from Python 3.7 can do this
 # import abpytools.core.flags.numbering as NUMBERING_FLAGS
@@ -21,4 +22,5 @@ __all__ = ["NUMBERING_FLAGS",
            "OPTION_FLAGS",
            "PI_FLAGS",
            "HYDROPHOBICITY_FLAGS",
-           "BACKEND_FLAGS"]
+           "BACKEND_FLAGS",
+           "FORMAT_FLAGS"]

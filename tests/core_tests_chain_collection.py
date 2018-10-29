@@ -87,7 +87,7 @@ class ChainCollectionCore(unittest.TestCase):
     def test_ChainCollection_proto_io_1(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
                                                                show_progressbar=False, verbose=False)
-        antibody_collection_1.save(file_format='pb2', file_path='./tests', file_name='chain_collection_1_heavy')
+        antibody_collection_1.save(file_format='pb2', path='./tests/chain_collection_1_heavy')
         self.assertTrue(os.path.isfile('./tests/chain_collection_1_heavy.pb2'))
 
     def test_ChainCollection_proto_io_2(self):
@@ -346,7 +346,7 @@ class ChainCollectionCore(unittest.TestCase):
     def test_ChainCollection_fasta(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
                                                                show_progressbar=False, verbose=False)
-        antibody_collection_1.save(file_format='FASTA', file_path='./tests', file_name='SaveTest')
+        antibody_collection_1.save(file_format='fasta', path='./tests/SaveTest')
         antibody_collection_2 = ChainCollection.load_from_file(path='./tests/SaveTest.fasta',
                                                                show_progressbar=False, verbose=False)
         self.assertEqual(antibody_collection_1.sequences[0], antibody_collection_2.sequences[0])
@@ -354,7 +354,7 @@ class ChainCollectionCore(unittest.TestCase):
     def test_ChainCollection_json(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
                                                                show_progressbar=False, verbose=False)
-        antibody_collection_1.save(file_format='json', file_path='./tests', file_name='SaveTest')
+        antibody_collection_1.save(file_format='json', path='./tests/SaveTest')
         antibody_collection_2 = ChainCollection.load_from_file(path='./tests/SaveTest.json',
                                                                show_progressbar=False, verbose=False)
         self.assertEqual(antibody_collection_1.sequences[0], antibody_collection_2.sequences[0])

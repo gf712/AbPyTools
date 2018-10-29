@@ -97,12 +97,43 @@ class FabCollectionCore(unittest.TestCase):
         fab_collection = FabCollection(light_chains=light_chain_collection,
                                        heavy_chains=heavy_chain_collection,
                                        names=['Fab1', 'Fab2'])
-        fab_collection.save(file_format='json', file_path='./tests', file_name='fab_1')
+        fab_collection.save(file_format='json', path='./tests/fab_1')
         self.assertTrue(os.path.isfile('./tests/fab_1.json'))
 
-    # def test_FabCollection_json2(self):
-    #     fab_collection = FabCollection.load(file='./tests/fab_1.json')
+    def test_FabCollection_json2(self):
+        fab_collection = FabCollection.load_from_file(path='./tests/fab_1.json',
+                                                      show_progressbar=False,
+                                                      verbose=False)
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        self.assertEqual(fab_collection._light_chains.sequences[0], light_chain_collection.sequences[0])
+        self.assertEqual(fab_collection._heavy_chains.sequences[0], heavy_chain_collection.sequences[0])
 
+    def test_FabCollection_pb2_1(self):
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        fab_collection = FabCollection(light_chains=light_chain_collection,
+                                       heavy_chains=heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        fab_collection.save(file_format='pb2', path='./tests/fab_1')
+        self.assertTrue(os.path.isfile('./tests/fab_1.pb2'))
+
+    def test_FabCollection_pb2_2(self):
+        fab_collection = FabCollection.load_from_file(path='./tests/fab_1.pb2',
+                                                      show_progressbar=False,
+                                                      verbose=False)
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        self.assertEqual(fab_collection._light_chains.sequences[0], light_chain_collection.sequences[0])
+        self.assertEqual(fab_collection._heavy_chains.sequences[0], heavy_chain_collection.sequences[0])
+        self.assertEqual(fab_collection._light_chains.names[0], light_chain_collection.names[0])
+        self.assertEqual(fab_collection._heavy_chains.names[0], heavy_chain_collection.names[0])
 
     def test_FabCollection_MW(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
