@@ -8,3 +8,4 @@ matplotlib
 beautifulsoup4
 lxml
 protobuf
+parameterized
