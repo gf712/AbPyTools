@@ -14,7 +14,7 @@ from .utils import (json_FabCollection_formatter, pb2_FabCollection_formatter, p
 from .flags import *
 
 if BACKEND_FLAGS.HAS_PROTO:
-    from abpytools.formats import FabCollectionProto
+    from abpytools.core.formats import FabCollectionProto
 
 
 class FabCollection(CollectionBase):

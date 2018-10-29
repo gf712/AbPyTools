@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package abytools.formats.fab;
 
-import "abpytools/formats/chain.proto";
+import "abpytools/core/formats/chain.proto";
 
 message Fab {
 

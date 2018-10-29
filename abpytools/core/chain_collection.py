@@ -29,7 +29,7 @@ else:
     from tqdm import tqdm
 
 if BACKEND_FLAGS.HAS_PROTO:
-    from abpytools.formats import ChainCollectionProto
+    from abpytools.core.formats import ChainCollectionProto
 
 
 class ChainCollection(CollectionBase):

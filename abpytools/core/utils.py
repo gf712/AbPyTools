@@ -1,4 +1,4 @@
-from abpytools.formats.utils import get_protobuf_numbering_scheme, get_numbering_scheme_from_protobuf
+from abpytools.core.formats.utils import get_protobuf_numbering_scheme, get_numbering_scheme_from_protobuf
 from abpytools.core.chain import Chain
 
 

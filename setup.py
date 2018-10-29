@@ -153,7 +153,7 @@ if HAS_PROTOBUF:
         if not require and not os.path.exists(source):
             return
 
-        output = source.replace(".proto", "_pb2.py").replace("../src/", "")
+        output = source.replace(".proto", "_pb2.py")
 
         if (not os.path.exists(output) or
                 (os.path.exists(source) and
@@ -178,8 +178,8 @@ if HAS_PROTOBUF:
     class build_py(_build_py):
         def run(self):
             # Generate necessary .proto file if it doesn't exist.
-            generate_proto("abpytools/formats/chain.proto")
-            generate_proto("abpytools/formats/fab.proto")
+            generate_proto("abpytools/core/formats/chain.proto")
+            generate_proto("abpytools/core/formats/fab.proto")
 
             _build_py.run(self)
 
@@ -240,7 +240,7 @@ setup(
               'abpytools.utils',
               'abpytools.core',
               'abpytools.core.flags',
-              'abpytools.formats',
+              'abpytools.core.formats',
               'abpytools.analysis',
               'abpytools.features',
               'abpytools.cython_extensions'],
@@ -259,7 +259,8 @@ setup(
                       'matplotlib',
                       'beautifulsoup4',
                       'lxml',
-                      'scipy'],
+                      'scipy',
+                      "parameterized"],
     test_suite="tests",
     ext_modules=cython_extensions_,
     cmdclass={'build_ext': build_ext,

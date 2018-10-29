@@ -1,4 +1,5 @@
 from . import ChainProto
+from ..flags import *
 
 
 def get_protobuf_numbering_scheme(numbering_scheme):
@@ -10,11 +11,11 @@ def get_protobuf_numbering_scheme(numbering_scheme):
     Returns:
 
     """
-    if numbering_scheme == "kabat":
+    if numbering_scheme == NUMBERING_FLAGS.KABAT:
         proto_numbering_scheme = ChainProto.KABAT
-    elif numbering_scheme == "chothia":
+    elif numbering_scheme == NUMBERING_FLAGS.CHOTHIA:
         proto_numbering_scheme = ChainProto.CHOTHIA
-    elif numbering_scheme == "chothia_ext":
+    elif numbering_scheme == NUMBERING_FLAGS.CHOTHIA_EXT or numbering_scheme == NUMBERING_FLAGS.MARTIN:
         proto_numbering_scheme = ChainProto.CHOTHIA_EXT
     else:
         raise ValueError(f"{numbering_scheme} numbering scheme not supported by protobuf "
@@ -33,11 +34,11 @@ def get_numbering_scheme_from_protobuf(proto_numbering_scheme):
 
     """
     if proto_numbering_scheme == ChainProto.KABAT:
-        numbering_scheme = "kabat"
+        numbering_scheme = NUMBERING_FLAGS.KABAT
     elif proto_numbering_scheme == ChainProto.CHOTHIA:
-        numbering_scheme = "chothia"
+        numbering_scheme = NUMBERING_FLAGS.CHOTHIA
     elif proto_numbering_scheme == ChainProto.CHOTHIA_EXT:
-        numbering_scheme = "chothia_ext"
+        numbering_scheme = NUMBERING_FLAGS.CHOTHIA_EXT
     else:
         raise ValueError(f"ChainProto numbering scheme {proto_numbering_scheme} is not compatible with abpytools!")
 
