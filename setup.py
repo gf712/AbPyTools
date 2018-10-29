@@ -68,7 +68,9 @@ if use_cython:
     except subprocess.CalledProcessError:
         compile_time_env['SSE4_2'] = 0
 
-    cython_extensions_ = cythonize(cython_extensions, compile_time_env=compile_time_env)
+    cython_extensions_ = cythonize(cython_extensions,
+                                   compile_time_env=compile_time_env,
+                                   compiler_directives={'language_level': 3})
 
 
 else:
@@ -196,6 +198,7 @@ else:
 with open("abpytools/config.ini", 'w') as configfile:
     config.write(configfile)
 
+
 ####################################################################
 #                           CLEANUP
 ####################################################################
@@ -206,7 +209,7 @@ class clean(_clean):
         for (dirpath, dirnames, filenames) in os.walk("."):
             for filename in filenames:
                 filepath = os.path.join(dirpath, filename)
-                if filepath.endswith("_pb2.py") or filepath.endswith("so"):
+                if filepath.endswith("_pb2.py") or filepath.endswith("so") or filepath.endswith("pyc"):
                     os.remove(filepath)
                 if filepath.endswith(".pyx"):
                     # print(filepath.replace('pyx', 'cpp'))
