@@ -23,20 +23,17 @@ class SequenceAlignmentTests(unittest.TestCase):
         sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM62')
         self.assertEqual(sa.target_sequence, self.ab_collection_1[0].sequence)
 
-    def test_needleman_wunsch_score_BLOSUM62(self):
-        sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM62')
-        sa.align_sequences()
-        self.assertEqual(sa.score[self.ab_collection_2.names[0]], 426)
-
-    def test_needleman_wunsch_score_BLOSUM80(self):
-        sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM80')
-        sa.align_sequences()
-        self.assertEqual(sa.score[self.ab_collection_2.names[0]], 452)
-
-    def test_needleman_wunsch_score_BLOSUM45(self):
-        sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM45')
-        sa.align_sequences()
-        self.assertEqual(sa.score[self.ab_collection_2.names[0]], 513)
+    def test_needleman_wunsch_score_BLOSUMXX(self):
+        test_cases = [
+            ("BLOSUM45", 513),
+            ("BLOSUM62", 426),
+            ("BLOSUM80", 452)
+        ]
+        for x, output in test_cases:
+            with self.subTest(name=x):
+                sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', x)
+                sa.align_sequences()
+                self.assertEqual(sa.score[self.ab_collection_2.names[0]], output)
 
     def test_needleman_wunsch_aligned_sequences(self):
         sa = SequenceAlignment(self.ab_collection_1[0], self.ab_collection_2, 'needleman_wunsch', 'BLOSUM62')

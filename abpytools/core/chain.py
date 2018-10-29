@@ -77,7 +77,7 @@ class Chain:
             chain = CHAIN_FLAGS.LIGHT_CHAIN
         else:
             # couldn't determine chain type
-            chain = ''
+            chain = CHAIN_FLAGS.UNKNOWN_CHAIN  # pragma: no cover
 
         return chain
 
@@ -140,7 +140,7 @@ class Chain:
             data.index = [self._name]
             return data
 
-    def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew'):
+    def ab_hydrophobicity_matrix(self, hydrophobicity_scores=HYDROPHOBICITY_FLAGS.EW):
 
         # check if all the required parameters are in order
         if isinstance(hydrophobicity_scores, str):
@@ -317,13 +317,12 @@ class Chain:
         return self._numbering_scheme
 
     def _string_summary_basic(self):
-        return "abpytools.Chain Name: {}, Chain type: {}, Sequence length: {}, Status: {}".format(self._name,
-                                                                                                  self._chain,
-                                                                                                  len(self._sequence),
-                                                                                                  self._loading_status)
+        return "abpytools.Chain Name: {}, Chain type: {}, Sequence length: {}, Status: {}".format(
+            self._name, self._chain, len(self._sequence),
+            self._loading_status)  # pragma: no cover
 
     def __repr__(self):
-        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
+        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))  # pragma: no cover
 
     def __len__(self):
         return len(self.sequence)
