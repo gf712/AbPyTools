@@ -38,7 +38,7 @@ before_script:
 - sleep 3
 script:
 - coverage run --source=abpytools setup.py test
-- pip install recommonmark
+- pip install sphinx recommonmark
 - python setup.py build_ext -i
 - python setup.py build
 - cd docs && make html && cd ..
