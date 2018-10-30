@@ -22,7 +22,7 @@ jobs:
     - stage: build docs
       env: PYTHON_VERSION=3.7
       script:
-        - scripts/build_docs.sh
+        - source scripts/build_docs.sh
       provider: pages
       skip_cleanup: true
       github_token: $GITHUB_TOKEN
@@ -34,6 +34,6 @@ jobs:
 script:
   - python setup.py test
 install:
-  - sh scripts/travis_install.sh
+  - source scripts/travis_install.sh
 before_script:
-  - sh scripts/prepare_python_test.sh
+  - source scripts/prepare_python_test.sh
