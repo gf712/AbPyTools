@@ -6,10 +6,16 @@ from .helper_functions import germline_identity_pd, to_numbering_table
 
 
 class Fab:
-    """
-    
-    """
+
     def __init__(self, heavy_chain=None, light_chain=None, load=True, name=None):
+        """
+
+        Args:
+            heavy_chain:
+            light_chain:
+            load:
+            name:
+        """
         # As a convention the order will always be light chain (index 0) and then heavy chain (index 1)
 
         # check if it's an Chain class

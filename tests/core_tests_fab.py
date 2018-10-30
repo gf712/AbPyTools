@@ -1,30 +1,17 @@
 import unittest
 from abpytools import Fab, ChainCollection
 from operator import itemgetter
-from urllib import request
-
-
-abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
-
-
-# Helper functions
-def check_connection(URL, timeout=5):
-    try:
-        request.urlopen(url=URL, timeout=timeout)
-        return True
-    except request.URLError:
-        return False
+from . import ABNUM_URL, check_connection
 
 
 class FabCore(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_1_light.json')
-        cls.heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_1_heavy.json')
-
-        cls.light_chain_collection.load(verbose=False, show_progressbar=False)
-        cls.heavy_chain_collection.load(verbose=False, show_progressbar=False)
+        cls.light_chain_collection = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_light.json',
+                                                                    verbose=False, show_progressbar=False)
+        cls.heavy_chain_collection = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
+                                                                    verbose=False, show_progressbar=False)
 
         cls.heavy_chain = cls.heavy_chain_collection[0]
         cls.light_chain = cls.light_chain_collection[0]
@@ -154,7 +141,7 @@ class FabCore(unittest.TestCase):
         fab = Fab(heavy_chain=self.heavy_chain, light_chain=self.light_chain, load=False)
         self.assertEqual(fab[1].chain, 'heavy')
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_Fab_numbering_table(self):
         fab = Fab(heavy_chain=self.heavy_chain, light_chain=self.light_chain, load=False)
         self.assertEqual(fab.germline_identity['Average', 'Total'].values[0], 94.25)

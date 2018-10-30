@@ -29,7 +29,7 @@ class DataLoader:
                 or self.data_type == 'Framework_positions':
             if len(self.data) != 2:
                 raise ValueError("Expected 2, instead of {} values.".format(len(self.data)))
-            if self.data[0] not in ['chothia']:
+            if self.data[0] not in ['chothia', 'kabat', 'chothia_ext']:
                 raise ValueError("Got {}, but only {} is available".format(self.data[0], 'chothia'))
             if self.data[1] not in ["light", "heavy"]:
                 raise ValueError("Got {}, but only light and heavy are available".format(self.data[1]))

@@ -1,0 +1,9 @@
+from .numbering import *
+from .hydrophobicity import *
+from .pi import *
+
+AVAILABLE_NUMBERING_SCHEMES = [CHOTHIA, KABAT, CHOTHIA_EXT, MARTIN]
+AVAILABLE_SERVERS = [ABYSIS]
+AVAILABLE_HYDROPHOBITY_SCORES = [KD, WW, HH, MF, EW]
+# to not be confused with math pi (this is pI)
+AVAILABLE_PI_VALUES = [EMBOSS, DTASELECT, SOLOMON, SILLERO, RODWELL, WIKIPEDIA, LEHNINGER, GRIMSLEY]

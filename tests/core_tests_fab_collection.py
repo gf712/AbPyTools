@@ -1,29 +1,20 @@
 import unittest
 from abpytools import FabCollection, ChainCollection, Fab
-from urllib import request
-
-
-abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
-
-
-# Helper functions
-def check_connection(URL, timeout=5):
-    try:
-        request.urlopen(url=URL, timeout=timeout)
-        return True
-    except request.URLError:
-        return False
+import os
+from glob import glob
+from . import ABNUM_URL, check_connection
 
 
 class FabCollectionCore(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_light_2_sequences.json')
-        cls.heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_heavy_2_sequences.json')
-
-        cls.light_chain_collection.load(verbose=False, show_progressbar=False)
-        cls.heavy_chain_collection.load(verbose=False, show_progressbar=False)
+        cls.light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json',
+            verbose=False, show_progressbar=False)
+        cls.heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json',
+            verbose=False, show_progressbar=False)
 
         cls.heavy_chain_1 = cls.heavy_chain_collection[0]
         cls.light_chain_1 = cls.light_chain_collection[0]
@@ -78,12 +69,60 @@ class FabCollectionCore(unittest.TestCase):
                               FabCollection)
 
     def test_FabCollection_input4(self):
-        light_chain_collection = ChainCollection(path='./tests/Data/chain_collection_light_2_sequences.json')
-        heavy_chain_collection = ChainCollection(path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
         fab_collection = FabCollection(light_chains=light_chain_collection,
                                        heavy_chains=heavy_chain_collection,
                                        names=['Fab1', 'Fab2'])
         self.assertEqual(fab_collection.numbering_table()['Light']['CDR3']['L89'].loc['Fab1'], 'Q')
+
+    def test_FabCollection_json1(self):
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        fab_collection = FabCollection(light_chains=light_chain_collection,
+                                       heavy_chains=heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        fab_collection.save(file_format='json', path='./tests/fab_1')
+        self.assertTrue(os.path.isfile('./tests/fab_1.json'))
+
+    def test_FabCollection_json2(self):
+        fab_collection = FabCollection.load_from_file(path='./tests/fab_1.json',
+                                                      show_progressbar=False,
+                                                      verbose=False)
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        self.assertEqual(fab_collection._light_chains.sequences[0], light_chain_collection.sequences[0])
+        self.assertEqual(fab_collection._heavy_chains.sequences[0], heavy_chain_collection.sequences[0])
+
+    def test_FabCollection_pb2_1(self):
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        fab_collection = FabCollection(light_chains=light_chain_collection,
+                                       heavy_chains=heavy_chain_collection,
+                                       names=['Fab1', 'Fab2'])
+        fab_collection.save(file_format='pb2', path='./tests/fab_1')
+        self.assertTrue(os.path.isfile('./tests/fab_1.pb2'))
+
+    def test_FabCollection_pb2_2(self):
+        fab_collection = FabCollection.load_from_file(path='./tests/fab_1.pb2',
+                                                      show_progressbar=False,
+                                                      verbose=False)
+        light_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_light_2_sequences.json')
+        heavy_chain_collection = ChainCollection.load_from_file(
+            path='./tests/Data/chain_collection_heavy_2_sequences.json')
+        self.assertEqual(fab_collection._light_chains.sequences[0], light_chain_collection.sequences[0])
+        self.assertEqual(fab_collection._heavy_chains.sequences[0], heavy_chain_collection.sequences[0])
+        self.assertEqual(fab_collection._light_chains.names[0], light_chain_collection.names[0])
+        self.assertEqual(fab_collection._heavy_chains.names[0], heavy_chain_collection.names[0])
 
     def test_FabCollection_MW(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
@@ -130,14 +169,14 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection)
         self.assertEqual(fab_collection._light_chains.names[1], 'LightSeq2')
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
         fab_collection.igblast_server_query()
         self.assertAlmostEqual(fab_collection.germline_identity['Heavy', 'Total'].iloc[0], 93.8)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         # check germline assignment
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
@@ -146,7 +185,7 @@ class FabCollectionCore(unittest.TestCase):
         fab_collection.igblast_server_query()
         self.assertEqual(fab_collection.germline['Heavy', 'Assignment']['Fab1'], 'IGHV1-8*01')
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         # check germline assignment score
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
@@ -176,7 +215,7 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection)
         self.assertEqual(len(fab_collection), 2)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_germline_identity(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection,
@@ -212,3 +251,9 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection,
                                        names=['Fab1', 'Fab2'])
         self.assertEqual(fab_collection[[0, 1]]._light_chains.names, ['LightSeq1', 'LightSeq2'])
+
+    @classmethod
+    def tearDownClass(cls):
+        for name in glob('./tests/*'):
+            if name.split('.')[-1] != 'py' and os.path.isfile(name):
+                os.remove(name)

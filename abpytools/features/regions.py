@@ -1,15 +1,18 @@
-from abpytools import ChainCollection
+from abpytools.core.chain_collection import ChainCollection
+from abpytools.core.cache import Cache
 import numpy as np
-from abpytools.core import Cache
 
 
 class ChainDomains(ChainCollection):
 
-    def __init__(self, antibody_objects=None, path=None, load=True, verbose=True, show_progressbar=True, n_threads=10):
-        # expect a string which is a path to a FASTA file
-        super().__init__(antibody_objects=antibody_objects, path=path)
-        if load:
-            self.load(verbose=verbose, show_progressbar=show_progressbar, n_threads=n_threads)
+    def __init__(self, antibody_objects=None, path=None, verbose=True, show_progressbar=True, n_threads=10):
+        super().__init__(antibody_objects=antibody_objects)
+        if antibody_objects:
+            self.load()
+        else:
+            self.__init__(antibody_objects=ChainCollection.load_from_file(path=path, verbose=verbose,
+                                                                          show_progressbar=show_progressbar,
+                                                                          n_threads=n_threads))
 
         self._cache = Cache(max_cache_size=5)
 

@@ -7,3 +7,5 @@ seaborn
 matplotlib
 beautifulsoup4
 lxml
+protobuf
+parameterized
