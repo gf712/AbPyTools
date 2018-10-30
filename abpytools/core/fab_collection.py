@@ -7,15 +7,28 @@ from operator import itemgetter
 from .fab import Fab
 from .helper_functions import germline_identity_pd, to_numbering_table
 from .base import CollectionBase
+import os
+import json
+from .utils import (json_FabCollection_formatter, pb2_FabCollection_formatter, pb2_FabCollection_parser,
+                    json_FabCollection_parser)
+from .flags import *
+
+if BACKEND_FLAGS.HAS_PROTO:
+    from abpytools.core.formats import FabCollectionProto
 
 
 class FabCollection(CollectionBase):
-    """
-
-    """
 
     def __init__(self, fab=None, heavy_chains=None, light_chains=None, names=None):
+        """
+        Fab object container that handles combinations of light/heavy Chain pairs.
 
+        Args:
+            fab (list):
+            heavy_chains (ChainCollection):
+            light_chains (ChainCollection):
+            names (list):
+        """
         # check if it's a Chain object
         if heavy_chains is None and light_chains is None and fab is None:
             raise ValueError('Provide a list of Chain objects or an ChainCollection object')
@@ -173,22 +186,77 @@ class FabCollection(CollectionBase):
 
         return df
 
-    def save(self):
+    def save_to_json(self, path, update=True):
+        with open(os.path.join(path + '.json'), 'w') as f:
+            fab_data = json_FabCollection_formatter(self)
+            json.dump(fab_data, f, indent=2)
 
-        # Set 
+    def save_to_pb2(self, path, update=True):
+        proto_parser = FabCollectionProto()
+        try:
+            with open(os.path.join(path + '.pb2'), 'rb') as f:
+                proto_parser.ParseFromString(f.read())
+        except IOError:
+            # Creating new file
+            pass
 
-        raise NotImplementedError("This is not the code you are looking for.")
+        pb2_FabCollection_formatter(self, proto_parser)
 
-    def load(self):
-        # TODO
-        raise NotImplementedError("This is not the code you are looking for.")
+        with open(os.path.join(path + '.pb2'), 'wb') as f:
+            f.write(proto_parser.SerializeToString())
+
+    def save_to_fasta(self, path, update=True):
+        raise NotImplementedError
+
+    @classmethod
+    def load_from_json(cls, path, n_threads=20, verbose=True, show_progressbar=True):
+        with open(path, 'r') as f:
+            data = json.load(f)
+
+        fab_objects = json_FabCollection_parser(data)
+
+        fab_collection = cls(fab=fab_objects)
+
+        return fab_collection
+
+    @classmethod
+    def load_from_pb2(cls, path, n_threads=20, verbose=True, show_progressbar=True):
+        with open(path, 'rb') as f:
+            proto_parser = FabCollectionProto()
+            proto_parser.ParseFromString(f.read())
+
+        fab_objects = pb2_FabCollection_parser(proto_parser)
+
+        fab_collection = cls(fab=fab_objects)
+
+        return fab_collection
+
+    @classmethod
+    def load_from_fasta(cls, path, numbering_scheme=NUMBERING_FLAGS.CHOTHIA, n_threads=20,
+                        verbose=True, show_progressbar=True):
+        raise NotImplementedError
+
+    def _get_names_iter(self, chain='both'):
+        if chain == 'both':
+            for light_chain, heavy_chain in zip(self._light_chains, self._heavy_chains):
+                yield f"{light_chain.name}-{heavy_chain.name}"
+        elif chain == 'light':
+            for light_chain in self._light_chains:
+                yield light_chain.name
+        elif chain == 'heavy':
+            for heavy_chain in self._heavy_chains:
+                yield heavy_chain.name
+        else:
+            raise ValueError(f"Unknown chain type ({chain}), available options are:"
+                             f"both, light or heavy.")
 
     @property
     def regions(self):
         heavy_regions = self._heavy_chains.ab_region_index()
         light_regions = self._light_chains.ab_region_index()
 
-        return {name: {'Heavy': heavy_regions[heavy], 'Light': light_regions[light]} for name, heavy, light in
+        return {name: {CHAIN_FLAGS.HEAVY_CHAIN: heavy_regions[heavy],
+                       CHAIN_FLAGS.LIGHT_CHAIN: light_regions[light]} for name, heavy, light in
                 zip(self.names, self._internal_heavy_name, self._internal_light_name)}
 
     @property
@@ -235,12 +303,6 @@ class FabCollection(CollectionBase):
             return FabCollection(heavy_chains=list(itemgetter(*indices)(self._heavy_chains)),
                                  light_chains=list(itemgetter(*indices)(self._light_chains)),
                                  names=list(itemgetter(*indices)(self._names)))
-        # if isinstance(indices, int):
-        #     indices = [indices]
-        #
-        # return FabCollection(heavy_chains=list(itemgetter(*indices)(self._heavy_chains)),
-        #                      light_chains=list(itemgetter(*indices)(self._light_chains)),
-        #                      names=list(itemgetter(*indices)(self._names)), load=False)
 
     def _germline_identity(self):
 

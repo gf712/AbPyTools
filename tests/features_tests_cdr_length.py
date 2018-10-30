@@ -10,12 +10,12 @@ class CDRLengthTest(unittest.TestCase):
         cls.ab_file = './tests/Data/chain_collection_heavy_2_sequences.json'
 
     def test_CDRLength_instantiation(self):
-        cdr_length = CDRLength(path=self.ab_file, load=True)
+        cdr_length = CDRLength(path=self.ab_file)
         self.assertIsInstance(cdr_length, CDRLength)
 
     def test_CDRLength_plot_1(self):
         # cannot test if plot works but can check if there is a file that is created
-        cdr_length = CDRLength(path=self.ab_file, load=True)
+        cdr_length = CDRLength(path=self.ab_file)
         cdr_length.plot_cdr(save=True, plot_path='./tests', plot_name='TestCDR.png')
         self.assertTrue(os.path.isfile('./tests/TestCDR.png'), True)
 

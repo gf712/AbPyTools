@@ -1,42 +1,75 @@
 import re
 import numpy as np
 from ..utils import DataLoader, Download, NumberingException
-import logging
 import pandas as pd
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
-from .cache import Cache
-
-# setting up debugging messages
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
-available_numbering_schemes = ['chothia', 'chothia_ext', 'kabath']
-available_servers = ['abysis']
-available_hydrophobicity_scores = ['kd', 'ww', 'hh', 'mf', 'ew']
-available_pi_databases = ["EMBOSS", "DTASetect", "Solomon", "Sillero", "Rodwell", "Wikipedia", "Lehninger",
-                          "Grimsley"]
+from . import Cache
+from .flags import *
 
 
 class Chain:
-    # TODO: write description
-    """
+    """The Chain object represent a single chain variable fragment (scFv) antibody.
+
+    A scFv can be part of either the heavy or light chain of an antibody.
+    The nature of the chain is determined by querying the sequence
+    to the Abnum server, and is implemented with the Chain.ab_numbering() method.
+
+    Attributes:
+        numbering (list): the name of each position occupied by amino acids in sequence
+        mw (float): the cached molecular weight
+        pI (float): the cached isoelectric point of the sequence
+        cdr (tuple): tuple with two dictionaries for CDR and FR with the index of the amino acids
+        in each region
+        germline_identity (dict):
     """
 
-    def __init__(self, sequence='', name='Chain1', numbering=None, numbering_scheme='chothia'):
+    def __init__(self, sequence, name='Chain1', numbering_scheme=NUMBERING_FLAGS.CHOTHIA):
+        """
+        The default Chain object constructor, which required a string
+        representing a scFv sequence.
+
+        Args:
+            sequence (str): Amino acid sequence
+            name (name): Name of sequence
+            numbering_scheme (str): numbering scheme name to perform alignment
+
+        Examples:
+            Instantiate a Chain object with the default constructor
+            >>> from abpytools.core import Chain
+            >>> from abpytools.core.flags import *
+            >>> chain = Chain(sequence='MYSEQUENCE', name='my_seq', numbering_scheme=NUMBERING_FLAGS.CHOTHIA)
+        """
         self._raw_sequence = sequence.upper()
         self._sequence = self._raw_sequence.replace('-', '')
         self._aligned_sequence = None
         self._name = name
-        self.numbering = numbering
-        self.hydrophobicity_matrix = np.array([])
-        self._chain = ''
-        self.mw = 0
-        self.pI = 0
-        self.cdr = [0, 0, 0]
+        self._chain = None
+        self.numbering = None
+        self.hydrophobicity_matrix = None
+        self.mw = None
+        self.pI = None
+        self.cdr = None
         self._numbering_scheme = numbering_scheme
         self._loading_status = 'Not Loaded'
         self.germline_identity = dict()
         self.germline = tuple()
         self._cache = Cache(max_cache_size=10)
+
+    @classmethod
+    def load_from_string(cls, sequence, name='Chain1', numbering_scheme=NUMBERING_FLAGS.CHOTHIA):
+        """
+        Returns an instantiated Chain object from a sequence
+        Args:
+            sequence:
+            name:
+            numbering_scheme:
+
+        Returns:
+
+        """
+        new_chain = cls(sequence=sequence, name=name, numbering_scheme=numbering_scheme)
+        new_chain.load()
+        return new_chain
 
     def load(self):
         """
@@ -52,19 +85,19 @@ class Chain:
 
         """
 
-        if self._loading_status in ['Failed', 'Not Loaded']:
+        if self._loading_status in [NUMBERING_FLAGS.FAILED, NUMBERING_FLAGS.NOT_LOADED]:
             try:
                 self.numbering = self.ab_numbering()
-                self._loading_status = 'Loaded'
+                self._loading_status = NUMBERING_FLAGS.LOADED
                 self.load()
 
             except ValueError:
-                self._loading_status = 'Failed'
+                self._loading_status = NUMBERING_FLAGS.FAILED
 
             except NumberingException:
-                self._loading_status = 'Unnumbered'
+                self._loading_status = NUMBERING_FLAGS.UNNUMBERED
 
-        elif self._loading_status == 'Loaded':
+        elif self._loading_status == NUMBERING_FLAGS.LOADED:
             self.hydrophobicity_matrix = self.ab_hydrophobicity_matrix()
             self.mw = self.ab_molecular_weight()
             self.pI = self.ab_pi()
@@ -72,17 +105,30 @@ class Chain:
 
         else:
             # this should never happen...
-            raise ValueError("Unknown loading status")
+            raise ValueError("Unknown loading status")  # pragma: no cover
 
-    def ab_numbering(self, server='abysis', **kwargs):
+    @staticmethod
+    def determine_chain_type(numbering):
+        if numbering[0][0] == 'H':
+            chain = CHAIN_FLAGS.HEAVY_CHAIN
+        elif numbering[0][0] == 'L':
+            chain = CHAIN_FLAGS.LIGHT_CHAIN
+        else:
+            # couldn't determine chain type
+            chain = CHAIN_FLAGS.UNKNOWN_CHAIN  # pragma: no cover
 
+        return chain
+
+    def ab_numbering(self, server=OPTION_FLAGS.ABYSIS, **kwargs):
+        """
+        Return list
+
+        Returns:
+            list:
+        """
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
         numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme, **kwargs)
-
-        if numbering[0][0] == 'H':
-            self._chain = 'heavy'
-        elif numbering[0][0] == 'L':
-            self._chain = 'light'
+        self._chain = self.determine_chain_type(numbering)
 
         return numbering
 
@@ -100,7 +146,8 @@ class Chain:
 
         # if the object has not been loaded successfully yet need to try and get the numbering scheme using
         # ab_numbering method
-        if self._loading_status in ['Not Loaded', 'Failed']:
+        if self._loading_status in [NUMBERING_FLAGS.NOT_LOADED,
+                                    NUMBERING_FLAGS.FAILED]:
             self.numbering = self.ab_numbering()
 
         whole_sequence_dict, whole_sequence = numbering_table_sequences(region=region,
@@ -137,17 +184,17 @@ class Chain:
             data.index = [self._name]
             return data
 
-    def ab_hydrophobicity_matrix(self, hydrophobicity_scores='ew'):
+    def ab_hydrophobicity_matrix(self, hydrophobicity_scores=HYDROPHOBICITY_FLAGS.EW):
 
         # check if all the required parameters are in order
         if isinstance(hydrophobicity_scores, str):
-            if hydrophobicity_scores not in available_hydrophobicity_scores:
+            if hydrophobicity_scores not in OPTION_FLAGS.AVAILABLE_HYDROPHOBITY_SCORES:
                 raise ValueError("Chosen hydrophobicity scores ({}) not available. \
                 Available hydrophobicity scores: {}".format(
-                    hydrophobicity_scores, ' ,'.join(available_hydrophobicity_scores)
+                    hydrophobicity_scores, ' ,'.join(OPTION_FLAGS.AVAILABLE_HYDROPHOBITY_SCORES)
                 ))
 
-        if self._loading_status == 'Not Loaded':
+        if self._loading_status == NUMBERING_FLAGS.NOT_LOADED:
             self.numbering = self.ab_numbering()
         if self._chain == 'NA':
             raise ValueError("Could not determine chain type")
@@ -164,7 +211,8 @@ class Chain:
                                  data=['hydrophobicity', hydrophobicity_scores + 'Hydrophobicity'])
         aa_hydrophobicity_scores = data_loader.get_data()
 
-        return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence, numbering=self.numbering,
+        return calculate_hydrophobicity_matrix(whole_sequence=whole_sequence,
+                                               numbering=self.numbering,
                                                aa_hydrophobicity_scores=aa_hydrophobicity_scores,
                                                sequence=self._sequence)
 
@@ -178,7 +226,7 @@ class Chain:
 
         if 'cdrs' not in self._cache:
 
-            if self._loading_status == 'Not Loaded':
+            if self._loading_status == NUMBERING_FLAGS.NOT_LOADED:
                 self.numbering, self._chain = self.ab_numbering()
 
             if self.numbering == 'NA':
@@ -211,9 +259,10 @@ class Chain:
 
     def ab_pi(self, pi_database='Wikipedia'):
 
-        assert pi_database in available_pi_databases, \
-            "Selected pI database {} not available. Available databases: {}".format(pi_database,
-                                                                                    ' ,'.join(available_pi_databases))
+        assert pi_database in OPTION_FLAGS.AVAILABLE_PI_VALUES, \
+            "Selected pI database {} not available. " \
+            "Available databases: {}".format(pi_database, ' ,'.join(
+                OPTION_FLAGS.AVAILABLE_PI_VALUES))
 
         data_loader = DataLoader(data_type='AminoAcidProperties',
                                  data=['pI', pi_database])
@@ -252,9 +301,10 @@ class Chain:
         :return: array with amino acid charges
         """
 
-        assert pka_database in available_pi_databases, \
-            "Selected pI database {} not available. Available databases: {}".format(pka_database,
-                                                                                    ' ,'.join(available_pi_databases))
+        assert pka_database in OPTION_FLAGS.AVAILABLE_PI_VALUES, \
+            "Selected pI database {} not available. " \
+            "Available databases: {}".format(pka_database,
+                                             ' ,'.join(OPTION_FLAGS.AVAILABLE_PI_VALUES))
 
         data_loader = DataLoader(data_type='AminoAcidProperties',
                                  data=['pI', pka_database])
@@ -268,11 +318,12 @@ class Chain:
 
         return np.array([amino_acid_charge(x, ph, pka_data) for x in sequence])
 
-    def ab_total_charge(self, ph=7.4, pka_database='Wikipedia'):
+    def ab_total_charge(self, ph=7.4, pka_database=PI_FLAGS.WIKIPEDIA):
 
-        assert pka_database in available_pi_databases, \
-            "Selected pI database {} not available. Available databases: {}".format(pka_database,
-                                                                                    ' ,'.join(available_pi_databases))
+        assert pka_database in OPTION_FLAGS.AVAILABLE_PI_VALUES, \
+            "Selected pI database {} not available. " \
+            "Available databases: {}".format(pka_database,
+                                             ' ,'.join(OPTION_FLAGS.AVAILABLE_PI_VALUES))
 
         data_loader = DataLoader(data_type='AminoAcidProperties',
                                  data=['pI', pka_database])
@@ -287,6 +338,9 @@ class Chain:
     @property
     def name(self):
         return self._name
+
+    def set_name(self, name):
+        self._name = name
 
     @property
     def sequence(self):
@@ -307,13 +361,12 @@ class Chain:
         return self._numbering_scheme
 
     def _string_summary_basic(self):
-        return "abpytools.Chain Name: {}, Chain type: {}, Sequence length: {}, Status: {}".format(self._name,
-                                                                                                  self._chain,
-                                                                                                  len(self._sequence),
-                                                                                                  self._loading_status)
+        return "abpytools.Chain Name: {}, Chain type: {}, Sequence length: {}, Status: {}".format(
+            self._name, self._chain, len(self._sequence),
+            self._loading_status)  # pragma: no cover
 
     def __repr__(self):
-        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))
+        return "<%s at 0x%02x>" % (self._string_summary_basic(), id(self))  # pragma: no cover
 
     def __len__(self):
         return len(self.sequence)
@@ -325,20 +378,19 @@ def get_ab_numbering(sequence, server, numbering_scheme, timeout=30):
     :rtype: list
     """
     # check which server to use to get numbering
-    if server.lower() == 'abysis':
+    if server == OPTION_FLAGS.ABYSIS:
         # find out which numbering scheme to use
-        if numbering_scheme.lower() == 'chothia':
+        if numbering_scheme == NUMBERING_FLAGS.CHOTHIA:
             scheme = '-c'
-        elif numbering_scheme.lower() == 'chotia_ext':
+        elif numbering_scheme in (NUMBERING_FLAGS.CHOTHIA_EXT, NUMBERING_FLAGS.MARTIN):
             scheme = '-a'
-        elif numbering_scheme.lower() == 'kabat':
+        elif numbering_scheme == NUMBERING_FLAGS.KABAT:
             scheme = '-k'
         else:
             raise ValueError("{} numbering scheme is unknown.".format(numbering_scheme.capitalize()))
 
         # prepare the url string to query server
-        url = 'http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={}&scheme={}'.format(sequence,
-                                                                                                  scheme)
+        url = f"http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&aaseq={sequence}&scheme={scheme}"
         # use the Download class from utils to get output
         numbering_table = Download(url, verbose=False, timeout=timeout)
         try:

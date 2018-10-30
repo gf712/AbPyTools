@@ -14,7 +14,7 @@ Below are some existing features and some planned future additions.
 At the moment it is updated several times a day until I am happy with the base functions. In the future the development 
 will be performed in a separate branch.
 
-AbPyTools features:
+AbPyTools features
 - 
 - obtain Antibody numbering by querying AbNum (http://www.bioinf.org.uk/abs/abnum/)
 - analysis of scFv sequences with optimised backend
@@ -26,7 +26,7 @@ AbPyTools features:
 - Work with heavy and light chains or combinations 
 - high level function to easily plot CDR length using a FASTA file as input
 
-Stuff that will be added/ worked on next:
+Stuff that will be added/ worked on next
 - 
 - Add remaining antibody numbering schemes
 - write tutorials
@@ -34,7 +34,7 @@ Stuff that will be added/ worked on next:
 - write high level code for more specific analysis
   - plot CDR lengths of antibodies
   
-Cython:
+Cython
 -
 From version 0.3 AbPyTools will start using Cython to speed up numerical manipulations.
 In the front end nothing will change, but installation from source will require Cython!
@@ -42,10 +42,10 @@ In the front end nothing will change, but installation from source will require 
 This new feature will speed up most calculations significantly. The backend uses code written 
 from scratch that mimics numpy behaviour but runs much faster, since it is more specialised and lightweight.
 
-Installing abpytools:
+Installing abpytools
 -
 
-## From source:
+## From source
 
 Clone code from the GitHub repository
 
@@ -71,7 +71,17 @@ Import to python
 -
 `import abpytools`
 
-Changelog:
+Changelog
 -
-### v0.3 (release date TBD):
+### v0.3.1 (release date 30/10/2018)
+ - Major:
+   - Protobuf support to serialise core objects (`ChainCollection` and `FabCollection`)
+     - speed up in saving and loading large files
+     - files are about 5 times smaller
+   - Dropped support for Python 3.5 to start using f-strings
+   - API changes:
+     - Cleaned up object instantiation and added factory functions (**This will break some old code but provides a cleaner iterface**)
+ - Minor:
+   - added Python 3.7 to Travis script (also dropped Python 3.5)
+### v0.3 (release date 11/10/2018):
  - Implementation of backend calculations with Cython leading to speedups of several orders of magnitude
