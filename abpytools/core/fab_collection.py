@@ -21,13 +21,13 @@ class FabCollection(CollectionBase):
 
     def __init__(self, fab=None, heavy_chains=None, light_chains=None, names=None):
         """
-
+        Fab object container that handles combinations of light/heavy Chain pairs.
 
         Args:
-            fab:
-            heavy_chains:
-            light_chains:
-            names:
+            fab (list):
+            heavy_chains (ChainCollection):
+            light_chains (ChainCollection):
+            names (list):
         """
         # check if it's a Chain object
         if heavy_chains is None and light_chains is None and fab is None:

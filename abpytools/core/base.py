@@ -7,7 +7,7 @@ AVAILABLE_FORMATS = [FORMAT_FLAGS.JSON, FORMAT_FLAGS.FASTA, FORMAT_FLAGS.PB2]
 
 class CollectionBase:
     """
-    CollectionBase is the abpytools base class to develop its API
+    CollectionBase is the abpytools base class to develop the collection APIs
     """
 
     @classmethod

@@ -1,37 +1,75 @@
 import re
 import numpy as np
 from ..utils import DataLoader, Download, NumberingException
-import logging
 import pandas as pd
 from .helper_functions import numbering_table_sequences, numbering_table_region, numbering_table_multiindex
 from . import Cache
 from .flags import *
 
-# setting up debugging messages
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
-
 
 class Chain:
-    # TODO: write description
-    """
+    """The Chain object represent a single chain variable fragment (scFv) antibody.
+
+    A scFv can be part of either the heavy or light chain of an antibody.
+    The nature of the chain is determined by querying the sequence
+    to the Abnum server, and is implemented with the Chain.ab_numbering() method.
+
+    Attributes:
+        numbering (list): the name of each position occupied by amino acids in sequence
+        mw (float): the cached molecular weight
+        pI (float): the cached isoelectric point of the sequence
+        cdr (tuple): tuple with two dictionaries for CDR and FR with the index of the amino acids
+        in each region
+        germline_identity (dict):
     """
 
-    def __init__(self, sequence='', name='Chain1', numbering=None, numbering_scheme=NUMBERING_FLAGS.CHOTHIA):
+    def __init__(self, sequence, name='Chain1', numbering_scheme=NUMBERING_FLAGS.CHOTHIA):
+        """
+        The default Chain object constructor, which required a string
+        representing a scFv sequence.
+
+        Args:
+            sequence (str): Amino acid sequence
+            name (name): Name of sequence
+            numbering_scheme (str): numbering scheme name to perform alignment
+
+        Examples:
+            Instantiate a Chain object with the default constructor
+            >>> from abpytools.core import Chain
+            >>> from abpytools.core.flags import *
+            >>> chain = Chain(sequence='MYSEQUENCE', name='my_seq', numbering_scheme=NUMBERING_FLAGS.CHOTHIA)
+        """
         self._raw_sequence = sequence.upper()
         self._sequence = self._raw_sequence.replace('-', '')
         self._aligned_sequence = None
         self._name = name
-        self.numbering = numbering
-        self.hydrophobicity_matrix = np.array([])
-        self._chain = ''
-        self.mw = 0
-        self.pI = 0
-        self.cdr = [0, 0, 0]
+        self._chain = None
+        self.numbering = None
+        self.hydrophobicity_matrix = None
+        self.mw = None
+        self.pI = None
+        self.cdr = None
         self._numbering_scheme = numbering_scheme
         self._loading_status = 'Not Loaded'
         self.germline_identity = dict()
         self.germline = tuple()
         self._cache = Cache(max_cache_size=10)
+
+    @classmethod
+    def load_from_string(cls, sequence, name='Chain1', numbering_scheme=NUMBERING_FLAGS.CHOTHIA):
+        """
+        Returns an instantiated Chain object from a sequence
+        Args:
+            sequence:
+            name:
+            numbering_scheme:
+
+        Returns:
+
+        """
+        new_chain = cls(sequence=sequence, name=name, numbering_scheme=numbering_scheme)
+        new_chain.load()
+        return new_chain
 
     def load(self):
         """
@@ -82,7 +120,12 @@ class Chain:
         return chain
 
     def ab_numbering(self, server=OPTION_FLAGS.ABYSIS, **kwargs):
+        """
+        Return list
 
+        Returns:
+            list:
+        """
         # store the amino positions/numbering in a list -> len(numbering) == len(self._sequence)
         numbering = get_ab_numbering(self._sequence, server, self._numbering_scheme, **kwargs)
         self._chain = self.determine_chain_type(numbering)
@@ -103,7 +146,8 @@ class Chain:
 
         # if the object has not been loaded successfully yet need to try and get the numbering scheme using
         # ab_numbering method
-        if self._loading_status in [NUMBERING_FLAGS.LOADED, NUMBERING_FLAGS.FAILED]:
+        if self._loading_status in [NUMBERING_FLAGS.NOT_LOADED,
+                                    NUMBERING_FLAGS.FAILED]:
             self.numbering = self.ab_numbering()
 
         whole_sequence_dict, whole_sequence = numbering_table_sequences(region=region,
