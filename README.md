@@ -73,7 +73,7 @@ Import to python
 
 Changelog
 -
-### v0.3.1 (release date 02/11/2018)
+### v0.3.1 (release date 30/10/2018)
  - Major:
    - Protobuf support to serialise core objects (`ChainCollection` and `FabCollection`)
      - speed up in saving and loading large files
