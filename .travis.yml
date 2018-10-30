@@ -10,7 +10,6 @@ jobs:
     - stage: deploy
       env: PYTHON_VERSION=3.7
       script:
-        - source activate test-environment
         - coverage run --source=abpytools setup.py test
       after_success:
         - coveralls
@@ -33,7 +32,6 @@ jobs:
       local_dir: docs/_build/html/
 
 script:
-  - source activate test-environment
   - python setup.py test
 install:
   - sh scripts/travis_install.sh
