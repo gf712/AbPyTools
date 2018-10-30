@@ -1,0 +1,195 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abpytools.analysis.sequence_alignment &#8212; AbPyTools  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for abpytools.analysis.sequence_alignment</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.analysis_helper_functions</span> <span class="k">import</span> <span class="n">load_alignment_algorithm</span><span class="p">,</span> <span class="n">load_substitution_matrix</span>
+
+
+<div class="viewcode-block" id="SequenceAlignment"><a class="viewcode-back" href="../../../source/abpytools.analysis.html#abpytools.analysis.sequence_alignment.SequenceAlignment">[docs]</a><span class="k">class</span> <span class="nc">SequenceAlignment</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sequence alignment with two chain objects   </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">collection</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="n">substitution_matrix</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        </span>
+<span class="sd">        :param chain_1: </span>
+<span class="sd">        :param collection: </span>
+<span class="sd">        :param algorithm: </span>
+<span class="sd">        :param substitution_matrix: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span> <span class="o">=</span> <span class="n">algorithm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_substitution_matrix</span> <span class="o">=</span> <span class="n">load_substitution_matrix</span><span class="p">(</span><span class="n">substitution_matrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collection</span> <span class="o">=</span> <span class="n">collection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_collection</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignment_scores</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="SequenceAlignment.align_sequences"><a class="viewcode-back" href="../../../source/abpytools.analysis.html#abpytools.analysis.sequence_alignment.SequenceAlignment.align_sequences">[docs]</a>    <span class="k">def</span> <span class="nf">align_sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># perform the alignment for each chain object in collection and store results in dictionaries with keys</span>
+        <span class="c1"># corresponding to names of the sequence to be aligned</span>
+        <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collection</span><span class="o">.</span><span class="n">antibody_objects</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_align</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_collection</span><span class="p">[</span><span class="n">seq</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignment_scores</span><span class="p">[</span><span class="n">seq</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="SequenceAlignment.print_aligned_sequences"><a class="viewcode-back" href="../../../source/abpytools.analysis.html#abpytools.analysis.sequence_alignment.SequenceAlignment.print_aligned_sequences">[docs]</a>    <span class="k">def</span> <span class="nf">print_aligned_sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Method align_sequences must be called first to perform alignment.&quot;</span><span class="p">)</span>
+
+        <span class="n">final_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_sequences_string</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">final_string</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">target_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">sequence</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">aligned_sequences</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_collection</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignment_scores</span>
+
+    <span class="k">def</span> <span class="nf">_align</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq_1</span><span class="p">,</span> <span class="n">seq_2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># loads the function object that is then called</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm_function</span> <span class="o">=</span> <span class="n">load_alignment_algorithm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm_function</span><span class="p">(</span><span class="n">seq_1</span><span class="o">.</span><span class="n">sequence</span><span class="p">,</span> <span class="n">seq_2</span><span class="o">.</span><span class="n">sequence</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_substitution_matrix</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_aligned_sequences_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># find longest name of target sequence and aligned sequences (for display purposes)</span>
+        <span class="n">max_name</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collection</span><span class="o">.</span><span class="n">names</span><span class="p">))</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="s1">&#39;{:&gt;</span><span class="si">%d</span><span class="s1">}: </span><span class="si">{}</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">max_name</span>
+        <span class="n">f_score</span> <span class="o">=</span> <span class="s1">&#39;{:&gt;</span><span class="si">%d</span><span class="s1">}: </span><span class="si">{}</span><span class="s1"> (Score: </span><span class="si">{}</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">max_name</span>
+
+        <span class="c1"># store the final string in a list so that everything is printed at the end in one go</span>
+        <span class="n">final_string</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="n">final_string</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">sequence</span><span class="p">))</span>
+        <span class="n">final_string</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">*</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">sequence</span><span class="p">)))</span>
+
+        <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collection</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="n">final_string</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_score</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_collection</span><span class="p">[</span><span class="n">seq</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignment_scores</span><span class="p">[</span><span class="n">seq</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">final_string</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">AbPyTools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">AbPyTools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../load_from_disk.html">Save and load data from disk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basic_usage.html">Basic usage</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Gil Hoben.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

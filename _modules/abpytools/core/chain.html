@@ -1,0 +1,677 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abpytools.core.chain &#8212; AbPyTools  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for abpytools.core.chain</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">Download</span><span class="p">,</span> <span class="n">NumberingException</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">.helper_functions</span> <span class="k">import</span> <span class="n">numbering_table_sequences</span><span class="p">,</span> <span class="n">numbering_table_region</span><span class="p">,</span> <span class="n">numbering_table_multiindex</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Cache</span>
+<span class="kn">from</span> <span class="nn">.flags</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="Chain"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain">[docs]</a><span class="k">class</span> <span class="nc">Chain</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;The Chain object represent a single chain variable fragment (scFv) antibody.</span>
+
+<span class="sd">    A scFv can be part of either the heavy or light chain of an antibody.</span>
+<span class="sd">    The nature of the chain is determined by querying the sequence</span>
+<span class="sd">    to the Abnum server, and is implemented with the Chain.ab_numbering() method.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        numbering (list): the name of each position occupied by amino acids in sequence</span>
+<span class="sd">        mw (float): the cached molecular weight</span>
+<span class="sd">        pI (float): the cached isoelectric point of the sequence</span>
+<span class="sd">        cdr (tuple): tuple with two dictionaries for CDR and FR with the index of the amino acids</span>
+<span class="sd">        in each region</span>
+<span class="sd">        germline_identity (dict):</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Chain1&#39;</span><span class="p">,</span> <span class="n">numbering_scheme</span><span class="o">=</span><span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">CHOTHIA</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The default Chain object constructor, which required a string</span>
+<span class="sd">        representing a scFv sequence.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): Amino acid sequence</span>
+<span class="sd">            name (name): Name of sequence</span>
+<span class="sd">            numbering_scheme (str): numbering scheme name to perform alignment</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            Instantiate a Chain object with the default constructor</span>
+<span class="sd">            &gt;&gt;&gt; from abpytools.core import Chain</span>
+<span class="sd">            &gt;&gt;&gt; from abpytools.core.flags import *</span>
+<span class="sd">            &gt;&gt;&gt; chain = Chain(sequence=&#39;MYSEQUENCE&#39;, name=&#39;my_seq&#39;, numbering_scheme=NUMBERING_FLAGS.CHOTHIA)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_raw_sequence</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_raw_sequence</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_sequence</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydrophobicity_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mw</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pI</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cdr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span> <span class="o">=</span> <span class="n">numbering_scheme</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="o">=</span> <span class="s1">&#39;Not Loaded&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">germline_identity</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">germline</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="n">Cache</span><span class="p">(</span><span class="n">max_cache_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Chain.load_from_string"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.load_from_string">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load_from_string</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Chain1&#39;</span><span class="p">,</span> <span class="n">numbering_scheme</span><span class="o">=</span><span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">CHOTHIA</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an instantiated Chain object from a sequence</span>
+<span class="sd">        Args:</span>
+<span class="sd">            sequence:</span>
+<span class="sd">            name:</span>
+<span class="sd">            numbering_scheme:</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_chain</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="n">sequence</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">numbering_scheme</span><span class="o">=</span><span class="n">numbering_scheme</span><span class="p">)</span>
+        <span class="n">new_chain</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">new_chain</span></div>
+
+<div class="viewcode-block" id="Chain.load"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates all the data:</span>
+<span class="sd">        - Chain Numbering</span>
+<span class="sd">        - Hydrophobicity matrix</span>
+<span class="sd">        - Molecular weight</span>
+<span class="sd">        - pI</span>
+
+<span class="sd">        All the data is then stored in its respective attributes</span>
+
+<span class="sd">        :return:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">NOT_LOADED</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_numbering</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="o">=</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">LOADED</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="o">=</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">FAILED</span>
+
+            <span class="k">except</span> <span class="n">NumberingException</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="o">=</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">UNNUMBERED</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="o">==</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">LOADED</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hydrophobicity_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_hydrophobicity_matrix</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_molecular_weight</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pI</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_pi</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cdr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_regions</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this should never happen...</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown loading status&quot;</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span></div>
+
+<div class="viewcode-block" id="Chain.determine_chain_type"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.determine_chain_type">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">determine_chain_type</span><span class="p">(</span><span class="n">numbering</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">numbering</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span><span class="p">:</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="n">CHAIN_FLAGS</span><span class="o">.</span><span class="n">HEAVY_CHAIN</span>
+        <span class="k">elif</span> <span class="n">numbering</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;L&#39;</span><span class="p">:</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="n">CHAIN_FLAGS</span><span class="o">.</span><span class="n">LIGHT_CHAIN</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># couldn&#39;t determine chain type</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="n">CHAIN_FLAGS</span><span class="o">.</span><span class="n">UNKNOWN_CHAIN</span>  <span class="c1"># pragma: no cover</span>
+
+        <span class="k">return</span> <span class="n">chain</span></div>
+
+<div class="viewcode-block" id="Chain.ab_numbering"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_numbering">[docs]</a>    <span class="k">def</span> <span class="nf">ab_numbering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">ABYSIS</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return list</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># store the amino positions/numbering in a list -&gt; len(numbering) == len(self._sequence)</span>
+        <span class="n">numbering</span> <span class="o">=</span> <span class="n">get_ab_numbering</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="n">server</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">determine_chain_type</span><span class="p">(</span><span class="n">numbering</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">numbering</span></div>
+
+<div class="viewcode-block" id="Chain.ab_numbering_table"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_numbering_table">[docs]</a>    <span class="k">def</span> <span class="nf">ab_numbering_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_array</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param region:</span>
+<span class="sd">        :param as_array: if True returns numpy.array object, if False returns a pandas.DataFrame</span>
+<span class="sd">        :param replacement: value to replace empty positions</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">region</span> <span class="o">=</span> <span class="n">numbering_table_region</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">)</span>
+
+        <span class="c1"># if the object has not been loaded successfully yet need to try and get the numbering scheme using</span>
+        <span class="c1"># ab_numbering method</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">NOT_LOADED</span><span class="p">,</span>
+                                    <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">FAILED</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_numbering</span><span class="p">()</span>
+
+        <span class="n">whole_sequence_dict</span><span class="p">,</span> <span class="n">whole_sequence</span> <span class="o">=</span> <span class="n">numbering_table_sequences</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                                                        <span class="n">numbering_scheme</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span><span class="p">,</span>
+                                                                        <span class="n">chain</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">)</span>
+
+        <span class="c1"># now that all the prep has been done we can extract the position from each amino acid</span>
+        <span class="c1"># according to the numbering scheme</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">whole_sequence</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">position</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">whole_sequence</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">position</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">numbering</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">position</span><span class="p">)]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># if there is no amino acid in the sequence that corresponds to position i we just replace it by</span>
+                <span class="c1"># the replacement value, which is by default &#39;-&#39;</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">replacement</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_sequence</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="k">if</span> <span class="n">as_array</span><span class="p">:</span>
+            <span class="c1"># return the data as numpy.array -&gt; much faster than creating a pandas.DataFrame</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># return the data as a pandas.DataFrame -&gt; it&#39;s slower but looks nicer and makes it easier to get</span>
+            <span class="c1"># the data of interest</span>
+
+            <span class="n">multi_index</span> <span class="o">=</span> <span class="n">numbering_table_multiindex</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+                                                     <span class="n">whole_sequence_dict</span><span class="o">=</span><span class="n">whole_sequence_dict</span><span class="p">)</span>
+
+            <span class="c1"># create the DataFrame and assign the columns and index names</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">multi_index</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="Chain.ab_hydrophobicity_matrix"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_hydrophobicity_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">ab_hydrophobicity_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hydrophobicity_scores</span><span class="o">=</span><span class="n">HYDROPHOBICITY_FLAGS</span><span class="o">.</span><span class="n">EW</span><span class="p">):</span>
+
+        <span class="c1"># check if all the required parameters are in order</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hydrophobicity_scores</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">hydrophobicity_scores</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_HYDROPHOBITY_SCORES</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Chosen hydrophobicity scores (</span><span class="si">{}</span><span class="s2">) not available. </span><span class="se">\</span>
+<span class="s2">                Available hydrophobicity scores: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">hydrophobicity_scores</span><span class="p">,</span> <span class="s1">&#39; ,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_HYDROPHOBITY_SCORES</span><span class="p">)</span>
+                <span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="o">==</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">NOT_LOADED</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_numbering</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span> <span class="o">==</span> <span class="s1">&#39;NA&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not determine chain type&quot;</span><span class="p">)</span>
+
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;NumberingSchemes&#39;</span><span class="p">,</span>
+                                 <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">])</span>
+        <span class="n">whole_sequence_dict</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="c1"># whole_sequence is a list with all the amino acid positions in the selected numbering scheme</span>
+        <span class="n">whole_sequence</span> <span class="o">=</span> <span class="n">whole_sequence_dict</span>
+
+        <span class="c1"># get the dictionary with the hydrophobicity scores</span>
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span>
+                                 <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;hydrophobicity&#39;</span><span class="p">,</span> <span class="n">hydrophobicity_scores</span> <span class="o">+</span> <span class="s1">&#39;Hydrophobicity&#39;</span><span class="p">])</span>
+        <span class="n">aa_hydrophobicity_scores</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">calculate_hydrophobicity_matrix</span><span class="p">(</span><span class="n">whole_sequence</span><span class="o">=</span><span class="n">whole_sequence</span><span class="p">,</span>
+                                               <span class="n">numbering</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">numbering</span><span class="p">,</span>
+                                               <span class="n">aa_hydrophobicity_scores</span><span class="o">=</span><span class="n">aa_hydrophobicity_scores</span><span class="p">,</span>
+                                               <span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Chain.ab_regions"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_regions">[docs]</a>    <span class="k">def</span> <span class="nf">ab_regions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        method to determine Chain regions (CDR and Framework) of each amino acid in sequence</span>
+
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s1">&#39;cdrs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span> <span class="o">==</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">NOT_LOADED</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_numbering</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span> <span class="o">==</span> <span class="s1">&#39;NA&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot return CDR positions without the antibody numbering information&quot;</span><span class="p">)</span>
+
+            <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;CDR_positions&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">])</span>
+            <span class="n">cdr_positions</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+            <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;Framework_positions&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">])</span>
+            <span class="n">framework_position</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+            <span class="n">cdrs</span> <span class="o">=</span> <span class="n">calculate_cdr</span><span class="p">(</span><span class="n">numbering</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">numbering</span><span class="p">,</span> <span class="n">cdr_positions</span><span class="o">=</span><span class="n">cdr_positions</span><span class="p">,</span>
+                                 <span class="n">framework_positions</span><span class="o">=</span><span class="n">framework_position</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s1">&#39;cdrs&#39;</span><span class="p">,</span> <span class="n">cdrs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;cdrs&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Chain.ab_molecular_weight"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_molecular_weight">[docs]</a>    <span class="k">def</span> <span class="nf">ab_molecular_weight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monoisotopic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">monoisotopic</span><span class="p">:</span>
+            <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span>
+                                     <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MolecularWeight&#39;</span><span class="p">,</span> <span class="s1">&#39;average&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span>
+                                     <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;MolecularWeight&#39;</span><span class="p">,</span> <span class="s1">&#39;monoisotopic&#39;</span><span class="p">])</span>
+        <span class="n">mw_dict</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">calculate_mw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="n">mw_dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Chain.ab_pi"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_pi">[docs]</a>    <span class="k">def</span> <span class="nf">ab_pi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pi_database</span><span class="o">=</span><span class="s1">&#39;Wikipedia&#39;</span><span class="p">):</span>
+
+        <span class="k">assert</span> <span class="n">pi_database</span> <span class="ow">in</span> <span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_PI_VALUES</span><span class="p">,</span> \
+            <span class="s2">&quot;Selected pI database </span><span class="si">{}</span><span class="s2"> not available. &quot;</span> \
+            <span class="s2">&quot;Available databases: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pi_database</span><span class="p">,</span> <span class="s1">&#39; ,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_PI_VALUES</span><span class="p">))</span>
+
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span>
+                                 <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pI&#39;</span><span class="p">,</span> <span class="n">pi_database</span><span class="p">])</span>
+        <span class="n">pi_data</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">calculate_pi</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="n">pi_data</span><span class="o">=</span><span class="n">pi_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Chain.ab_ec"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_ec">[docs]</a>    <span class="k">def</span> <span class="nf">ab_ec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extinction_coefficient_database</span><span class="o">=</span><span class="s1">&#39;Standard&#39;</span><span class="p">,</span> <span class="n">reduced</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">normalise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">reduced</span><span class="p">:</span>
+            <span class="n">extinction_coefficient_database</span> <span class="o">+=</span> <span class="s1">&#39;_reduced&#39;</span>
+
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ExtinctionCoefficient&#39;</span><span class="p">,</span>
+                                                                        <span class="n">extinction_coefficient_database</span><span class="p">])</span>
+
+        <span class="n">ec_data</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">normalise</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">calculate_ec</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="n">ec_data</span><span class="o">=</span><span class="n">ec_data</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_molecular_weight</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">calculate_ec</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="n">ec_data</span><span class="o">=</span><span class="n">ec_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Chain.ab_format"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_format">[docs]</a>    <span class="k">def</span> <span class="nf">ab_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="s2">&quot;sequence&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="s2">&quot;numbering&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">numbering</span><span class="p">,</span> <span class="s2">&quot;chain&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">,</span>
+                <span class="s2">&quot;MW&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mw</span><span class="p">,</span> <span class="s2">&quot;CDR&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cdr</span><span class="p">,</span> <span class="s2">&quot;numbering_scheme&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span><span class="p">,</span> <span class="s2">&quot;pI&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pI</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="Chain.ab_charge"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_charge">[docs]</a>    <span class="k">def</span> <span class="nf">ab_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ph</span><span class="o">=</span><span class="mf">7.4</span><span class="p">,</span> <span class="n">pka_database</span><span class="o">=</span><span class="s1">&#39;Wikipedia&#39;</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to calculate the charges for each amino acid of antibody</span>
+<span class="sd">        :param pka_database:</span>
+<span class="sd">        :param ph:</span>
+<span class="sd">        :param align: if set to True an alignment will be performed,</span>
+<span class="sd">                      if it hasn&#39;t been done already using the ab_numbering method</span>
+
+<span class="sd">        :return: array with amino acid charges</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="n">pka_database</span> <span class="ow">in</span> <span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_PI_VALUES</span><span class="p">,</span> \
+            <span class="s2">&quot;Selected pI database </span><span class="si">{}</span><span class="s2"> not available. &quot;</span> \
+            <span class="s2">&quot;Available databases: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pka_database</span><span class="p">,</span>
+                                             <span class="s1">&#39; ,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_PI_VALUES</span><span class="p">))</span>
+
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span>
+                                 <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pI&#39;</span><span class="p">,</span> <span class="n">pka_database</span><span class="p">])</span>
+        <span class="n">pka_data</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">align</span><span class="p">:</span>
+            <span class="c1"># get the first (and only) row</span>
+            <span class="n">sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_numbering_table</span><span class="p">(</span><span class="n">as_array</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sequence</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">amino_acid_charge</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ph</span><span class="p">,</span> <span class="n">pka_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Chain.ab_total_charge"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.ab_total_charge">[docs]</a>    <span class="k">def</span> <span class="nf">ab_total_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ph</span><span class="o">=</span><span class="mf">7.4</span><span class="p">,</span> <span class="n">pka_database</span><span class="o">=</span><span class="n">PI_FLAGS</span><span class="o">.</span><span class="n">WIKIPEDIA</span><span class="p">):</span>
+
+        <span class="k">assert</span> <span class="n">pka_database</span> <span class="ow">in</span> <span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_PI_VALUES</span><span class="p">,</span> \
+            <span class="s2">&quot;Selected pI database </span><span class="si">{}</span><span class="s2"> not available. &quot;</span> \
+            <span class="s2">&quot;Available databases: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pka_database</span><span class="p">,</span>
+                                             <span class="s1">&#39; ,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">AVAILABLE_PI_VALUES</span><span class="p">))</span>
+
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span>
+                                 <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pI&#39;</span><span class="p">,</span> <span class="n">pka_database</span><span class="p">])</span>
+        <span class="n">pka_data</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">calculate_charge</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">,</span> <span class="n">ph</span><span class="o">=</span><span class="n">ph</span><span class="p">,</span> <span class="n">pka_values</span><span class="o">=</span><span class="n">pka_data</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">chain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+<div class="viewcode-block" id="Chain.set_name"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.Chain.set_name">[docs]</a>    <span class="k">def</span> <span class="nf">set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">aligned_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_sequence</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ab_numbering_table</span><span class="p">(</span><span class="n">as_array</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aligned_sequence</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">numbering_scheme</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_numbering_scheme</span>
+
+    <span class="k">def</span> <span class="nf">_string_summary_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;abpytools.Chain Name: </span><span class="si">{}</span><span class="s2">, Chain type: </span><span class="si">{}</span><span class="s2">, Sequence length: </span><span class="si">{}</span><span class="s2">, Status: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequence</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_loading_status</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> at 0x</span><span class="si">%02x</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_string_summary_basic</span><span class="p">(),</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>  <span class="c1"># pragma: no cover</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_ab_numbering"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.get_ab_numbering">[docs]</a><span class="k">def</span> <span class="nf">get_ab_numbering</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">server</span><span class="p">,</span> <span class="n">numbering_scheme</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># check which server to use to get numbering</span>
+    <span class="k">if</span> <span class="n">server</span> <span class="o">==</span> <span class="n">OPTION_FLAGS</span><span class="o">.</span><span class="n">ABYSIS</span><span class="p">:</span>
+        <span class="c1"># find out which numbering scheme to use</span>
+        <span class="k">if</span> <span class="n">numbering_scheme</span> <span class="o">==</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">CHOTHIA</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="s1">&#39;-c&#39;</span>
+        <span class="k">elif</span> <span class="n">numbering_scheme</span> <span class="ow">in</span> <span class="p">(</span><span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">CHOTHIA_EXT</span><span class="p">,</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">MARTIN</span><span class="p">):</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="s1">&#39;-a&#39;</span>
+        <span class="k">elif</span> <span class="n">numbering_scheme</span> <span class="o">==</span> <span class="n">NUMBERING_FLAGS</span><span class="o">.</span><span class="n">KABAT</span><span class="p">:</span>
+            <span class="n">scheme</span> <span class="o">=</span> <span class="s1">&#39;-k&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> numbering scheme is unknown.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">numbering_scheme</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()))</span>
+
+        <span class="c1"># prepare the url string to query server</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;http://www.bioinf.org.uk/cgi-bin/abnum/abnum.pl?plain=1&amp;aaseq=</span><span class="si">{sequence}</span><span class="s2">&amp;scheme=</span><span class="si">{scheme}</span><span class="s2">&quot;</span>
+        <span class="c1"># use the Download class from utils to get output</span>
+        <span class="n">numbering_table</span> <span class="o">=</span> <span class="n">Download</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">numbering_table</span><span class="o">.</span><span class="n">download</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Check the internet connection.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># check whether the server returned an error</span>
+        <span class="k">if</span> <span class="n">numbering_table</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Warning: Unable to number sequence&#39;</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">numbering_table</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NumberingException</span><span class="p">(</span><span class="s2">&quot;Unable to number sequence&quot;</span><span class="p">)</span>
+
+        <span class="c1"># parse the results</span>
+        <span class="n">parsed_numbering_table</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;[\S| ]+&quot;</span><span class="p">,</span> <span class="n">numbering_table</span><span class="o">.</span><span class="n">html</span><span class="p">)</span>
+
+        <span class="c1"># get the numbering from the parsed table</span>
+        <span class="n">numbering</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">parsed_numbering_table</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;-&#39;</span><span class="p">]</span>
+
+        <span class="c1"># TODO: add more server options</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">numbering</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">numbering</span></div>
+
+
+<div class="viewcode-block" id="calculate_hydrophobicity_matrix"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.calculate_hydrophobicity_matrix">[docs]</a><span class="k">def</span> <span class="nf">calculate_hydrophobicity_matrix</span><span class="p">(</span><span class="n">whole_sequence</span><span class="p">,</span> <span class="n">numbering</span><span class="p">,</span> <span class="n">aa_hydrophobicity_scores</span><span class="p">,</span> <span class="n">sequence</span><span class="p">):</span>
+    <span class="c1"># instantiate numpy array (whole sequence includes all the amino acid positions of the VH/VL, even the ones</span>
+    <span class="c1"># that aren&#39;t occupied -&gt; these will be filled with zeros</span>
+    <span class="c1"># hydrophobicity_matrix = np.zeros(len(whole_sequence))</span>
+    <span class="c1">#</span>
+    <span class="c1"># # iterate through each position</span>
+    <span class="c1"># for i, position in enumerate(whole_sequence):</span>
+    <span class="c1">#</span>
+    <span class="c1">#     if position in numbering:</span>
+    <span class="c1">#         position_in_data = numbering.index(position)</span>
+    <span class="c1">#         hydrophobicity_matrix[i] = aa_hydrophobicity_scores[sequence[position_in_data]]</span>
+    <span class="c1">#</span>
+    <span class="c1"># return hydrophobicity_matrix</span>
+    <span class="c1"># same thing as above but in a comprehension list</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">aa_hydrophobicity_scores</span><span class="p">[</span><span class="n">sequence</span><span class="p">[</span><span class="n">numbering</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="p">)]]</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">numbering</span>
+                     <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">whole_sequence</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="calculate_mw"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.calculate_mw">[docs]</a><span class="k">def</span> <span class="nf">calculate_mw</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">mw_data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mw_data</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">mw_data</span><span class="p">[</span><span class="s1">&#39;water&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="calculate_ec"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.calculate_ec">[docs]</a><span class="k">def</span> <span class="nf">calculate_ec</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">ec_data</span><span class="p">):</span>
+    <span class="c1"># ϵ280 = nW x 5,500 + nY x 1,490 + nC x 125</span>
+    <span class="n">n_W</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+    <span class="n">n_Y</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)</span>
+    <span class="n">n_C</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">n_W</span> <span class="o">*</span> <span class="n">ec_data</span><span class="p">[</span><span class="s1">&#39;W&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">n_Y</span> <span class="o">*</span> <span class="n">ec_data</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">n_C</span> <span class="o">*</span> <span class="n">ec_data</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="calculate_pi"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.calculate_pi">[docs]</a><span class="k">def</span> <span class="nf">calculate_pi</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">pi_data</span><span class="p">):</span>
+    <span class="c1"># algorithm implemented from http://isoelectric.ovh.org/files/practise-isoelectric-point.html</span>
+
+    <span class="c1"># count number of D, E, C, Y, H, K, R</span>
+    <span class="n">d_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">e_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
+    <span class="n">c_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+    <span class="n">y_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)</span>
+    <span class="n">h_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)</span>
+    <span class="n">k_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
+    <span class="n">r_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">)</span>
+
+    <span class="c1"># initiate value of pH and nq (any number above 0)</span>
+    <span class="n">nq</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">ph</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># define precision</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+    <span class="k">while</span> <span class="n">nq</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">ph</span> <span class="o">&gt;=</span> <span class="mi">14</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not calculate pI (pH reached above 14)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># qn1, qn2, qn3, qn4, qn5, qp1, qp2, qp3, qp4</span>
+        <span class="n">qn1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;COOH&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># C-terminus charge</span>
+        <span class="n">qn2</span> <span class="o">=</span> <span class="o">-</span> <span class="n">d_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># D charge</span>
+        <span class="n">qn3</span> <span class="o">=</span> <span class="o">-</span> <span class="n">e_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># E charge</span>
+        <span class="n">qn4</span> <span class="o">=</span> <span class="o">-</span> <span class="n">c_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># C charge</span>
+        <span class="n">qn5</span> <span class="o">=</span> <span class="o">-</span> <span class="n">y_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># Y charge</span>
+        <span class="n">qp1</span> <span class="o">=</span> <span class="n">h_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]))</span>  <span class="c1"># H charge</span>
+        <span class="n">qp2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;NH2&#39;</span><span class="p">]))</span>  <span class="c1"># N-terminus charge</span>
+        <span class="n">qp3</span> <span class="o">=</span> <span class="n">k_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;K&#39;</span><span class="p">]))</span>  <span class="c1"># K charge</span>
+        <span class="n">qp4</span> <span class="o">=</span> <span class="n">r_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pi_data</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]))</span>  <span class="c1"># R charge</span>
+
+        <span class="n">nq</span> <span class="o">=</span> <span class="n">qn1</span> <span class="o">+</span> <span class="n">qn2</span> <span class="o">+</span> <span class="n">qn3</span> <span class="o">+</span> <span class="n">qn4</span> <span class="o">+</span> <span class="n">qn5</span> <span class="o">+</span> <span class="n">qp1</span> <span class="o">+</span> <span class="n">qp2</span> <span class="o">+</span> <span class="n">qp3</span> <span class="o">+</span> <span class="n">qp4</span>
+
+        <span class="c1"># update pH</span>
+        <span class="n">ph</span> <span class="o">+=</span> <span class="n">delta</span>
+
+    <span class="k">return</span> <span class="n">ph</span></div>
+
+
+<div class="viewcode-block" id="calculate_cdr"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.calculate_cdr">[docs]</a><span class="k">def</span> <span class="nf">calculate_cdr</span><span class="p">(</span><span class="n">numbering</span><span class="p">,</span> <span class="n">cdr_positions</span><span class="p">,</span> <span class="n">framework_positions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    :param numbering:</span>
+<span class="sd">    :param cdr_positions:</span>
+<span class="sd">    :param framework_positions:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">cdrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;CDR1&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+            <span class="s1">&#39;CDR2&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+            <span class="s1">&#39;CDR3&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">()}</span>
+
+    <span class="n">frameworks</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;FR1&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+                  <span class="s1">&#39;FR2&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+                  <span class="s1">&#39;FR3&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(),</span>
+                  <span class="s1">&#39;FR4&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">()}</span>
+
+    <span class="k">for</span> <span class="n">cdr</span> <span class="ow">in</span> <span class="n">cdrs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+        <span class="n">cdr_positions_i</span> <span class="o">=</span> <span class="n">cdr_positions</span><span class="p">[</span><span class="n">cdr</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">position</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">numbering</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">position</span> <span class="ow">in</span> <span class="n">cdr_positions_i</span><span class="p">:</span>
+                <span class="n">cdrs</span><span class="p">[</span><span class="n">cdr</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">framework</span> <span class="ow">in</span> <span class="n">frameworks</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+        <span class="n">framework_position_i</span> <span class="o">=</span> <span class="n">framework_positions</span><span class="p">[</span><span class="n">framework</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">position</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">numbering</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">position</span> <span class="ow">in</span> <span class="n">framework_position_i</span><span class="p">:</span>
+                <span class="n">frameworks</span><span class="p">[</span><span class="n">framework</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cdrs</span><span class="p">,</span> <span class="n">frameworks</span></div>
+
+
+<div class="viewcode-block" id="amino_acid_charge"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.amino_acid_charge">[docs]</a><span class="k">def</span> <span class="nf">amino_acid_charge</span><span class="p">(</span><span class="n">amino_acid</span><span class="p">,</span> <span class="n">ph</span><span class="p">,</span> <span class="n">pka_values</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">amino_acid</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pka_values</span><span class="p">[</span><span class="n">amino_acid</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">amino_acid</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pka_values</span><span class="p">[</span><span class="n">amino_acid</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="calculate_charge"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.chain.calculate_charge">[docs]</a><span class="k">def</span> <span class="nf">calculate_charge</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">ph</span><span class="p">,</span> <span class="n">pka_values</span><span class="p">):</span>
+    <span class="c1"># This calculation would make more sense but is slower (~1.5-2x)</span>
+    <span class="c1"># cooh = -1 / (1 + 10 ** (pka_values[&#39;COOH&#39;] - ph))</span>
+    <span class="c1"># nh2 = 1 / (1 + 10 ** (ph - pka_values[&#39;NH2&#39;]))</span>
+    <span class="c1">#</span>
+    <span class="c1"># return sum([amino_acid_charge(x, ph, pka_values) for x in list(sequence)]) + cooh + nh2</span>
+
+    <span class="c1"># Faster implementation</span>
+    <span class="c1"># count number of D, E, C, Y, H, K, R</span>
+    <span class="n">d_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">)</span>
+    <span class="n">e_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
+    <span class="n">c_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+    <span class="n">y_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)</span>
+    <span class="n">h_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)</span>
+    <span class="n">k_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
+    <span class="n">r_count</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">)</span>
+
+    <span class="c1"># qn1, qn2, qn3, qn4, qn5, qp1, qp2, qp3, qp4</span>
+    <span class="n">qn1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;COOH&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># C-terminus charge</span>
+    <span class="n">qn2</span> <span class="o">=</span> <span class="o">-</span> <span class="n">d_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># D charge</span>
+    <span class="n">qn3</span> <span class="o">=</span> <span class="o">-</span> <span class="n">e_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># E charge</span>
+    <span class="n">qn4</span> <span class="o">=</span> <span class="o">-</span> <span class="n">c_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># C charge</span>
+    <span class="n">qn5</span> <span class="o">=</span> <span class="o">-</span> <span class="n">y_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph</span><span class="p">))</span>  <span class="c1"># Y charge</span>
+    <span class="n">qp1</span> <span class="o">=</span> <span class="n">h_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]))</span>  <span class="c1"># H charge</span>
+    <span class="n">qp2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;NH2&#39;</span><span class="p">]))</span>  <span class="c1"># N-terminus charge</span>
+    <span class="n">qp3</span> <span class="o">=</span> <span class="n">k_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;K&#39;</span><span class="p">]))</span>  <span class="c1"># K charge</span>
+    <span class="n">qp4</span> <span class="o">=</span> <span class="n">r_count</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">ph</span> <span class="o">-</span> <span class="n">pka_values</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]))</span>  <span class="c1"># R charge</span>
+
+    <span class="n">nq</span> <span class="o">=</span> <span class="n">qn1</span> <span class="o">+</span> <span class="n">qn2</span> <span class="o">+</span> <span class="n">qn3</span> <span class="o">+</span> <span class="n">qn4</span> <span class="o">+</span> <span class="n">qn5</span> <span class="o">+</span> <span class="n">qp1</span> <span class="o">+</span> <span class="n">qp2</span> <span class="o">+</span> <span class="n">qp3</span> <span class="o">+</span> <span class="n">qp4</span>
+
+    <span class="k">return</span> <span class="n">nq</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">AbPyTools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">AbPyTools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../load_from_disk.html">Save and load data from disk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basic_usage.html">Basic usage</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Gil Hoben.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

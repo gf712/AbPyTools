@@ -1,0 +1,281 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abpytools.core.fab &#8212; AbPyTools  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for abpytools.core.fab</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.chain_collection</span> <span class="k">import</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">ChainCollection</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.chain</span> <span class="k">import</span> <span class="n">calculate_charge</span>
+<span class="kn">from</span> <span class="nn">abpytools.utils</span> <span class="k">import</span> <span class="n">DataLoader</span>
+<span class="kn">from</span> <span class="nn">.helper_functions</span> <span class="k">import</span> <span class="n">germline_identity_pd</span><span class="p">,</span> <span class="n">to_numbering_table</span>
+
+
+<div class="viewcode-block" id="Fab"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab">[docs]</a><span class="k">class</span> <span class="nc">Fab</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heavy_chain</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">light_chain</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            heavy_chain:</span>
+<span class="sd">            light_chain:</span>
+<span class="sd">            load:</span>
+<span class="sd">            name:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># As a convention the order will always be light chain (index 0) and then heavy chain (index 1)</span>
+
+        <span class="c1"># check if it&#39;s an Chain class</span>
+        <span class="k">if</span> <span class="n">heavy_chain</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">light_chain</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;heavy_chain and light_chain must be provided&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">heavy_chain</span><span class="p">,</span> <span class="n">Chain</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heavy_chain</span> <span class="o">=</span> <span class="n">heavy_chain</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;heavy_chain must be a Chain object, but got </span><span class="si">{}</span><span class="s1"> instead&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">heavy_chain</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">light_chain</span><span class="p">,</span> <span class="n">Chain</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_light_chain</span> <span class="o">=</span> <span class="n">light_chain</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;light_chain must be a Chain object, but got </span><span class="si">{}</span><span class="s1"> instead&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">light_chain</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heavy_chain</span><span class="o">.</span><span class="n">chain</span> <span class="o">!=</span> <span class="s1">&#39;heavy&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;heavy_chain is not a heavy chain, it is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_heavy_chain</span><span class="o">.</span><span class="n">chain</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_light_chain</span><span class="o">.</span><span class="n">chain</span> <span class="o">!=</span> <span class="s1">&#39;light&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;light_chain is not a light chain, it is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_light_chain</span><span class="o">.</span><span class="n">chain</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pair_sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sequence</span> <span class="o">+</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sequence</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="k">elif</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s1">&#39;ID1&#39;</span>
+
+        <span class="c1"># keep the name of the heavy and light chains internally to keep everything in the right order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_internal_heavy_name</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_internal_light_name</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+
+<div class="viewcode-block" id="Fab.load"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heavy_chain</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_light_chain</span><span class="o">.</span><span class="n">load</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Fab.molecular_weight"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab.molecular_weight">[docs]</a>    <span class="k">def</span> <span class="nf">molecular_weight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monoisotopic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ab_molecular_weight</span><span class="p">(</span><span class="n">monoisotopic</span><span class="o">=</span><span class="n">monoisotopic</span><span class="p">)</span> <span class="o">+</span>\
+               <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ab_molecular_weight</span><span class="p">(</span><span class="n">monoisotopic</span><span class="o">=</span><span class="n">monoisotopic</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Fab.extinction_coefficient"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab.extinction_coefficient">[docs]</a>    <span class="k">def</span> <span class="nf">extinction_coefficient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reduced</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">normalise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">light_ec</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ab_ec</span><span class="p">(</span><span class="n">reduced</span><span class="o">=</span><span class="n">reduced</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">heavy_ec</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ab_ec</span><span class="p">(</span><span class="n">reduced</span><span class="o">=</span><span class="n">reduced</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">normalise</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">heavy_ec</span> <span class="o">+</span> <span class="n">light_ec</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molecular_weight</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">heavy_ec</span> <span class="o">+</span> <span class="n">light_ec</span></div>
+
+<div class="viewcode-block" id="Fab.hydrophobicity_matrix"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab.hydrophobicity_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">hydrophobicity_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ab_hydrophobicity_matrix</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+                               <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ab_hydrophobicity_matrix</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="Fab.charge"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab.charge">[docs]</a>    <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ab_charge</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ab_charge</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="Fab.total_charge"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab.total_charge">[docs]</a>    <span class="k">def</span> <span class="nf">total_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ph</span><span class="o">=</span><span class="mf">7.4</span><span class="p">,</span> <span class="n">pka_database</span><span class="o">=</span><span class="s1">&#39;Wikipedia&#39;</span><span class="p">):</span>
+
+        <span class="n">available_pi_databases</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;EMBOSS&quot;</span><span class="p">,</span> <span class="s2">&quot;DTASetect&quot;</span><span class="p">,</span> <span class="s2">&quot;Solomon&quot;</span><span class="p">,</span> <span class="s2">&quot;Sillero&quot;</span><span class="p">,</span> <span class="s2">&quot;Rodwell&quot;</span><span class="p">,</span> <span class="s2">&quot;Wikipedia&quot;</span><span class="p">,</span> <span class="s2">&quot;Lehninger&quot;</span><span class="p">,</span>
+                                  <span class="s2">&quot;Grimsley&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">pka_database</span> <span class="ow">in</span> <span class="n">available_pi_databases</span><span class="p">,</span> \
+            <span class="s2">&quot;Selected pI database </span><span class="si">{}</span><span class="s2"> not available. Available databases: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pka_database</span><span class="p">,</span>
+                                                                                    <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">available_pi_databases</span><span class="p">))</span>
+
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;AminoAcidProperties&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pI&#39;</span><span class="p">,</span> <span class="n">pka_database</span><span class="p">])</span>
+        <span class="n">pka_data</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">calculate_charge</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="p">,</span> <span class="n">ph</span><span class="o">=</span><span class="n">ph</span><span class="p">,</span> <span class="n">pka_values</span><span class="o">=</span><span class="n">pka_data</span><span class="p">)</span></div>
+
+    <span class="c1"># def load_igblast_query(self, file_path, chain):</span>
+    <span class="c1">#</span>
+    <span class="c1">#     if chain.lower() == &#39;light&#39;:</span>
+    <span class="c1">#         self._light_chains.load_igblast_query(file_path=file_path)</span>
+    <span class="c1">#     elif chain.lower() == &#39;heavy&#39;:</span>
+    <span class="c1">#         self._heavy_chains.load_igblast_query(file_path=file_path)</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         raise ValueError(&#39;Specify if the data being loaded is for the heavy or light chain&#39;)</span>
+
+<div class="viewcode-block" id="Fab.numbering_table"><a class="viewcode-back" href="../../../source/abpytools.core.html#abpytools.core.fab.Fab.numbering_table">[docs]</a>    <span class="k">def</span> <span class="nf">numbering_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_array</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">chain</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="n">to_numbering_table</span><span class="p">(</span><span class="n">as_array</span><span class="o">=</span><span class="n">as_array</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span> <span class="n">chain</span><span class="o">=</span><span class="n">chain</span><span class="p">,</span>
+                                  <span class="n">heavy_chains_numbering_table</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_heavy_chain</span><span class="o">.</span><span class="n">ab_numbering_table</span><span class="p">,</span>
+                                  <span class="n">light_chains_numbering_table</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_light_chain</span><span class="o">.</span><span class="n">ab_numbering_table</span><span class="p">,</span>
+                                  <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">])</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pair_sequence</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">aligned_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">aligned_sequence</span> <span class="o">+</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">aligned_sequence</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">germline_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_germline_identity</span><span class="p">()</span>
+
+    <span class="c1"># @property</span>
+    <span class="c1"># def germline(self):</span>
+    <span class="c1">#</span>
+    <span class="c1">#     heavy_germline = self._heavy_chains.germline</span>
+    <span class="c1">#     light_germline = self._light_chains.germline</span>
+    <span class="c1">#</span>
+    <span class="c1">#     return {name_i: {&quot;Heavy&quot;: heavy_germline[heavy_i],</span>
+    <span class="c1">#                      &quot;Light&quot;: light_germline[light_i]} for name_i, heavy_i,</span>
+    <span class="c1">#                                                            light_i in zip(self._names, self._internal_heavy_name,</span>
+    <span class="c1">#                                                                           self._internal_light_name)}</span>
+
+    <span class="k">def</span> <span class="nf">_string_summary_basic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;abpytools.Fab Name: </span><span class="si">{}</span><span class="s2"> Sequence length: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> at 0x</span><span class="si">%02x</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_string_summary_basic</span><span class="p">(),</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># get light chain</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_light_chain</span>
+        <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heavy_chain</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can only slice object with either 0 (light chain) or 1 (heavy chain)&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_germline_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># empty dictionaries return false</span>
+        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">germline_identity</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># this means there is no information about the germline,</span>
+            <span class="c1"># by default it will run a web query</span>
+            <span class="c1"># this is a very lazy fix to to do a web query using a Chain object...</span>
+            <span class="n">ChainCollection</span><span class="p">(</span><span class="n">antibody_objects</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span><span class="o">.</span><span class="n">igblast_server_query</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">germline_identity</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">ChainCollection</span><span class="p">(</span><span class="n">antibody_objects</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">igblast_server_query</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">germline_identity_pd</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">_internal_heavy_name</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">germline_identity</span><span class="p">},</span>
+                                    <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_internal_light_name</span><span class="p">:</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">germline_identity</span><span class="p">},</span>
+                                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_internal_heavy_name</span><span class="p">],</span>
+                                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_internal_light_name</span><span class="p">],</span>
+                                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">])</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">AbPyTools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">AbPyTools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../load_from_disk.html">Save and load data from disk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basic_usage.html">Basic usage</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Gil Hoben.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

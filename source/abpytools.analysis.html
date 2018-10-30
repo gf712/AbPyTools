@@ -1,0 +1,370 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abpytools.analysis package &#8212; AbPyTools  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="abpytools-analysis-package">
+<h1>abpytools.analysis package<a class="headerlink" href="#abpytools-analysis-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-abpytools.analysis.amino_acid_freq">
+<span id="abpytools-analysis-amino-acid-freq-module"></span><h2>abpytools.analysis.amino_acid_freq module<a class="headerlink" href="#module-abpytools.analysis.amino_acid_freq" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="abpytools.analysis.amino_acid_freq.AminoAcidFreq">
+<em class="property">class </em><code class="descclassname">abpytools.analysis.amino_acid_freq.</code><code class="descname">AminoAcidFreq</code><span class="sig-paren">(</span><em>antibody_objects=None</em>, <em>path=None</em>, <em>region='CDR3'</em>, <em>load=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/amino_acid_freq.html#AminoAcidFreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.amino_acid_freq.AminoAcidFreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="abpytools.features.html#abpytools.features.regions.ChainDomains" title="abpytools.features.regions.ChainDomains"><code class="xref py py-class docutils literal notranslate"><span class="pre">abpytools.features.regions.ChainDomains</span></code></a></p>
+<dl class="method">
+<dt id="abpytools.analysis.amino_acid_freq.AminoAcidFreq.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>sort_by='name'</em>, <em>normalize=True</em>, <em>display_count=True</em>, <em>plot_path='./'</em>, <em>plot_name='AminoAcidFrequency.png'</em>, <em>notebook_plot=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/amino_acid_freq.html#AminoAcidFreq.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.amino_acid_freq.AminoAcidFreq.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.analysis.amino_acid_freq.AminoAcidFreq.plot_helper">
+<code class="descname">plot_helper</code><span class="sig-paren">(</span><em>ax</em>, <em>colors</em>, <em>title</em>, <em>keys</em>, <em>position</em>, <em>data</em>, <em>previous</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/amino_acid_freq.html#AminoAcidFreq.plot_helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.amino_acid_freq.AminoAcidFreq.plot_helper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abpytools.analysis.analysis_helper_functions">
+<span id="abpytools-analysis-analysis-helper-functions-module"></span><h2>abpytools.analysis.analysis_helper_functions module<a class="headerlink" href="#module-abpytools.analysis.analysis_helper_functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="abpytools.analysis.analysis_helper_functions.calculate_scores">
+<code class="descclassname">abpytools.analysis.analysis_helper_functions.</code><code class="descname">calculate_scores</code><span class="sig-paren">(</span><em>matrix</em>, <em>seq_1</em>, <em>seq_2</em>, <em>substitution_matrix</em>, <em>gap_penalty</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/analysis_helper_functions.html#calculate_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.analysis_helper_functions.calculate_scores" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.analysis_helper_functions.init_score_matrix">
+<code class="descclassname">abpytools.analysis.analysis_helper_functions.</code><code class="descname">init_score_matrix</code><span class="sig-paren">(</span><em>seq_1</em>, <em>seq_2</em>, <em>indel</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/analysis_helper_functions.html#init_score_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.analysis_helper_functions.init_score_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li>score matrix initialisation with two sequences</li>
+<li>pure python, i.e. no numpy</li>
+</ul>
+<dl class="docutils">
+<dt>Example init_score_matrix(‘SEND’, ‘AND’, -1):</dt>
+<dd><dl class="first last docutils">
+<dt>[[0, -1, -2],</dt>
+<dd>[-1, 0, 0],
+[-2, 0, 0],
+[-3, 0, 0]]</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.analysis_helper_functions.load_alignment_algorithm">
+<code class="descclassname">abpytools.analysis.analysis_helper_functions.</code><code class="descname">load_alignment_algorithm</code><span class="sig-paren">(</span><em>algorithm</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/analysis_helper_functions.html#load_alignment_algorithm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.analysis_helper_functions.load_alignment_algorithm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.analysis_helper_functions.load_substitution_matrix">
+<code class="descclassname">abpytools.analysis.analysis_helper_functions.</code><code class="descname">load_substitution_matrix</code><span class="sig-paren">(</span><em>substitution_matrix</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/analysis_helper_functions.html#load_substitution_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.analysis_helper_functions.load_substitution_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.analysis_helper_functions.needleman_wunsch">
+<code class="descclassname">abpytools.analysis.analysis_helper_functions.</code><code class="descname">needleman_wunsch</code><span class="sig-paren">(</span><em>seq_1</em>, <em>seq_2</em>, <em>substitution_matrix</em>, <em>indel=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/analysis_helper_functions.html#needleman_wunsch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.analysis_helper_functions.needleman_wunsch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.analysis_helper_functions.switch_interactive_mode">
+<code class="descclassname">abpytools.analysis.analysis_helper_functions.</code><code class="descname">switch_interactive_mode</code><span class="sig-paren">(</span><em>save=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/analysis_helper_functions.html#switch_interactive_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.analysis_helper_functions.switch_interactive_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.analysis_helper_functions.traceback">
+<code class="descclassname">abpytools.analysis.analysis_helper_functions.</code><code class="descname">traceback</code><span class="sig-paren">(</span><em>traceback_matrix</em>, <em>seq_1</em>, <em>seq_2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/analysis_helper_functions.html#traceback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.analysis_helper_functions.traceback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-abpytools.analysis.cdr_length">
+<span id="abpytools-analysis-cdr-length-module"></span><h2>abpytools.analysis.cdr_length module<a class="headerlink" href="#module-abpytools.analysis.cdr_length" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="abpytools.analysis.cdr_length.CDRLength">
+<em class="property">class </em><code class="descclassname">abpytools.analysis.cdr_length.</code><code class="descname">CDRLength</code><span class="sig-paren">(</span><em>path=None</em>, <em>antibody_objects=None</em>, <em>verbose=True</em>, <em>show_progressbar=True</em>, <em>n_threads=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/cdr_length.html#CDRLength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.cdr_length.CDRLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="abpytools.features.html#abpytools.features.regions.ChainDomains" title="abpytools.features.regions.ChainDomains"><code class="xref py py-class docutils literal notranslate"><span class="pre">abpytools.features.regions.ChainDomains</span></code></a></p>
+<dl class="method">
+<dt id="abpytools.analysis.cdr_length.CDRLength.plot_cdr">
+<code class="descname">plot_cdr</code><span class="sig-paren">(</span><em>only_cdr3=True</em>, <em>save=False</em>, <em>plot_path='./'</em>, <em>plot_name='CDR_length'</em>, <em>plot_title=None</em>, <em>hist=True</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/cdr_length.html#CDRLength.plot_cdr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.cdr_length.CDRLength.plot_cdr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="abpytools-analysis-cluster-module">
+<h2>abpytools.analysis.cluster module<a class="headerlink" href="#abpytools-analysis-cluster-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-abpytools.analysis.distance">
+<span id="abpytools-analysis-distance-module"></span><h2>abpytools.analysis.distance module<a class="headerlink" href="#module-abpytools.analysis.distance" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="abpytools.analysis.distance.DistancePlot">
+<em class="property">class </em><code class="descclassname">abpytools.analysis.distance.</code><code class="descname">DistancePlot</code><span class="sig-paren">(</span><em>antibody_objects=None</em>, <em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance.html#DistancePlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance.DistancePlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="abpytools.core.html#abpytools.core.chain_collection.ChainCollection" title="abpytools.core.chain_collection.ChainCollection"><code class="xref py py-class docutils literal notranslate"><span class="pre">abpytools.core.chain_collection.ChainCollection</span></code></a></p>
+<dl class="method">
+<dt id="abpytools.analysis.distance.DistancePlot.plot_dendrogram">
+<code class="descname">plot_dendrogram</code><span class="sig-paren">(</span><em>feature='chou'</em>, <em>distance_metric='cosine_distance'</em>, <em>save=False</em>, <em>ax=None</em>, <em>labels=None</em>, <em>multiprocessing=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance.html#DistancePlot.plot_dendrogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance.DistancePlot.plot_dendrogram" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.analysis.distance.DistancePlot.plot_heatmap">
+<code class="descname">plot_heatmap</code><span class="sig-paren">(</span><em>feature='chou'</em>, <em>distance_metric='cosine_distance'</em>, <em>save=False</em>, <em>ax=None</em>, <em>labels=None</em>, <em>multiprocessing=False</em>, <em>file_name='./heatmap.png'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance.html#DistancePlot.plot_heatmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance.DistancePlot.plot_heatmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abpytools.analysis.distance_metrics">
+<span id="abpytools-analysis-distance-metrics-module"></span><h2>abpytools.analysis.distance_metrics module<a class="headerlink" href="#module-abpytools.analysis.distance_metrics" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics.cosine_distance">
+<code class="descclassname">abpytools.analysis.distance_metrics.</code><code class="descname">cosine_distance</code><span class="sig-paren">(</span><em>u</em>, <em>v</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance_metrics.html#cosine_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance_metrics.cosine_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the cosine distance between vectors u and v
+:param u:
+:param v:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics.cosine_similarity">
+<code class="descclassname">abpytools.analysis.distance_metrics.</code><code class="descname">cosine_similarity</code><span class="sig-paren">(</span><em>u</em>, <em>v</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance_metrics.html#cosine_similarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance_metrics.cosine_similarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the cosine similarity between vectors u and v
+:param u:
+:param v:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics.euclidean_distance">
+<code class="descclassname">abpytools.analysis.distance_metrics.</code><code class="descname">euclidean_distance</code><span class="sig-paren">(</span><em>u</em>, <em>v</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance_metrics.html#euclidean_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance_metrics.euclidean_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the euclidean distance
+:param u:
+:param v:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics.hamming_distance">
+<code class="descclassname">abpytools.analysis.distance_metrics.</code><code class="descname">hamming_distance</code><span class="sig-paren">(</span><em>seq1</em>, <em>seq2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance_metrics.html#hamming_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance_metrics.hamming_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the hamming distance between two sequences
+:param seq1:
+:param seq2:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics.levenshtein_distance">
+<code class="descclassname">abpytools.analysis.distance_metrics.</code><code class="descname">levenshtein_distance</code><span class="sig-paren">(</span><em>seq1</em>, <em>seq2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance_metrics.html#levenshtein_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance_metrics.levenshtein_distance" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>seq1</strong> – </li>
+<li><strong>seq2</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics.manhattan_distance">
+<code class="descclassname">abpytools.analysis.distance_metrics.</code><code class="descname">manhattan_distance</code><span class="sig-paren">(</span><em>u</em>, <em>v</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance_metrics.html#manhattan_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance_metrics.manhattan_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the Manhattan distance
+:param u:
+:param v:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics.norm">
+<code class="descclassname">abpytools.analysis.distance_metrics.</code><code class="descname">norm</code><span class="sig-paren">(</span><em>u</em>, <em>v</em>, <em>degree=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/distance_metrics.html#norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.distance_metrics.norm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-abpytools.analysis.distance_metrics_">
+<span id="id1"></span><h2>abpytools.analysis.distance_metrics_ module<a class="headerlink" href="#module-abpytools.analysis.distance_metrics_" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics_.cosine_distance_">
+<code class="descclassname">abpytools.analysis.distance_metrics_.</code><code class="descname">cosine_distance_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.analysis.distance_metrics_.cosine_distance_" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>u: 
+v:</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics_.hamming_distance_">
+<code class="descclassname">abpytools.analysis.distance_metrics_.</code><code class="descname">hamming_distance_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.analysis.distance_metrics_.hamming_distance_" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>seq1: 
+seq2:</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="abpytools.analysis.distance_metrics_.levenshtein_distance_">
+<code class="descclassname">abpytools.analysis.distance_metrics_.</code><code class="descname">levenshtein_distance_</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.analysis.distance_metrics_.levenshtein_distance_" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Args:</dt>
+<dd>seq1: 
+seq2:</dd>
+</dl>
+<p>Returns:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-abpytools.analysis.sequence_alignment">
+<span id="abpytools-analysis-sequence-alignment-module"></span><h2>abpytools.analysis.sequence_alignment module<a class="headerlink" href="#module-abpytools.analysis.sequence_alignment" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="abpytools.analysis.sequence_alignment.SequenceAlignment">
+<em class="property">class </em><code class="descclassname">abpytools.analysis.sequence_alignment.</code><code class="descname">SequenceAlignment</code><span class="sig-paren">(</span><em>target</em>, <em>collection</em>, <em>algorithm</em>, <em>substitution_matrix</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/sequence_alignment.html#SequenceAlignment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.sequence_alignment.SequenceAlignment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Sequence alignment with two chain objects</p>
+<dl class="method">
+<dt id="abpytools.analysis.sequence_alignment.SequenceAlignment.align_sequences">
+<code class="descname">align_sequences</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/sequence_alignment.html#SequenceAlignment.align_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.sequence_alignment.SequenceAlignment.align_sequences" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.analysis.sequence_alignment.SequenceAlignment.aligned_sequences">
+<code class="descname">aligned_sequences</code><a class="headerlink" href="#abpytools.analysis.sequence_alignment.SequenceAlignment.aligned_sequences" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.analysis.sequence_alignment.SequenceAlignment.print_aligned_sequences">
+<code class="descname">print_aligned_sequences</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/abpytools/analysis/sequence_alignment.html#SequenceAlignment.print_aligned_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abpytools.analysis.sequence_alignment.SequenceAlignment.print_aligned_sequences" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.analysis.sequence_alignment.SequenceAlignment.score">
+<code class="descname">score</code><a class="headerlink" href="#abpytools.analysis.sequence_alignment.SequenceAlignment.score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.analysis.sequence_alignment.SequenceAlignment.target_sequence">
+<code class="descname">target_sequence</code><a class="headerlink" href="#abpytools.analysis.sequence_alignment.SequenceAlignment.target_sequence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-abpytools.analysis">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-abpytools.analysis" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">AbPyTools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../README.html">AbPyTools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../load_from_disk.html">Save and load data from disk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basic_usage.html">Basic usage</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Gil Hoben.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/source/abpytools.analysis.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

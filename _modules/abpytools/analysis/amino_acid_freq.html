@@ -1,0 +1,316 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>abpytools.analysis.amino_acid_freq &#8212; AbPyTools  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for abpytools.analysis.amino_acid_freq</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">abpytools.features.regions</span> <span class="k">import</span> <span class="n">ChainDomains</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">abpytools.utils.data_loader</span> <span class="k">import</span> <span class="n">DataLoader</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">abpytools.utils</span> <span class="k">import</span> <span class="n">PythonConfig</span>
+
+<span class="n">amino_acid_index</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;R&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;D&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="s2">&quot;Q&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                    <span class="s2">&quot;K&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                    <span class="s2">&quot;S&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                    <span class="s2">&quot;T&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                    <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                    <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+                    <span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+                    <span class="s2">&quot;V&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+                    <span class="s2">&quot;G&quot;</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+                    <span class="s2">&quot;I&quot;</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+                    <span class="s2">&quot;L&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                    <span class="s2">&quot;F&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+                    <span class="s2">&quot;P&quot;</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span>
+                    <span class="s2">&quot;W&quot;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
+                    <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="mi">19</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="AminoAcidFreq"><a class="viewcode-back" href="../../../source/abpytools.analysis.html#abpytools.analysis.amino_acid_freq.AminoAcidFreq">[docs]</a><span class="k">class</span> <span class="nc">AminoAcidFreq</span><span class="p">(</span><span class="n">ChainDomains</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antibody_objects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s1">&#39;CDR3&#39;</span><span class="p">,</span> <span class="n">load</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AminoAcidFreq</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">antibody_objects</span><span class="o">=</span><span class="n">antibody_objects</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">load</span><span class="o">=</span><span class="n">load</span><span class="p">)</span>
+
+        <span class="n">regions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="s1">&#39;CDRs&#39;</span><span class="p">,</span> <span class="s1">&#39;FRs&#39;</span><span class="p">,</span> <span class="s1">&#39;FR1&#39;</span><span class="p">,</span> <span class="s1">&#39;FR2&#39;</span><span class="p">,</span> <span class="s1">&#39;FR3&#39;</span><span class="p">,</span> <span class="s1">&#39;FR4&#39;</span><span class="p">,</span> <span class="s1">&#39;CDR1&#39;</span><span class="p">,</span> <span class="s1">&#39;CDR2&#39;</span><span class="p">,</span> <span class="s1">&#39;CDR3&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+            <span class="c1"># get the sequence for the specified region</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">=</span> <span class="n">region</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;CDR&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sequences</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cdr_sequences</span><span class="p">()[</span><span class="n">name</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>
+                <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">data_type</span><span class="o">=</span><span class="s1">&#39;CDR_positions&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;chothia&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chain</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_numbering</span> <span class="o">=</span> <span class="n">data_loader</span><span class="o">.</span><span class="n">get_data</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">]</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;FR&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sequences</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">framework_sequences</span><span class="p">()[</span><span class="n">name</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>
+
+            <span class="c1"># TODO: implement &#39;all&#39;</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This is not the code you&#39;re looking for.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Parameter region must be either: </span><span class="si">{}</span><span class="s1">. Not </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39; ,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">regions</span><span class="p">),</span> <span class="n">region</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequences</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">20</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_count</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_count</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_count</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">20</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_count</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_count</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_count</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_amino_acid_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">normalize</span><span class="p">):</span>
+
+        <span class="c1"># if the sum of self._aa_count is zero then the count has not been performed at this point</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_count</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">position</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sequences</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))):</span>
+
+                <span class="n">position_sequence</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequences</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">position</span><span class="p">]</span>
+                <span class="n">count_i</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">position_sequence</span><span class="p">)</span>
+                <span class="n">total_i</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">position_sequence</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">amino_acid_i</span> <span class="ow">in</span> <span class="n">count_i</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_aa_count</span><span class="p">[</span><span class="n">amino_acid_index</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">],</span> <span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="n">count_i</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">]</span>
+
+                    <span class="c1"># _aa_hyd_freq: row1 -&gt; hydrophilic</span>
+                    <span class="c1">#               row2 -&gt; moderate</span>
+                    <span class="c1">#               row3 -&gt; hydrophobic</span>
+                    <span class="k">if</span> <span class="n">amino_acid_i</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_count</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count_i</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">amino_acid_i</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_count</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">position</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count_i</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_count</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">position</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count_i</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">]</span>
+
+                    <span class="c1"># _aa_chg_freq: row1 -&gt; negative</span>
+                    <span class="c1">#               row2 -&gt; positive</span>
+                    <span class="c1">#               row3 -&gt; neutral</span>
+                    <span class="k">if</span> <span class="n">amino_acid_i</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_count</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">position</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count_i</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">amino_acid_i</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_count</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">position</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count_i</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_count</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="n">position</span><span class="p">]</span> <span class="o">+=</span> <span class="n">count_i</span><span class="p">[</span><span class="n">amino_acid_i</span><span class="p">]</span>
+
+                <span class="c1"># normalize values</span>
+                <span class="c1"># doing it even when it is not required comes at a small computational cost</span>
+                <span class="c1"># it would take longer if the user had to recalculate everything to have a count plot and then a</span>
+                <span class="c1"># frequency plot</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aa_freq</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_count</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span> <span class="o">/</span> <span class="n">total_i</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_freq</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_count</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span> <span class="o">/</span> <span class="n">total_i</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_freq</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_count</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span> <span class="o">/</span> <span class="n">total_i</span>
+
+        <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_freq</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_chg_count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aa_hyd_count</span>
+
+<div class="viewcode-block" id="AminoAcidFreq.plot"><a class="viewcode-back" href="../../../source/abpytools.analysis.html#abpytools.analysis.amino_acid_freq.AminoAcidFreq.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">display_count</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot_path</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span>
+             <span class="n">plot_name</span><span class="o">=</span><span class="s1">&#39;AminoAcidFrequency.png&#39;</span><span class="p">,</span> <span class="n">notebook_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+        <span class="n">ipython_config</span> <span class="o">=</span> <span class="n">PythonConfig</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ipython_config</span><span class="o">.</span><span class="n">matplotlib_interactive</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">and</span> <span class="n">ipython_config</span><span class="o">.</span><span class="n">ipython_info</span> <span class="o">==</span> <span class="s1">&#39;notebook&#39;</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ion</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">sort_by</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;hydropathy&#39;</span><span class="p">,</span> <span class="s1">&#39;charge&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Argument for sort_by not valid. Valid arguments are name, hydrophobicity and charge&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get count/ freq matrices</span>
+        <span class="c1"># to avoid writing more code than necessary the count and freq are stored in the same variable</span>
+        <span class="c1"># since they will always be plotted independently</span>
+        <span class="n">aa</span><span class="p">,</span> <span class="n">chg</span><span class="p">,</span> <span class="n">hyd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_amino_acid_freq</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">position</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aa_freq</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">previous</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># 20 distinct colors</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#023fa5&quot;</span><span class="p">,</span> <span class="s2">&quot;#7d87b9&quot;</span><span class="p">,</span> <span class="s2">&quot;#bec1d4&quot;</span><span class="p">,</span> <span class="s2">&quot;#d6bcc0&quot;</span><span class="p">,</span> <span class="s2">&quot;#bb7784&quot;</span><span class="p">,</span> <span class="s2">&quot;#8e063b&quot;</span><span class="p">,</span> <span class="s2">&quot;#4a6fe3&quot;</span><span class="p">,</span> <span class="s2">&quot;#8595e1&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;#b5bbe3&quot;</span><span class="p">,</span> <span class="s2">&quot;#e6afb9&quot;</span><span class="p">,</span> <span class="s2">&quot;#e07b91&quot;</span><span class="p">,</span> <span class="s2">&quot;#d33f6a&quot;</span><span class="p">,</span> <span class="s2">&quot;#11c638&quot;</span><span class="p">,</span> <span class="s2">&quot;#8dd593&quot;</span><span class="p">,</span> <span class="s2">&quot;#c6dec7&quot;</span><span class="p">,</span> <span class="s2">&quot;#ead3c6&quot;</span><span class="p">,</span>
+                      <span class="s2">&quot;#f0b98d&quot;</span><span class="p">,</span> <span class="s2">&quot;#ef9708&quot;</span><span class="p">,</span> <span class="s2">&quot;#0fcfc0&quot;</span><span class="p">,</span> <span class="s2">&quot;#9cded6&quot;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span>
+
+                <span class="c1"># previous, lgd = self.plot_helper(ax=ax, colors=colors,</span>
+                <span class="c1">#                                  title=&#39;amino acids&#39;,</span>
+                <span class="c1">#                                  keys=sorted(amino_acid_index.keys()),</span>
+                <span class="c1">#                                  position=position, data=aa,</span>
+                <span class="c1">#                                  previous=previous)</span>
+
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">+</span> <span class="s1">&#39; amino acids&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">amino_acid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">amino_acid_index</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">aa</span><span class="p">[</span><span class="n">amino_acid_index</span><span class="p">[</span><span class="n">amino_acid</span><span class="p">],</span> <span class="n">position</span><span class="p">],</span> <span class="n">bottom</span><span class="o">=</span><span class="n">previous</span><span class="p">,</span>
+                           <span class="n">label</span><span class="o">=</span><span class="n">amino_acid</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+                    <span class="n">previous</span> <span class="o">+=</span> <span class="n">aa</span><span class="p">[</span><span class="n">amino_acid_index</span><span class="p">[</span><span class="n">amino_acid</span><span class="p">],</span> <span class="n">position</span><span class="p">]</span>
+                <span class="n">lgd</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">amino_acid_index</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+                                <span class="n">prop</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">})</span>
+
+            <span class="k">elif</span> <span class="n">sort_by</span> <span class="o">==</span> <span class="s1">&#39;hydropathy&#39;</span><span class="p">:</span>
+
+                <span class="n">previous</span><span class="p">,</span> <span class="n">lgd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_helper</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">],</span>
+                                                 <span class="n">title</span><span class="o">=</span><span class="n">sort_by</span><span class="p">,</span>
+                                                 <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Hydrophilic&#39;</span><span class="p">,</span> <span class="s1">&#39;Moderate&#39;</span><span class="p">,</span>
+                                                       <span class="s1">&#39;Hydrophobic&#39;</span><span class="p">],</span>
+                                                 <span class="n">position</span><span class="o">=</span><span class="n">position</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">hyd</span><span class="p">,</span>
+                                                 <span class="n">previous</span><span class="o">=</span><span class="n">previous</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">previous</span><span class="p">,</span> <span class="n">lgd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_helper</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">],</span>
+                                                 <span class="n">title</span><span class="o">=</span><span class="s1">&#39;amino acid charge&#39;</span><span class="p">,</span>
+                                                 <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Negative&#39;</span><span class="p">,</span> <span class="s1">&#39;Positive&#39;</span><span class="p">,</span> <span class="s1">&#39;Neutral&#39;</span><span class="p">],</span>
+                                                 <span class="n">position</span><span class="o">=</span><span class="n">position</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">chg</span><span class="p">,</span>
+                                                 <span class="n">previous</span><span class="o">=</span><span class="n">previous</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">display_count</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">position</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">aa</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">position</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">aa</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+                        <span class="n">s</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aa_count</span><span class="p">[:,</span> <span class="n">position</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())),</span>
+                        <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_numbering</span><span class="p">)))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_numbering</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Position&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">aa</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">*</span><span class="mf">1.1</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="mf">0.02</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ipython_config</span><span class="o">.</span><span class="n">ipython_info</span> <span class="o">==</span> <span class="s1">&#39;notebook&#39;</span> <span class="ow">and</span> <span class="n">notebook_plot</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">plot_path</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">),</span> <span class="n">bbox_extra_artists</span><span class="o">=</span><span class="p">(</span><span class="n">lgd</span><span class="p">,),</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AminoAcidFreq.plot_helper"><a class="viewcode-back" href="../../../source/abpytools.analysis.html#abpytools.analysis.amino_acid_freq.AminoAcidFreq.plot_helper">[docs]</a>    <span class="k">def</span> <span class="nf">plot_helper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">previous</span><span class="p">):</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="n">title</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prop_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">keys</span><span class="p">):</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">position</span><span class="p">],</span> <span class="n">bottom</span><span class="o">=</span><span class="n">previous</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">prop_i</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+            <span class="n">previous</span> <span class="o">+=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">position</span><span class="p">]</span>
+        <span class="n">lgd</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+                        <span class="n">prop</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">previous</span><span class="p">,</span> <span class="n">lgd</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">AbPyTools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">AbPyTools</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../load_from_disk.html">Save and load data from disk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basic_usage.html">Basic usage</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Gil Hoben.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
