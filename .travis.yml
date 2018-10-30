@@ -1,35 +1,37 @@
 sudo: false
-
 language: python
+cache: pip
 
-python:
-    - 3.5
-    - 3.6
-
-# Install packages
-install:
-    - sudo apt-get update
-    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    - bash miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - hash -r
-    - conda config --set always_yes yes --set changeps1 no
-    - conda update -q conda
-    # Useful for debugging any issues with conda
-    - conda info -a
-    - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION scipy numpy pip matplotlib pandas
-    - source activate test-environment
-    - pip install coveralls
-    - pip install coverage
-    - python setup.py install
-
-before_script: # configure a headless display to test plot generation
-- "export DISPLAY=:99.0"
-- "sh -e /etc/init.d/xvfb start"
-- sleep 3 # give xvfb some time to start
-
-script:
-    - coverage run --source=abpytools setup.py test
-
-after_success:
-    - coveralls
+jobs:
+  include:
+    - stage: unit tests
+      env:
+        - PYTHON_VERSION=3.6
+        - PYTHON_VERSION=3.7
+      script:
+        - |
+        ./scripts/travis_install.sh
+        ./scripts/prepare_python_test.sh
+        coverage run --source=abpytools setup.py test
+        coveralls
+    - stage: build docs
+      env: PYTHON_VERSION=3.7
+      script: /scripts/travis_install.sh
+      deploy:
+      - provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        keep-history: true
+        on:
+          branch: master
+        local_dir: docs/_build/html/
+    - stage: deploy
+      env: PYTHON_VERSION=3.7
+      script: /scripts/travis_install.sh
+      deploy:
+      - provider: pypi
+        user: gf712
+        password:
+          secure: h/mcmMMuaGLCuy1FY1Hjbl82AqPe62lK35BbJcvq+bJFtp3sE5FFB2k7LibWqhDBdrsmw0MPsnzBysloGMMHoK2S7ExG5bMlBa6Px2zKpHwY+qqoYMYk23qEPn8dVcEronSfQwQxhJmM0vnyE+sQ7NcinXwJZep4Hx+zdVwsXT0aYZoZImVjFv/YjGWK0epqHQoBf1MCy8aKlFbLvE4lgWcYEtqI4PJgIumLs3lmCcBoHirWGmeyG4VO/9CAOkgBTcUi66+PBe/WLCZj/4DqLJa7VbZXisP71F3zWdjyVXE6zXhCjpXxZvkgF0Eb9CkdPz4MTW9D9LkW10uL6BSZwNiXPVo2FU4Wdax6Ldei+qNrwWoDS48C8btJwgQC8a+aXTQR+EInpIiWvdCuFn4iYSqN7RUHgn6xPMHO0jfY16lxI1Ujqemhysr1H1hDBgnq7tqE4cRvPZS35+pqIkNj1D/DBFC64ehi016N/3BhiFHxeWe+gdMLJdYQhCkLEdISiGTAtHalOUHRXPI7StQ5Ms+YUyDK2RWkhDEsMWnl7rdnpJDG5+go2cVfUuomijSSFNzhbxl1RMz+MU8D6gE6cs7uD6jl4mSYlQlpy3PbtsQRdgJkh/iUzdB20C3on6onpxY+eyvnRiQ3Wna8MrqlRncDYKcENufTwFPpKoJ97rw=
+        on:
+          branch: master
