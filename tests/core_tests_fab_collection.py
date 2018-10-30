@@ -1,19 +1,8 @@
 import unittest
 from abpytools import FabCollection, ChainCollection, Fab
-from urllib import request
 import os
 from glob import glob
-
-abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
-
-
-# Helper functions
-def check_connection(URL, timeout=5):
-    try:
-        request.urlopen(url=URL, timeout=timeout)
-        return True
-    except request.URLError:
-        return False
+from . import ABNUM_URL, check_connection
 
 
 class FabCollectionCore(unittest.TestCase):
@@ -180,14 +169,14 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection)
         self.assertEqual(fab_collection._light_chains.names[1], 'LightSeq2')
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection)
         fab_collection.igblast_server_query()
         self.assertAlmostEqual(fab_collection.germline_identity['Heavy', 'Total'].iloc[0], 93.8)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         # check germline assignment
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
@@ -196,7 +185,7 @@ class FabCollectionCore(unittest.TestCase):
         fab_collection.igblast_server_query()
         self.assertEqual(fab_collection.germline['Heavy', 'Assignment']['Fab1'], 'IGHV1-8*01')
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_igblast_query_1(self):
         # check germline assignment score
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
@@ -226,7 +215,7 @@ class FabCollectionCore(unittest.TestCase):
                                        heavy_chains=self.heavy_chain_collection)
         self.assertEqual(len(fab_collection), 2)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_FabCollection_germline_identity(self):
         fab_collection = FabCollection(light_chains=self.light_chain_collection,
                                        heavy_chains=self.heavy_chain_collection,

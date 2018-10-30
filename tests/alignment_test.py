@@ -1,11 +1,6 @@
 import unittest
 from abpytools import ChainCollection, SequenceAlignment
-
-
-def read_sequence_from_file(file):
-    with open(file, 'r') as f:
-        data = f.readlines()[0]
-    return data
+from . import read_sequence_from_file
 
 
 class SequenceAlignmentTests(unittest.TestCase):

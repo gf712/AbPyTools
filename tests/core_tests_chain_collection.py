@@ -1,27 +1,9 @@
 import unittest
 from abpytools import ChainCollection, Chain
-from urllib import request
 import operator
 import os
 from glob import glob
-
-abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
-igblast_url = 'https://www.ncbi.nlm.nih.gov/igblast/'
-
-
-# Helper functions
-def check_connection(URL, timeout=5):
-    try:
-        request.urlopen(url=URL, timeout=timeout)
-        return True
-    except request.URLError:
-        return False
-
-
-def read_sequence(path):
-    with open(path, 'r') as f:
-        data = f.readlines()[1]
-    return data
+from . import read_sequence, check_connection, ABNUM_URL, IGBLAST_URL
 
 
 class ChainCollectionCore(unittest.TestCase):
@@ -76,7 +58,7 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json')
         self.assertEqual(antibody_collection_1.chain, 'heavy')
 
-    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=IGBLAST_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_chain_2(self):
         # checks if the chain type is read properly from a Chain object
         test_chain = Chain(sequence=self.chain_test_sequence)
@@ -117,7 +99,7 @@ class ChainCollectionCore(unittest.TestCase):
         # if this fails it means that abysis has been updated
         self.assertEqual(antibody_collection_1.hydrophobicity_matrix().shape, (1, 158))
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_Hmatrix_calculation(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_fasta_test.fasta',
                                                                numbering_scheme='chothia')
@@ -187,14 +169,14 @@ class ChainCollectionCore(unittest.TestCase):
         self.assertAlmostEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69,
                                delta=10e-9)
 
-    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=IGBLAST_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_igblast_server_query_germline(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
                                                                show_progressbar=False, verbose=False)
         antibody_collection_1.igblast_server_query(show_progressbar=False)
         self.assertEqual(antibody_collection_1.germline[self.antibody_collection_1_name][0], 'IGHV4-34*01')
 
-    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=IGBLAST_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_igblast_server_query_score(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
                                                                show_progressbar=False, verbose=False)
@@ -202,7 +184,7 @@ class ChainCollectionCore(unittest.TestCase):
         self.assertAlmostEqual(antibody_collection_1.germline[self.antibody_collection_1_name][1], 9.11e-69,
                                delta=10e-9)
 
-    @unittest.skipUnless(check_connection(URL=igblast_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=IGBLAST_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_igblast_server_query_identity(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
                                                                show_progressbar=False, verbose=False)
@@ -214,19 +196,19 @@ class ChainCollectionCore(unittest.TestCase):
                                                                show_progressbar=False, verbose=False)
         self.assertIsInstance(antibody_collection_1.get_object('test'), Chain)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_Chain_abysis_parser(self):
         antibody = ChainCollection.load_from_file(path='./tests/Data/chain_collection_fasta_test.fasta',
                                                   numbering_scheme='chothia', verbose=False, show_progressbar=False)
         self.assertEqual(antibody.chain, 'heavy')
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_Chain_abysis_parser_chothia(self):
         antibody = ChainCollection.load_from_file(path='./tests/Data/chain_collection_fasta_test.fasta',
                                                   numbering_scheme='chothia', verbose=False, show_progressbar=False)
         self.assertEqual(antibody.numbering_table(as_array=True)[0][-1], '-')
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_Chain_abysis_parser_kabat(self):
         antibody = ChainCollection.load_from_file(path='./tests/Data/chain_collection_fasta_test.fasta',
                                                   numbering_scheme='kabat', verbose=False, show_progressbar=False)
@@ -315,7 +297,7 @@ class ChainCollectionCore(unittest.TestCase):
         antibody_collection_3 = antibody_collection_1 + antibody_collection_2
         self.assertEqual(antibody_collection_3.n_ab, 2)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_add_exception_1(self):
         # check if adding two ChainCollection objects with one sequence each
         # results in a ChainCollection object with two sequences
@@ -327,7 +309,7 @@ class ChainCollectionCore(unittest.TestCase):
                                                         show_progressbar=False, verbose=False)
         self.assertRaises(ValueError, operator.add, antibody_chothia, antibody_kabat)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_add_exception_2(self):
         antibody_chothia = ChainCollection.load_from_file(path='./tests/Data/chain_collection_fasta_test.fasta',
                                                           numbering_scheme='chothia', show_progressbar=False,
@@ -342,7 +324,7 @@ class ChainCollectionCore(unittest.TestCase):
                                                                show_progressbar=False, verbose=False)
         self.assertRaises(ValueError, operator.add, antibody_collection_1, 0)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_ChainCollection_fasta(self):
         antibody_collection_1 = ChainCollection.load_from_file(path='./tests/Data/chain_collection_1_heavy.json',
                                                                show_progressbar=False, verbose=False)

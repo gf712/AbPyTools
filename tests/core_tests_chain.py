@@ -1,32 +1,15 @@
 import unittest
 from abpytools import Chain, ChainCollection
 from abpytools.core.flags import *
-from urllib import request
 from parameterized import parameterized
-
-abnum_url = 'http://www.bioinf.org.uk/abs/abnum'
-
-
-# Helper functions
-def check_connection(URL, timeout=5):
-    try:
-        request.urlopen(url=URL, timeout=timeout)
-        return True
-    except request.URLError:
-        return False
-
-
-def read_sequence_from_single_sequence_fasta(path):
-    with open(path, 'r') as f:
-        data = f.readlines()[1]
-    return data
+from . import read_sequence, check_connection, ABNUM_URL
 
 
 class ChainCore(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.test_sequence = read_sequence_from_single_sequence_fasta('./tests/Data/chain_collection_fasta_test.fasta')
+        cls.test_sequence = read_sequence('./tests/Data/chain_collection_fasta_test.fasta')
         cls.heavy_chain_collection_object = ChainCollection.load_from_file(
             path='./tests/Data/chain_collection_1_heavy.json',
             show_progressbar=False, verbose=False)
@@ -62,7 +45,7 @@ class ChainCore(unittest.TestCase):
         self.assertRaises(ValueError, self.heavy_chain_object.ab_hydrophobicity_matrix, "TEST_I_DONT_EXIST")
 
     def test_Chain_hydrophobicity_not_loaded(self):
-        test_sequence = read_sequence_from_single_sequence_fasta(
+        test_sequence = read_sequence(
             './tests/Data/chain_collection_fasta_test.fasta')
         obj = Chain(sequence=test_sequence, name="test")
         self.assertAlmostEqual(obj.ab_hydrophobicity_matrix(HYDROPHOBICITY_FLAGS.EW).sum(), -8.01)
@@ -122,23 +105,29 @@ class ChainCore(unittest.TestCase):
         heavy_chain_object[0].set_name("new_name")
         self.assertEqual(heavy_chain_object[0].name, "new_name")
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
-    def test_Chain_unnumbered_sequene(self):
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
+    def test_Chain_unnumbered_sequence(self):
         test_seq = Chain(sequence='TEST')
         test_seq.load()
         self.assertEqual(test_seq.status, 'Unnumbered')
 
     @parameterized.expand([
-        ("chothia_numbering", NUMBERING_FLAGS.CHOTHIA, "H82A"),
-        ("chothia_numbering", NUMBERING_FLAGS.CHOTHIA_EXT, "H80"),
-        ("chothia_numbering", NUMBERING_FLAGS.KABAT, "H82A")
+        (f"{NUMBERING_FLAGS.CHOTHIA}_numbering", NUMBERING_FLAGS.CHOTHIA, "H82A"),
+        (f"{NUMBERING_FLAGS.CHOTHIA_EXT}_numbering", NUMBERING_FLAGS.CHOTHIA_EXT, "H80"),
+        (f"{NUMBERING_FLAGS.KABAT}_numbering", NUMBERING_FLAGS.KABAT, "H82A")
     ])
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
     def test_numbering_scheme_alignment(self, name, input, expected):
         test = Chain(sequence=self.test_sequence, name="test", numbering_scheme=input)
         self.assertEqual(test.ab_numbering()[82], expected)
 
-    @unittest.skipUnless(check_connection(URL=abnum_url), 'No internet connection, skipping test.')
-    def test_numbering_scheme_alignment_unknow_scheme(self):
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
+    def test_numbering_scheme_alignment_unknown_scheme(self):
         test = Chain(sequence=self.test_sequence, name="test", numbering_scheme="MyNumberingScheme123")
         self.assertRaises(ValueError, test.ab_numbering)
+
+    @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
+    def test_load_from_string(self):
+        test = Chain.load_from_string(sequence=self.test_sequence, name="test",
+                                      numbering_scheme=NUMBERING_FLAGS.CHOTHIA)
+        self.assertEqual(test.ab_numbering()[82], "H82A")
