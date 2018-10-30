@@ -3,12 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+Welcome to AbPyTools's documentation!
+=====================================
+
 AbPyTools is a Python 3 package to extract information from heavy and light antibody chain sequences. Using the built-in
 Antibody and ChainCollection it is very easy to manipulate the data and do more specific analysis with custom scripts.
 
-
-Welcome to AbPyTools's documentation!
-=====================================
 
 .. toctree::
    :maxdepth: 2

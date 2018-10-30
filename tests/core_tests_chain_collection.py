@@ -25,7 +25,7 @@ class ChainCollectionCore(unittest.TestCase):
     def test_ChainCollection_input_exception_2(self):
         # when ChainCollection.object_list is instantiated with
         #  a list with non Chain objects it throws an error
-        self.assertRaises(ValueError, ChainCollection, [Chain(), 0])
+        self.assertRaises(ValueError, ChainCollection, [Chain(sequence=""), 0])
 
     def test_ChainCollection_input_exception_3(self):
         # when ChainCollection is instantiated with static method
@@ -41,7 +41,7 @@ class ChainCollectionCore(unittest.TestCase):
     def test_ChainCollection_input_1(self):
         # instantiate ChainCollection with a Chain (empty) object
         # this doesn't make any sense and raises an error
-        self.assertRaises(ValueError, ChainCollection, [Chain()])
+        self.assertRaises(ValueError, ChainCollection, [Chain(sequence="")])
 
     def test_ChainCollection_input_2(self):
         # instantiate ChainCollection with a loaded Chain object
