@@ -41,8 +41,13 @@
 <span id="abpytools-core-formats-chain-pb2-module"></span><h2>abpytools.core.formats.chain_pb2 module<a class="headerlink" href="#module-abpytools.core.formats.chain_pb2" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="abpytools.core.formats.chain_pb2.Chain">
-<em class="property">class </em><code class="descclassname">abpytools.core.formats.chain_pb2.</code><code class="descname">Chain</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.pyext._message.CMessage</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<em class="property">class </em><code class="descclassname">abpytools.core.formats.chain_pb2.</code><code class="descname">Chain</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.ByteSize">
+<code class="descname">ByteSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.ByteSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.Chain.CHAIN_TYPE_FIELD_NUMBER">
 <code class="descname">CHAIN_TYPE_FIELD_NUMBER</code><em class="property"> = 5</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.CHAIN_TYPE_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
@@ -58,19 +63,92 @@
 <code class="descname">CHOTHIA_EXT</code><em class="property"> = 2</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.CHOTHIA_EXT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Clear">
+<code class="descname">Clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.ClearField">
+<code class="descname">ClearField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.ClearField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.Chain.DESCRIPTOR">
-<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.pyext._message.MessageDescriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.descriptor.Descriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.DiscardUnknownFields">
+<code class="descname">DiscardUnknownFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.DiscardUnknownFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.FindInitializationErrors">
+<code class="descname">FindInitializationErrors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.FindInitializationErrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds required fields which are not initialized.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>A list of strings.  Each string is a path to an uninitialized field from
+the top-level message, e.g. “foo.bar[5].baz”.</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.chain_pb2.Chain.FromString">
+<em class="property">static </em><code class="descname">FromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.FromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.HasField">
+<code class="descname">HasField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.HasField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.IsInitialized">
+<code class="descname">IsInitialized</code><span class="sig-paren">(</span><em>errors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.IsInitialized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all required fields of a message are set.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>errors:  A list which, if provided, will be populated with the field</dt>
+<dd>paths of all missing required fields.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>True iff the specified message has all required fields set.</dd>
+</dl>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.Chain.KABAT">
 <code class="descname">KABAT</code><em class="property"> = 0</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.KABAT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.ListFields">
+<code class="descname">ListFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.ListFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.MW">
+<code class="descname">MW</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.MW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “MW” proto field.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.Chain.MW_FIELD_NUMBER">
 <code class="descname">MW_FIELD_NUMBER</code><em class="property"> = 6</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.MW_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.MergeFrom">
+<code class="descname">MergeFrom</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.MergeFrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.MergeFromString">
+<code class="descname">MergeFromString</code><span class="sig-paren">(</span><em>serialized</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.MergeFromString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -105,11 +183,83 @@
 
 <dl class="class">
 <dt id="abpytools.core.formats.chain_pb2.Chain.Region">
-<em class="property">class </em><code class="descname">Region</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.pyext._message.CMessage</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<em class="property">class </em><code class="descname">Region</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.ByteSize">
+<code class="descname">ByteSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.ByteSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.Clear">
+<code class="descname">Clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.Clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.ClearField">
+<code class="descname">ClearField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.ClearField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.Chain.Region.DESCRIPTOR">
-<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.pyext._message.MessageDescriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.descriptor.Descriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.DiscardUnknownFields">
+<code class="descname">DiscardUnknownFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.DiscardUnknownFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.FindInitializationErrors">
+<code class="descname">FindInitializationErrors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.FindInitializationErrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds required fields which are not initialized.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>A list of strings.  Each string is a path to an uninitialized field from
+the top-level message, e.g. “foo.bar[5].baz”.</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.FromString">
+<em class="property">static </em><code class="descname">FromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.FromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.HasField">
+<code class="descname">HasField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.HasField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.IsInitialized">
+<code class="descname">IsInitialized</code><span class="sig-paren">(</span><em>errors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.IsInitialized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all required fields of a message are set.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>errors:  A list which, if provided, will be populated with the field</dt>
+<dd>paths of all missing required fields.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>True iff the specified message has all required fields set.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.ListFields">
+<code class="descname">ListFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.ListFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.MergeFrom">
+<code class="descname">MergeFrom</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.MergeFrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.MergeFromString">
+<code class="descname">MergeFromString</code><span class="sig-paren">(</span><em>serialized</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.MergeFromString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -122,28 +272,244 @@
 <code class="descname">REGION_POSITIONS_FIELD_NUMBER</code><em class="property"> = 2</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.REGION_POSITIONS_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.RegisterExtension">
+<em class="property">static </em><code class="descname">RegisterExtension</code><span class="sig-paren">(</span><em>extension_handle</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.RegisterExtension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.SerializePartialToString">
+<code class="descname">SerializePartialToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.SerializePartialToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.SerializeToString">
+<code class="descname">SerializeToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.SerializeToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.SetInParent">
+<code class="descname">SetInParent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.SetInParent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the _cached_byte_size_dirty bit to true,
+and propagates this to our listener iff this was a state change.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.WhichOneof">
+<code class="descname">WhichOneof</code><span class="sig-paren">(</span><em>oneof_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.WhichOneof" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the currently set field inside a oneof, or None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.region_name">
+<code class="descname">region_name</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.region_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “region_name” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.Region.region_positions">
+<code class="descname">region_positions</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.Region.region_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “region_positions” proto field.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.chain_pb2.Chain.RegisterExtension">
+<em class="property">static </em><code class="descname">RegisterExtension</code><span class="sig-paren">(</span><em>extension_handle</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.RegisterExtension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.Chain.SEQUENCE_FIELD_NUMBER">
 <code class="descname">SEQUENCE_FIELD_NUMBER</code><em class="property"> = 2</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.SEQUENCE_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.SerializePartialToString">
+<code class="descname">SerializePartialToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.SerializePartialToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.SerializeToString">
+<code class="descname">SerializeToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.SerializeToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.SetInParent">
+<code class="descname">SetInParent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.SetInParent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the _cached_byte_size_dirty bit to true,
+and propagates this to our listener iff this was a state change.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.Chain.WhichOneof">
+<code class="descname">WhichOneof</code><span class="sig-paren">(</span><em>oneof_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.WhichOneof" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the currently set field inside a oneof, or None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.chain_type">
+<code class="descname">chain_type</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.chain_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “chain_type” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.name">
+<code class="descname">name</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “name” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.numbering">
+<code class="descname">numbering</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.numbering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “numbering” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.numbering_scheme">
+<code class="descname">numbering_scheme</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.numbering_scheme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “numbering_scheme” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.pI">
+<code class="descname">pI</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.pI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “pI” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.region">
+<code class="descname">region</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.region" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “region” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.Chain.sequence">
+<code class="descname">sequence</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.Chain.sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “sequence” proto field.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="abpytools.core.formats.chain_pb2.ChainCollection">
-<em class="property">class </em><code class="descclassname">abpytools.core.formats.chain_pb2.</code><code class="descname">ChainCollection</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.pyext._message.CMessage</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<em class="property">class </em><code class="descclassname">abpytools.core.formats.chain_pb2.</code><code class="descname">ChainCollection</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.ByteSize">
+<code class="descname">ByteSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.ByteSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.ChainCollection.CHAINS_FIELD_NUMBER">
 <code class="descname">CHAINS_FIELD_NUMBER</code><em class="property"> = 1</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.CHAINS_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.Clear">
+<code class="descname">Clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.Clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.ClearField">
+<code class="descname">ClearField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.ClearField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.chain_pb2.ChainCollection.DESCRIPTOR">
-<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.pyext._message.MessageDescriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.descriptor.Descriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.DiscardUnknownFields">
+<code class="descname">DiscardUnknownFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.DiscardUnknownFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.FindInitializationErrors">
+<code class="descname">FindInitializationErrors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.FindInitializationErrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds required fields which are not initialized.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>A list of strings.  Each string is a path to an uninitialized field from
+the top-level message, e.g. “foo.bar[5].baz”.</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.FromString">
+<em class="property">static </em><code class="descname">FromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.FromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.HasField">
+<code class="descname">HasField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.HasField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.IsInitialized">
+<code class="descname">IsInitialized</code><span class="sig-paren">(</span><em>errors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.IsInitialized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all required fields of a message are set.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>errors:  A list which, if provided, will be populated with the field</dt>
+<dd>paths of all missing required fields.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>True iff the specified message has all required fields set.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.ListFields">
+<code class="descname">ListFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.ListFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.MergeFrom">
+<code class="descname">MergeFrom</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.MergeFrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.MergeFromString">
+<code class="descname">MergeFromString</code><span class="sig-paren">(</span><em>serialized</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.MergeFromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.RegisterExtension">
+<em class="property">static </em><code class="descname">RegisterExtension</code><span class="sig-paren">(</span><em>extension_handle</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.RegisterExtension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.SerializePartialToString">
+<code class="descname">SerializePartialToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.SerializePartialToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.SerializeToString">
+<code class="descname">SerializeToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.SerializeToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.SetInParent">
+<code class="descname">SetInParent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.SetInParent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the _cached_byte_size_dirty bit to true,
+and propagates this to our listener iff this was a state change.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.WhichOneof">
+<code class="descname">WhichOneof</code><span class="sig-paren">(</span><em>oneof_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.WhichOneof" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the currently set field inside a oneof, or None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.chain_pb2.ChainCollection.chains">
+<code class="descname">chains</code><a class="headerlink" href="#abpytools.core.formats.chain_pb2.ChainCollection.chains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “chains” proto field.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -152,11 +518,47 @@
 <span id="abpytools-core-formats-fab-pb2-module"></span><h2>abpytools.core.formats.fab_pb2 module<a class="headerlink" href="#module-abpytools.core.formats.fab_pb2" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="abpytools.core.formats.fab_pb2.Fab">
-<em class="property">class </em><code class="descclassname">abpytools.core.formats.fab_pb2.</code><code class="descname">Fab</code><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.pyext._message.CMessage</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<em class="property">class </em><code class="descclassname">abpytools.core.formats.fab_pb2.</code><code class="descname">Fab</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.ByteSize">
+<code class="descname">ByteSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.ByteSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.Clear">
+<code class="descname">Clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.Clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.ClearField">
+<code class="descname">ClearField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.ClearField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.fab_pb2.Fab.DESCRIPTOR">
-<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.pyext._message.MessageDescriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.descriptor.Descriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.DiscardUnknownFields">
+<code class="descname">DiscardUnknownFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.DiscardUnknownFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.FindInitializationErrors">
+<code class="descname">FindInitializationErrors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.FindInitializationErrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds required fields which are not initialized.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>A list of strings.  Each string is a path to an uninitialized field from
+the top-level message, e.g. “foo.bar[5].baz”.</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.fab_pb2.Fab.FromString">
+<em class="property">static </em><code class="descname">FromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.FromString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -164,9 +566,45 @@
 <code class="descname">HEAVY_CHAIN_FIELD_NUMBER</code><em class="property"> = 3</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.HEAVY_CHAIN_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.HasField">
+<code class="descname">HasField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.HasField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.IsInitialized">
+<code class="descname">IsInitialized</code><span class="sig-paren">(</span><em>errors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.IsInitialized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all required fields of a message are set.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>errors:  A list which, if provided, will be populated with the field</dt>
+<dd>paths of all missing required fields.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>True iff the specified message has all required fields set.</dd>
+</dl>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.fab_pb2.Fab.LIGHT_CHAIN_FIELD_NUMBER">
 <code class="descname">LIGHT_CHAIN_FIELD_NUMBER</code><em class="property"> = 2</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.LIGHT_CHAIN_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.ListFields">
+<code class="descname">ListFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.ListFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.MergeFrom">
+<code class="descname">MergeFrom</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.MergeFrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.MergeFromString">
+<code class="descname">MergeFromString</code><span class="sig-paren">(</span><em>serialized</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.MergeFromString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -174,21 +612,173 @@
 <code class="descname">NAME_FIELD_NUMBER</code><em class="property"> = 1</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.NAME_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.fab_pb2.Fab.RegisterExtension">
+<em class="property">static </em><code class="descname">RegisterExtension</code><span class="sig-paren">(</span><em>extension_handle</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.RegisterExtension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.SerializePartialToString">
+<code class="descname">SerializePartialToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.SerializePartialToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.SerializeToString">
+<code class="descname">SerializeToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.SerializeToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.SetInParent">
+<code class="descname">SetInParent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.SetInParent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the _cached_byte_size_dirty bit to true,
+and propagates this to our listener iff this was a state change.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.Fab.WhichOneof">
+<code class="descname">WhichOneof</code><span class="sig-paren">(</span><em>oneof_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.WhichOneof" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the currently set field inside a oneof, or None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.fab_pb2.Fab.heavy_chain">
+<code class="descname">heavy_chain</code><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.heavy_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “heavy_chain” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.fab_pb2.Fab.light_chain">
+<code class="descname">light_chain</code><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.light_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “light_chain” proto field.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.fab_pb2.Fab.name">
+<code class="descname">name</code><a class="headerlink" href="#abpytools.core.formats.fab_pb2.Fab.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “name” proto field.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="abpytools.core.formats.fab_pb2.FabCollection">
-<em class="property">class </em><code class="descclassname">abpytools.core.formats.fab_pb2.</code><code class="descname">FabCollection</code><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.pyext._message.CMessage</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<em class="property">class </em><code class="descclassname">abpytools.core.formats.fab_pb2.</code><code class="descname">FabCollection</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">google.protobuf.message.Message</span></code></p>
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.ByteSize">
+<code class="descname">ByteSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.ByteSize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.Clear">
+<code class="descname">Clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.Clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.ClearField">
+<code class="descname">ClearField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.ClearField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="abpytools.core.formats.fab_pb2.FabCollection.DESCRIPTOR">
-<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.pyext._message.MessageDescriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DESCRIPTOR</code><em class="property"> = &lt;google.protobuf.descriptor.Descriptor object&gt;</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.DESCRIPTOR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.DiscardUnknownFields">
+<code class="descname">DiscardUnknownFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.DiscardUnknownFields" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="abpytools.core.formats.fab_pb2.FabCollection.FABS_FIELD_NUMBER">
 <code class="descname">FABS_FIELD_NUMBER</code><em class="property"> = 1</em><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.FABS_FIELD_NUMBER" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.FindInitializationErrors">
+<code class="descname">FindInitializationErrors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.FindInitializationErrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds required fields which are not initialized.</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>A list of strings.  Each string is a path to an uninitialized field from
+the top-level message, e.g. “foo.bar[5].baz”.</dd>
+</dl>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.FromString">
+<em class="property">static </em><code class="descname">FromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.FromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.HasField">
+<code class="descname">HasField</code><span class="sig-paren">(</span><em>field_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.HasField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.IsInitialized">
+<code class="descname">IsInitialized</code><span class="sig-paren">(</span><em>errors=None</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.IsInitialized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all required fields of a message are set.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><dl class="first last docutils">
+<dt>errors:  A list which, if provided, will be populated with the field</dt>
+<dd>paths of all missing required fields.</dd>
+</dl>
+</dd>
+<dt>Returns:</dt>
+<dd>True iff the specified message has all required fields set.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.ListFields">
+<code class="descname">ListFields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.ListFields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.MergeFrom">
+<code class="descname">MergeFrom</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.MergeFrom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.MergeFromString">
+<code class="descname">MergeFromString</code><span class="sig-paren">(</span><em>serialized</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.MergeFromString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.RegisterExtension">
+<em class="property">static </em><code class="descname">RegisterExtension</code><span class="sig-paren">(</span><em>extension_handle</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.RegisterExtension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.SerializePartialToString">
+<code class="descname">SerializePartialToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.SerializePartialToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.SerializeToString">
+<code class="descname">SerializeToString</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.SerializeToString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.SetInParent">
+<code class="descname">SetInParent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.SetInParent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the _cached_byte_size_dirty bit to true,
+and propagates this to our listener iff this was a state change.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.WhichOneof">
+<code class="descname">WhichOneof</code><span class="sig-paren">(</span><em>oneof_name</em><span class="sig-paren">)</span><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.WhichOneof" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the currently set field inside a oneof, or None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abpytools.core.formats.fab_pb2.FabCollection.fabs">
+<code class="descname">fabs</code><a class="headerlink" href="#abpytools.core.formats.fab_pb2.FabCollection.fabs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Magic attribute generated for “fabs” proto field.</p>
+</dd></dl>
 
 </dd></dl>
 
