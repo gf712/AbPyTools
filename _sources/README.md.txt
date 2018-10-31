@@ -75,6 +75,9 @@ Import to python
 
 Changelog
 -
+### v0.3.2 (release date 31/10/2018)
+ - Added docs page
+ - Fixed Pypi build with Cython files
 ### v0.3.1 (release date 30/10/2018)
  - Major:
    - Protobuf support to serialise core objects (`ChainCollection` and `FabCollection`)

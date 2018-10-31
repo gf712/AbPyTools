@@ -54,13 +54,15 @@ This could be any sequence, such as DNA or protein, and is usually easy to disti
 to the different alphabets used to represent these.</p>
 <p>The information that can be stored in a FASTA file is very limited, and
 more sophisticated representations, such as sequence numbering of antibodies
-is not possible.</p>
+are not possible.</p>
 <ul class="simple">
-<li>JSON</li>
+<li>JSON (JavaScript Object Notation)</li>
 </ul>
-<p>JSON is a simple format that resembles a Python dictionary, and
-is easy to parse and read. However, it is inefficient in terms of disk usage.
-AbPyTools uses this format to serialise objects, and these are human readable.</p>
+<p><a href="#id1"><span class="problematic" id="id2">`JSON&lt;https://www.json.org/&gt;`_</span></a> is a lightweight data-interchange format.
+It resembles a Python dictionary, and is easy to parse and read.
+However, it is inefficient in terms of disk usage.
+AbPyTools uses this format to serialise objects, and the resulting files
+are human readable.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;ordered_names&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">],</span>
     <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -77,9 +79,9 @@ AbPyTools uses this format to serialise objects, and these are human readable.</
 <ul class="simple">
 <li>Protocol Buffers</li>
 </ul>
-<p>Protocol Buffers are relatively straight forward to use, and these
-decode and encode messages in binary format, with a focus on speed
-of encoding/decoding and disk usage reduction. This format is about
+<p>Protocol Buffers are relatively straight forward to use. They
+encode messages in binary format, with a focus on speed
+of encoding/decoding and disk usage reduction. In AbPyTools, this format is about
 5 times more space efficient and at least as fast to read and write,
 compared to JSON. The downside is that it is not human readable and
 requires the precompiled parser to perform the encoding and decoding.
