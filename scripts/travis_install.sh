@@ -7,7 +7,6 @@ hash -r
 conda config --set always_yes yes --set changeps1 no
 conda update -q conda
 conda info -a
-echo ${PYTHON_VERSION}
 conda create -q -n test-environment python=${PYTHON_VERSION} scipy numpy pip matplotlib pandas libprotobuf=3.6.0
 source activate test-environment
 pip install coveralls coverage cython protobuf==3.6.0

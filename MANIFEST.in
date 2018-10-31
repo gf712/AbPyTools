@@ -1,0 +1,4 @@
+recursive-include abpytools *.h *.hpp *.c *.cpp *.pxd *.pyx *.pxi
+
+prune __pycache__
+prune *.pyc
