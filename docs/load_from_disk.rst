@@ -19,12 +19,14 @@ to the different alphabets used to represent these.
 
 The information that can be stored in a FASTA file is very limited, and
 more sophisticated representations, such as sequence numbering of antibodies
-is not possible.
+are not possible.
 
-- JSON
-JSON is a simple format that resembles a Python dictionary, and
-is easy to parse and read. However, it is inefficient in terms of disk usage.
-AbPyTools uses this format to serialise objects, and these are human readable. ::
+- JSON (JavaScript Object Notation)
+`JSON<https://www.json.org/>`_ is a lightweight data-interchange format.
+It resembles a Python dictionary, and is easy to parse and read.
+However, it is inefficient in terms of disk usage.
+AbPyTools uses this format to serialise objects, and the resulting files
+are human readable. ::
     {
         "ordered_names": ["test"],
         "test": {
@@ -38,9 +40,9 @@ AbPyTools uses this format to serialise objects, and these are human readable. :
     }
 
 - Protocol Buffers
-Protocol Buffers are relatively straight forward to use, and these
-decode and encode messages in binary format, with a focus on speed
-of encoding/decoding and disk usage reduction. This format is about
+Protocol Buffers are relatively straight forward to use. They
+encode messages in binary format, with a focus on speed
+of encoding/decoding and disk usage reduction. In AbPyTools, this format is about
 5 times more space efficient and at least as fast to read and write,
 compared to JSON. The downside is that it is not human readable and
 requires the precompiled parser to perform the encoding and decoding.
