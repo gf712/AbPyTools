@@ -2,8 +2,16 @@ sudo: false
 language: python
 
 env:
-- PYTHON_VERSION=3.6
-- PYTHON_VERSION=3.7
+  - PYTHON_VERSION=3.6
+  - PYTHON_VERSION=3.7
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode8
+      env:
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+        
 jobs:
   include:
     - stage: deploy
