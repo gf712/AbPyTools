@@ -48,7 +48,8 @@ if use_cython:
 
     cython_extensions = [Extension("abpytools.cython_extensions.convert_py_2_C",
                                    ["abpytools/cython_extensions/convert_py_2_C.pyx"],
-                                   language='c++'),
+                                   language='c++',
+                                   ),
                          Extension("abpytools.utils.math_utils",
                                    ["abpytools/utils/math_utils.pyx", "abpytools/utils/ops.cpp"],
                                    extra_compile_args=['-march=native', '-fopenmp', '-std=c++11'],
@@ -67,6 +68,13 @@ if use_cython:
         compile_time_env['SSE4_2'] = 1
     except subprocess.CalledProcessError:
         compile_time_env['SSE4_2'] = 0
+
+    print(f"Found SSE4.2 instructions... {compile_time_env['SSE4_2']}")
+
+    if sys.platform == 'darwin':
+        compile_time_env['IS_DARWIN'] = 1
+    else:
+        compile_time_env['IS_DARWIN'] = 0
 
     cython_extensions_ = cythonize(cython_extensions,
                                    compile_time_env=compile_time_env,

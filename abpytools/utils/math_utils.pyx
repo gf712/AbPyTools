@@ -1,8 +1,11 @@
 from libc.math cimport pow as pow_C
-from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer, memalign)
+from abpytools.cython_extensions.convert_py_2_C cimport (get_C_double_array_pointers, release_C_pointer, allocate_p)
 import itertools
 from cython.operator cimport dereference, postincrement
 from libc.stdlib cimport malloc, free
+
+IF not IS_DARWIN:
+    from abpytools.cython_extensions.convert_py_2_C cimport memalign
 
 cdef extern from "ops.h":
     double norm_op(double *A, int p, int size)
@@ -213,10 +216,7 @@ cdef class Vector:
         Returns:
 
         """
-        IF SSE4_2:
-            cdef double *value_pointers_ = <double *> memalign(16, size*sizeof(double))
-        ELSE:
-            cdef double *value_pointers_ = <double *> malloc(size*sizeof(double))
+        value_pointers_ = allocate_p(size)
 
         if value_pointers_ is NULL:
             raise MemoryError("Failed to allocated memory")

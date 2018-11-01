@@ -7,14 +7,20 @@ from cython.operator cimport dereference, postincrement
 cdef double* get_C_double_array_pointers(list a, int size):
 
     """
-    Internal function to convert a python list to C array
-    :param a: 
-    :param size: 
-    :return: 
+    Internal function to convert a python list of floats to C double array.
+        
+    Args:
+        a: 
+        size: 
+
+    Returns:
+
     """
 
-    # allocate memory of a_ and b_ C arrays that will contain a copy of a and b lists, respectively
-    IF SSE4_2:
+    # allocate memory of a_ C array that will contain a copy of list
+    IF IS_DARWIN:
+        cdef double *a_ = <double *> malloc(size*sizeof(double))
+    ELIF SSE4_2:
         cdef double *a_ = <double *> memalign(16, size*sizeof(double))
     ELSE:
         cdef double *a_ = <double *> malloc(size*sizeof(double))
@@ -31,25 +37,62 @@ cdef double* get_C_double_array_pointers(list a, int size):
     return a_
 
 cdef double** allocate_pp(int size):
-    IF SSE4_2:
+    """
+    Allocate memory for double pointer.
+    
+    Args:
+        size: 
+
+    Returns:
+
+    """
+    IF IS_DARWIN:
+        cdef double **a_ = <double **> malloc(size*sizeof(double*))
+    ELIF SSE4_2:
         cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
     ELSE:
         cdef double **a_ = <double **> malloc(size*sizeof(double*))
+
     for i in range(size):
         a_[i] = <double *> malloc(sizeof(double))
+    return a_
+
+cdef double* allocate_p(int size):
+    """
+    Allocate memory for pointer.
+    
+    Args:
+        size: 
+
+    Returns:
+
+    """
+    IF IS_DARWIN:
+        cdef double *a_ = <double *> malloc(size*sizeof(double*))
+    ELIF SSE4_2:
+        cdef double *a_ = <double *> memalign(16, size*sizeof(double*))
+    ELSE:
+        cdef double *a_ = <double *> malloc(size*sizeof(double*))
+
     return a_
 
 cdef double** get_C_double_array_pp(double* a, int size):
 
     """
     Internal function to convert a C array to a C array of pointers that point to pointers (double**)
-    :param a: 
-    :param size: 
-    :return: 
+
+    Args:
+        a: 
+        size: 
+
+    Returns:
+
     """
 
-    # allocate memory of a_ C arrays that will contain a copy of list a
-    IF SSE4_2:
+    # allocate memory of a_ C array that will contain a copy of list a
+    IF IS_DARWIN:
+        cdef double **a_ = <double **> malloc(size*sizeof(double*))
+    ELIF SSE4_2:
         cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
     ELSE:
         cdef double **a_ = <double **> malloc(size*sizeof(double*))
@@ -76,7 +119,9 @@ cdef char* get_C_char_array_pointers(str a, int size):
     """
 
     # allocate memory of a_ and b_ C arrays that will contain a copy of a and b lists, respectively
-    IF SSE4_2:
+    IF IS_DARWIN:
+        cdef char *a_ = <char*> malloc(size*sizeof(char))
+    ELIF SSE4_2:
         cdef char *a_ = <char*> memalign(16, size*sizeof(char))
     ELSE:
         cdef char *a_ = <char*> malloc(size*sizeof(char))
@@ -120,7 +165,9 @@ cdef double** get_pp_from_ptr(double* ptr, int size):
     Returns:
 
     """
-    IF SSE4_2:
+    IF IS_DARWIN:
+        cdef double **a_ = <double **> malloc(size*sizeof(double*))
+    ELIF SSE4_2:
         cdef double **a_ = <double **> memalign(16, size*sizeof(double*))
     ELSE:
         cdef double **a_ = <double **> malloc(size*sizeof(double*))

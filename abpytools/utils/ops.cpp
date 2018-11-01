@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cmath>
+#ifdef __IS_DARWIN__
 #include <malloc.h>
+#endif
 #if __SSE4_2__
 #include <nmmintrin.h>
 #endif
