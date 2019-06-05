@@ -4,7 +4,6 @@ AbPyTools
 [![Coverage Status](https://coveralls.io/repos/github/gf712/AbPyTools/badge.svg?branch=master)](https://coveralls.io/github/gf712/AbPyTools?branch=master)
 [![Build Status](https://travis-ci.org/gf712/AbPyTools.svg?branch=master)](https://travis-ci.org/gf712/AbPyTools)
 [![Code Health](https://landscape.io/github/gf712/AbPyTools/master/landscape.svg?style=flat)](https://landscape.io/github/gf712/AbPyTools/master)
-[![PyPi version](https://pypip.in/v/abpytools/badge.png)](https://crate.io/packages/abpytools/)
 [![Documentation Status](https://readthedocs.org/projects/abpytools/badge/?version=latest)](https://abpytools.readthedocs.io/en/latest/?badge=latest)
 
 
