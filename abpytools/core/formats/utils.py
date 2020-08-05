@@ -1,6 +1,6 @@
-from . import ChainProto
 from ..flags import *
-
+if BACKEND_FLAGS.HAS_PROTO:
+    from . import ChainProto
 
 def get_protobuf_numbering_scheme(numbering_scheme):
     """
