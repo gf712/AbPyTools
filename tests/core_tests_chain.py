@@ -113,7 +113,7 @@ class ChainCore(unittest.TestCase):
 
     @parameterized.expand([
         (f"{NUMBERING_FLAGS.CHOTHIA}_numbering", NUMBERING_FLAGS.CHOTHIA, "H82A"),
-        (f"{NUMBERING_FLAGS.CHOTHIA_EXT}_numbering", NUMBERING_FLAGS.CHOTHIA_EXT, "H80"),
+        (f"{NUMBERING_FLAGS.CHOTHIA_EXT}_numbering", NUMBERING_FLAGS.CHOTHIA_EXT, "H82"),
         (f"{NUMBERING_FLAGS.KABAT}_numbering", NUMBERING_FLAGS.KABAT, "H82A")
     ])
     @unittest.skipUnless(check_connection(URL=ABNUM_URL), 'No internet connection, skipping test.')
