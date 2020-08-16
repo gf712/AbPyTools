@@ -99,12 +99,11 @@ def get_protoc_version(path):
     Returns:
         protobuf version with the format "%d.%d.%d"
     """
-
     with subprocess.Popen(f"{path} --version", shell=True, stdout=subprocess.PIPE) as proc:
         # get stdout
         protobuf_version_b = proc.communicate()[0]
         protobuf_version_out = protobuf_version_b.decode("utf-8")
-        protobuf_version_re = re.findall(r"\d.\d.\d", protobuf_version_out)
+        protobuf_version_re = re.findall(r"\d+.\d+.\d+", protobuf_version_out)
         if len(protobuf_version_re) == 1:
             protobuf_version = protobuf_version_re[0]
         else:
@@ -141,7 +140,7 @@ if HAS_PROTOBUF:
     else:
         print(f"-- Protoc  : {protoc} (Found {get_protoc_version(protoc)})\n"
               f"-- Protobuf: {protobuf.__file__} (Found {protobuf.__version__})")
-        print("-- Found a matching proto compiler  and protobuf python library")
+        print("-- Found a matching proto compiler and protobuf python library")
         HAS_PROTOBUF = True
 
 if HAS_PROTOBUF:
